@@ -77,9 +77,9 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // Logo paths
-  const logoLight = process.env.PUBLIC_URL + '/social.jpg';
-  const logoDark = process.env.PUBLIC_URL + '/socialDark.png';
+  // Logo paths - Vite uses direct public folder access
+  const logoLight = '/social.jpg';
+  const logoDark = '/socialDark.png';
 
   const isActive = (path: string) => location.pathname.includes(path);
 

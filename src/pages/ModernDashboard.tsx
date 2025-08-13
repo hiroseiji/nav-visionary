@@ -1,322 +1,897 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
-import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
-import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
-import { ArticlesTable } from '@/components/dashboard/ArticlesTable';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import React, { useEffect, useState, useRef, useContext } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import "chart.js/auto";
+import { Line, Pie } from "react-chartjs-2";
+import {
+  FaChartBar,
+  FaRegCalendarAlt,
+  FaKey,
+  FaRegListAlt,
+  FaEllipsisV,
+  FaSortAmountDown,
+  FaSortAmountUp,
+} from "react-icons/fa";
+import { LuCalendarDays } from "react-icons/lu";
+import { Player } from "@lottiefiles/react-lottie-player";
+import { IoInformationCircle } from "react-icons/io5";
+import { TfiReload } from "react-icons/tfi";
+import { LuThumbsDown, LuThumbsUp } from "react-icons/lu";
+import { ImConfused } from "react-icons/im";
+import { MdOutlineSentimentNeutral } from "react-icons/md";
+import { FaAngleDown } from "react-icons/fa6";
+import { toast } from "sonner";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Chart } from "chart.js";
+import Header from "../components/Header";
+import loadingAnimation from "../assets/loadingAnimation.json";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { ThemeContext } from "../components/ThemeContext";
+import CountryModal from "../components/CountryModal";
+import {
+  fetchOrganizationData,
+  fetchBroadcastArticles,
+  fetchPrintMediaArticles,
+  fetchArticles,
+  handleDelete,
+  handleSearchQuery,
+  filterByDateRange,
+  confirmSentimentUpdate,
+  mapSentimentToLabel,
+  handleSentimentChange,
+  confirmCountryUpdate,
+  getScreenConfig,
+  fetchCountries,
+  handleScrape,
+  handleSentimentEdit,
+  handleMenuClick,
+  handleCountryEdit,
+  handleSentimentCancel,
+  generateLogoUrl,
+  generateLineData,
+  getGradient,
+  generatePieChartData,
+  generatePieChartOptions,
+  Article,
+  FacebookPost,
+  BroadcastArticle,
+  PrintMediaArticle,
+  OrganizationData,
+} from "../utils/dashboardUtils";
 
-// Import your existing utility functions
-// import { fetchOrganizationData, generatePieChartData, generateLineData } from '../utils/dashboardUtils';
+Chart.register(ChartDataLabels);
 
-interface DashboardData {
-  organizationName: string;
-  totalArticles: number;
-  monthlyMentions: number;
-  totalKeywords: number;
-  totalTopics: number;
-  articles: any[];
-  facebookPosts: any[];
-  broadcastArticles: any[];
-  printMediaArticles: any[];
+interface EditingSource {
+  articleId: string;
+  value: string;
 }
 
-export default function ModernDashboard() {
-  const { orgId } = useParams();
+interface EditingSentiment {
+  articleId: string;
+  value: string;
+}
+
+interface EditingCountry {
+  articleId: string;
+  currentCountry: string;
+}
+
+function ModernDashboard() {
+  const [organizationData, setOrganizationData] = useState<OrganizationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const selectedOrg = localStorage.getItem("selectedOrg");
+  const { orgId } = useParams<{ orgId: string }>();
+  const selectedOrgId = localStorage.getItem("selectedOrgId");
+  const [facebookPosts, setFacebookPosts] = useState<FacebookPost[]>([]);
+  const [scraping, setScraping] = useState(false);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [totalPostsAndArticles, setTotalPostsAndArticles] = useState(0);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [displayedArticles, setDisplayedArticles] = useState<Article[]>([]);
+  const [monthlyMentions, setMonthlyMentions] = useState(0);
+  const [totalArticles, setTotalArticles] = useState(0);
+  const [editingSource, setEditingSource] = useState<EditingSource | null>(null);
+  const [totalKeywords, setTotalKeywords] = useState(0);
+  const [editingSentiment, setEditingSentiment] = useState<EditingSentiment | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<FacebookPost[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [scraping, setScraping] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [keywordDistribution, setKeywordDistribution] = useState<Record<string, { count: number; sources: string[] }>>({});
+  const [printMediaArticles, setPrintMediaArticles] = useState<PrintMediaArticle[]>([]);
+  const [filteredPrintMediaArticles, setFilteredPrintMediaArticles] = useState<PrintMediaArticle[]>([]);
+  const [broadcastArticles, setBroadcastArticles] = useState<BroadcastArticle[]>([]);
+  const [filteredBroadcastArticles, setFilteredBroadcastArticles] = useState<BroadcastArticle[]>([]);
+  const { theme } = useContext(ThemeContext);
+  const [totalTopics, setTotalTopics] = useState(0);
+  const [infoTooltip, setInfoTooltip] = useState<string | null>(null);
+  const token = localStorage.getItem("token");
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [countries, setCountries] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [editingCountry, setEditingCountry] = useState<EditingCountry | null>(null);
+  const [sourceCountryMap, setSourceCountryMap] = useState<Record<string, string>>({});
+  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+  const currentArticleId = editingCountry?.articleId;
 
-  // Sample data for demonstration - replace with actual data fetching
+  // Shared sort states
+  const [articleSortOrder, setArticleSortOrder] = useState<"ascending" | "descending">("descending");
+  const [postSortOrder, setPostSortOrder] = useState<"ascending" | "descending">("descending");
+  const [broadcastSortOrder, setBroadcastSortOrder] = useState<"ascending" | "descending">("descending");
+  const [printSortOrder, setPrintSortOrder] = useState<"ascending" | "descending">("descending");
+
+  // Shared sort ave states
+  const [articleAveSortOrder, setArticleAveSortOrder] = useState<"ascending" | "descending" | "">("");
+  const [postAveSortOrder, setPostAveSortOrder] = useState<"ascending" | "descending" | "">("");
+  const [broadcastAveSortOrder, setBroadcastAveSortOrder] = useState<"ascending" | "descending" | "">("");
+  const [printAveSortOrder, setPrintAveSortOrder] = useState<"ascending" | "descending" | "">("");
+
+  // Shared sort reach states
+  const [articleReachSortOrder, setArticleReachSortOrder] = useState<"ascending" | "descending" | "">("");
+  const [postReachSortOrder, setPostReachSortOrder] = useState<"ascending" | "descending" | "">("");
+
+  // Shared sort rank states
+  const [articleRankSortOrder, setArticleRankSortOrder] = useState<"ascending" | "descending" | "">("");
+  const [postRankSortOrder, setPostRankSortOrder] = useState<"ascending" | "descending" | "">("");
+
+  const [menuOnlineArticleId, setMenuOnlineArticleId] = useState<string | null>(null);
+  const [menuSocialPostId, setMenuSocialPostId] = useState<string | null>(null);
+  const [menuBroadcastId, setMenuBroadcastId] = useState<string | null>(null);
+  const [menuPrintArticleId, setMenuPrintArticleId] = useState<string | null>(null);
+
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+  const { chartWidth, chartHeight, legendPosition } = getScreenConfig();
+
+  const [pieData, setPieData] = useState({
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        backgroundColor: [],
+        borderColor: [],
+        borderWidth: 2,
+      },
+    ],
+  });
+
+  // For articles
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const sampleData: DashboardData = {
-          organizationName: "First National Bank of Botswana",
-          totalArticles: 14589,
-          monthlyMentions: 1231,
-          totalKeywords: 5,
-          totalTopics: 4,
-          articles: [
-            {
-              _id: "1",
-              source: "Pressreader",
-              title: "FNBB eyes green bond market...",
-              snippet: "FNBB eyes green bond market...",
-              publication_date: "2025-07-04",
-              country: "Botswana",
-              sentiment: "positive",
-              ave: 31140000.00,
-              coverage_type: "Not Set",
-              rank: 4,
-              reach: 31140000,
-              url: "https://example.com",
-              logo_url: ""
+    setFilteredArticles(
+      filterByDateRange(articles, "publication_date", startDate, endDate)
+    );
+  }, [startDate, endDate, articles]);
+
+  // For broadcast
+  useEffect(() => {
+    setFilteredBroadcastArticles(
+      filterByDateRange(broadcastArticles, "mentionDT", startDate, endDate)
+    );
+  }, [startDate, endDate, broadcastArticles]);
+
+  // For print media
+  useEffect(() => {
+    setFilteredPrintMediaArticles(
+      filterByDateRange(
+        printMediaArticles,
+        "publicationDate",
+        startDate,
+        endDate
+      )
+    );
+  }, [startDate, endDate, printMediaArticles]);
+
+  useEffect(() => {
+    const currentOrgId =
+      user.role === "super_admin" ? selectedOrg : user.organizationId;
+    if (currentOrgId) {
+      fetchOrganizationData(
+        currentOrgId,
+        setOrganizationData,
+        setTotalKeywords,
+        setError,
+        navigate
+      );
+    }
+  }, [user.role, selectedOrg, user.organizationId, navigate]);
+
+  // Process keyword distribution
+  useEffect(() => {
+    if (articles.length > 0) {
+      const selectedMonth = startDate
+        ? new Date(startDate).getMonth()
+        : new Date().getMonth();
+      const selectedYear = startDate
+        ? new Date(startDate).getFullYear()
+        : new Date().getFullYear();
+
+      const keywordMap: Record<string, { count: number; sources: Set<string> }> = {};
+
+      articles.forEach((article) => {
+        const articleDate = new Date(article.publication_date);
+        if (
+          Array.isArray(article.matched_keywords) &&
+          articleDate.getMonth() === selectedMonth &&
+          articleDate.getFullYear() === selectedYear
+        ) {
+          article.matched_keywords.forEach((keyword) => {
+            if (!keywordMap[keyword]) {
+              keywordMap[keyword] = { count: 0, sources: new Set() };
             }
-          ],
-          facebookPosts: [],
-          broadcastArticles: [],
-          printMediaArticles: []
+            keywordMap[keyword].count += 1;
+            keywordMap[keyword].sources.add(article.source);
+          });
+        }
+      });
+
+      const processedKeywordMap: Record<string, { count: number; sources: string[] }> = {};
+      Object.keys(keywordMap).forEach((key) => {
+        processedKeywordMap[key] = {
+          count: keywordMap[key].count,
+          sources: Array.from(keywordMap[key].sources)
         };
-        
-        setDashboardData(sampleData);
+      });
+
+      setKeywordDistribution(processedKeywordMap);
+    }
+  }, [articles, startDate]);
+
+  useEffect(() => {
+    fetchCountries().then((data) => {
+      console.log("Fetched countries", data);
+      setCountries(data);
+    });
+  }, []);
+
+  // Pie chart data preparation
+  useEffect(() => {
+    const chartCanvas = document.createElement("canvas");
+    const ctx = chartCanvas.getContext("2d");
+    if (ctx) {
+      const newPieData = generatePieChartData(
+        keywordDistribution,
+        getGradient,
+        ctx
+      );
+      setPieData(newPieData);
+    }
+  }, [keywordDistribution]);
+
+  // Pie chart options
+  const pieOptions = generatePieChartOptions(
+    pieData,
+    keywordDistribution,
+    theme,
+    legendPosition
+  );
+
+  // Generate dataset for the current year
+  const currentYear = new Date().getFullYear();
+
+  // Initialize arrays to hold counts for each category
+  const onlineArticlesByMonth = new Array(12).fill(0);
+  const socialMediaPostsByMonth = new Array(12).fill(0);
+  const broadcastArticlesByMonth = new Array(12).fill(0);
+  const printArticlesByMonth = new Array(12).fill(0);
+
+  // Count the number of articles/posts per month
+  articles.forEach((article) => {
+    const articleDate = new Date(article.publication_date);
+    if (articleDate.getFullYear() === currentYear) {
+      onlineArticlesByMonth[articleDate.getMonth()] += 1;
+    }
+  });
+
+  facebookPosts.forEach((post) => {
+    const postDate = new Date(post.createdTime);
+    if (postDate.getFullYear() === currentYear) {
+      socialMediaPostsByMonth[postDate.getMonth()] += 1;
+    }
+  });
+
+  broadcastArticles.forEach((article) => {
+    const articleDate = new Date(article.mentionDT);
+    if (articleDate.getFullYear() === currentYear) {
+      broadcastArticlesByMonth[articleDate.getMonth()] += 1;
+    }
+  });
+
+  printMediaArticles.forEach((article) => {
+    const articleDate = new Date(article.publicationDate);
+    if (articleDate.getFullYear() === currentYear) {
+      printArticlesByMonth[articleDate.getMonth()] += 1;
+    }
+  });
+
+  // Create the dataset for the line graph
+  const lineData = generateLineData(
+    articles,
+    facebookPosts,
+    broadcastArticles,
+    printMediaArticles
+  );
+
+  const lineOptions = {
+    responsive: true,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { family: "Raleway" },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+        },
+      },
+      y: {
+        beginAtZero: true,
+        suggestedMax: 200, // Stretch y-axis
+        stepSize: 200,
+        grid: { color: "rgba(200, 200, 200, 0.2)" },
+        ticks: {
+          font: { family: "Raleway" },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          pointStyle: "circle", // Forces circle style
+          font: {
+            family: "Raleway",
+            size: 13,
+            weight: 500,
+          },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+          paddingBottom: 25,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: any) => `${tooltipItem.raw} Articles`,
+        },
+      },
+      datalabels: { display: false },
+    },
+    animation: { duration: 1000 },
+  };
+
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      fetchBroadcastArticles(
+        selectedOrg,
+        setBroadcastArticles,
+        setFilteredBroadcastArticles,
+        setLoading
+      );
+    }
+  }, [selectedOrg]);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      fetchPrintMediaArticles(
+        selectedOrg,
+        setPrintMediaArticles,
+        setFilteredPrintMediaArticles,
+        setLoading
+      );
+    }
+  }, [selectedOrg]);
+
+  useEffect(() => {
+    const fetchOrgData = async () => {
+      if (hasFetched.current) return; // Prevent duplicate fetches
+
+      try {
+        const currentOrgId =
+          user.role === "super_admin"
+            ? selectedOrg || localStorage.getItem("selectedOrg")
+            : user.organizationId;
+
+        if (!currentOrgId) {
+          throw new Error("No organization selected.");
+        }
+
+        const response = await axios.get(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${currentOrgId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        const orgData = response.data;
+        setOrganizationData(orgData);
+
+        // Calculate the total number of keywords from the keywords array
+        const totalKeywordsCount = orgData.organization.keywords?.length || 0;
+        setTotalKeywords(totalKeywordsCount); // Update state
+
+        hasFetched.current = true; // Prevent further fetch attempts
       } catch (error) {
-        toast.error('Failed to load dashboard data');
+        console.error("Error fetching organization data:", error);
+        setError("Failed to load organization data.");
+        toast.error("Failed to fetch organization data. Please try again.");
+        navigate("/login");
       } finally {
         setLoading(false);
       }
     };
 
-    if (orgId) {
-      fetchData();
+    if (user && (user.role === "super_admin" || user.role === "org_admin")) {
+      fetchOrgData();
     }
-  }, [orgId]);
+  }, [user, selectedOrg, navigate]);
 
-  const handleDateChange = (dates: [Date | null, Date | null]) => {
-    setStartDate(dates[0]);
-    setEndDate(dates[1]);
-  };
-
-  const handleDateClear = () => {
-    setStartDate(null);
-    setEndDate(null);
-  };
-
-  const handleRefresh = async () => {
-    setScraping(true);
-    try {
-      // Simulate scraping
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Articles refreshed successfully');
-    } catch (error) {
-      toast.error('Failed to refresh articles');
-    } finally {
-      setScraping(false);
+  // Use fetchArticles inside useEffect
+  useEffect(() => {
+    if (selectedOrg) {
+      fetchArticles(
+        selectedOrg,
+        sourceCountryMap,
+        setArticles,
+        setDisplayedArticles,
+        setTotalArticles,
+        setMonthlyMentions,
+        setError,
+        setLoading
+      );
     }
-  };
-
-  // Sample chart data - replace with actual data processing
-  const currentYear = new Date().getFullYear();
-  const pieData = {
-    labels: ['Keyword 1', 'Keyword 2', 'Keyword 3'],
-    datasets: [{
-      data: [30, 40, 30],
-      backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
-      borderColor: ['#1e40af', '#047857', '#d97706'],
-      borderWidth: 2,
-    }]
-  };
-
-  const pieOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-      }
-    }
-  };
-
-  const lineData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Online Articles',
-        data: [1400, 1800, 1200, 1900, 1600, 2000, 1750, 1850, 1650, 1950, 1700, 1800],
-        borderColor: '#3b82f6',
-        backgroundColor: '#3b82f6',
-        tension: 0.4,
-      },
-      {
-        label: 'Social Media Posts',
-        data: [800, 1200, 900, 1400, 1100, 1600, 1300, 1500, 1200, 1700, 1400, 1500],
-        borderColor: '#10b981',
-        backgroundColor: '#10b981',
-        tension: 0.4,
-      },
-      {
-        label: 'Broadcast Articles',
-        data: [600, 800, 500, 900, 700, 1000, 850, 950, 750, 1100, 900, 1000],
-        borderColor: '#f59e0b',
-        backgroundColor: '#f59e0b',
-        tension: 0.4,
-      },
-      {
-        label: 'Print Media Articles',
-        data: [400, 600, 300, 700, 500, 800, 650, 750, 550, 900, 700, 800],
-        borderColor: '#ef4444',
-        backgroundColor: '#ef4444',
-        tension: 0.4,
-      }
-    ]
-  };
-
-  const lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      }
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 space-y-8">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-[300px]" />
-          <Skeleton className="h-4 w-[200px]" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="space-y-2">
-                <Skeleton className="h-4 w-[150px]" />
-                <Skeleton className="h-8 w-[100px]" />
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-[200px]" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[300px] w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!dashboardData) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-muted-foreground">No data available</h2>
-          <p className="text-muted-foreground">Please check your organization settings.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  const handleAddProject = () => {
-    toast.info('Add Project feature coming soon!');
-  };
-
-  const handleImportData = () => {
-    toast.info('Import Data feature coming soon!');
-  };
+  }, [selectedOrg, sourceCountryMap]);
 
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
-    // Implement search functionality
+    setSearchQuery(query);
+    handleSearchQuery(
+      query,
+      articles,
+      facebookPosts,
+      broadcastArticles,
+      printMediaArticles,
+      setFilteredArticles,
+      setFilteredPosts,
+      setFilteredBroadcastArticles,
+      setFilteredPrintMediaArticles
+    );
   };
 
+  const getSortIcon = (order: string) => {
+    return order === "ascending" ? (
+      <FaSortAmountDown />
+    ) : order === "descending" ? (
+      <FaSortAmountUp />
+    ) : (
+      <FaSortAmountUp style={{ opacity: 0.4 }} />
+    );
+  };
+
+  // Render loading spinner if data is loading
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Dashboard Header */}
-      <DashboardHeader
-        organizationName={dashboardData.organizationName}
-        userName={`${user.firstName || 'Totok'} ${user.lastName || 'Michael'}`}
-        userEmail={user.email || 'tm2kela2@gmail.com'}
-        onAddProject={handleAddProject}
-        onImportData={handleImportData}
-        onSearch={handleSearch}
-      />
-
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Page Title */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Plan, prioritize, and accomplish your tasks with ease.
-          </p>
+    <div>
+      {scraping && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          {/* Replace spinner with Lottie animation */}
+          <Player
+            autoplay
+            loop
+            src={loadingAnimation}
+            style={{ height: "220px", width: "220px" }}
+          />
         </div>
+      )}
 
-        {/* Metrics Cards */}
-        <DashboardMetrics
-          totalArticles={dashboardData.totalArticles}
-          monthlyMentions={dashboardData.monthlyMentions}
-          totalKeywords={dashboardData.totalKeywords}
-          totalTopics={dashboardData.totalTopics}
+      <CountryModal
+        isOpen={isCountryModalOpen}
+        onClose={() => setIsCountryModalOpen(false)}
+      >
+        <h2 style={{ fontFamily: "Raleway" }}>Edit Country</h2>
+        <select
+          value={selectedCountry}
+          onChange={(e) => setSelectedCountry(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          {countries.map((country, index) => (
+            <option key={index} value={country}>
+              {country}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => {
+            console.log("Country Update Called With:", {
+              currentArticleId,
+              selectedCountry,
+              selectedOrg,
+              token: localStorage.getItem("token"),
+            });
+
+            if (currentArticleId && selectedOrg && token) {
+              confirmCountryUpdate(
+                currentArticleId,
+                selectedCountry,
+                selectedOrg,
+                token,
+                setArticles,
+                setIsCountryModalOpen,
+                setEditingCountry,
+                toast
+              );
+            }
+          }}
+          className="w-full mt-4 p-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+        >
+          Save Changes
+        </button>
+      </CountryModal>
+
+      <div className="min-h-screen bg-background">
+        <Header
+          userName={`${user.firstName || 'User'} ${user.lastName || ''}`}
+          userRole={user.role || 'user'}
+          onSearch={handleSearch}
         />
-
-        {/* Charts */}
-        <DashboardCharts
-          pieData={pieData}
-          pieOptions={pieOptions}
-          lineData={lineData}
-          lineOptions={lineOptions}
-          currentYear={currentYear}
-        />
-
-        {/* Latest News Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">Latest News</CardTitle>
-                <CardDescription>Recent media mentions and articles</CardDescription>
+        
+        <div className="container mx-auto p-6">
+          <h2 className="text-3xl font-bold mb-6">
+            {organizationData?.organization?.alias || 'Organization'}'s Dashboard
+          </h2>
+          
+          <div className="space-y-8">
+            {/* Card Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-card rounded-lg border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <FaChartBar className="h-8 w-8 text-primary mb-2" />
+                    <div className="flex items-center space-x-2">
+                      <IoInformationCircle 
+                        className="h-4 w-4 text-muted-foreground cursor-help" 
+                        title="Total number of online, social, broadcast and print articles found over time."
+                      />
+                    </div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Total Mentions Overtime</h4>
+                    <p className="text-2xl font-bold">{totalArticles}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <DateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onDateChange={handleDateChange}
-                  onClear={handleDateClear}
-                />
-                {user.role === 'super_admin' && (
-                  <Button
-                    onClick={handleRefresh}
-                    disabled={scraping}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${scraping ? 'animate-spin' : ''}`} />
-                    {scraping ? 'Refreshing...' : 'Refresh Articles'}
-                  </Button>
-                )}
+
+              <div className="bg-card rounded-lg border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <FaRegCalendarAlt className="h-8 w-8 text-primary mb-2" />
+                    <div className="flex items-center space-x-2">
+                      <IoInformationCircle 
+                        className="h-4 w-4 text-muted-foreground cursor-help" 
+                        title="Number of online, social, broadcast and print articles found this month."
+                      />
+                    </div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Total Mentions this Month</h4>
+                    <p className="text-2xl font-bold">{monthlyMentions}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-lg border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <FaKey className="h-8 w-8 text-primary mb-2" />
+                    <div className="flex items-center space-x-2">
+                      <IoInformationCircle 
+                        className="h-4 w-4 text-muted-foreground cursor-help" 
+                        title="Total number of keyphrases matched across articles."
+                      />
+                    </div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Total Keyphrases</h4>
+                    <p className="text-2xl font-bold">{totalKeywords}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-lg border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <FaRegListAlt className="h-8 w-8 text-primary mb-2" />
+                    <div className="flex items-center space-x-2">
+                      <IoInformationCircle 
+                        className="h-4 w-4 text-muted-foreground cursor-help" 
+                        title="The number of different media types where this organization was mentioned."
+                      />
+                    </div>
+                    <h4 className="text-sm font-medium text-muted-foreground">No. of Media Types</h4>
+                    <p className="text-2xl font-bold">{totalTopics}</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </CardHeader>
-        </Card>
 
-        {/* Articles Table */}
-        <ArticlesTable
-          articles={dashboardData.articles}
-          userRole={user.role}
-          orgId={orgId || ''}
-        />
+            {/* Chart Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-lg font-semibold mb-4">This Month's Top Online Keyword Trends</h3>
+                <div className="h-[300px] flex items-center justify-center">
+                  <Pie
+                    data={pieData}
+                    options={pieOptions}
+                    width={chartWidth}
+                    height={chartHeight}
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  Aggregated Media Mentions Across Platforms ({currentYear})
+                </h3>
+                <div className="h-[300px]">
+                  <Line
+                    data={lineData}
+                    options={lineOptions}
+                    width={chartWidth}
+                    height={chartHeight}
+                  />
+                </div>
+              </div>
+            </div>
 
-        {/* Additional tables would go here */}
-        {/* Social Media Table, Broadcast Table, Print Media Table */}
+            <div className="bg-card rounded-lg border p-6">
+              <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>
+
+              <div className="flex items-center justify-between mb-6">
+                <div
+                  className="flex items-center space-x-2 cursor-pointer border rounded px-3 py-2"
+                  onClick={() => setIsCalendarOpen(true)}
+                >
+                  <LuCalendarDays className="h-4 w-4" />
+                  <span>
+                    {startDate && endDate
+                      ? `${startDate.toLocaleDateString("en-US", {
+                          day: "2-digit",
+                          month: "short",
+                        })} - ${endDate.toLocaleDateString("en-US", {
+                          day: "2-digit",
+                          month: "short",
+                        })}`
+                      : "Select Date"}
+                  </span>
+
+                  {/* Clear button */}
+                  {(startDate || endDate) && (
+                    <button
+                      className="ml-2 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setStartDate(null);
+                        setEndDate(null);
+                        setFilteredArticles(articles);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {isCalendarOpen && (
+                    <div className="absolute z-50 mt-2">
+                      <DatePicker
+                        selected={startDate}
+                        onChange={(dates) => {
+                          const [start, end] = dates as [Date | null, Date | null];
+                          setStartDate(start);
+                          setEndDate(end);
+
+                          if (start && end) {
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                        startDate={startDate}
+                        endDate={endDate}
+                        selectsRange
+                        inline
+                        showYearDropdown
+                        scrollableYearDropdown
+                        maxDate={new Date()}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Reload button for super_admin */}
+                {user.role === "super_admin" && (
+                  <button
+                    className={`flex items-center space-x-2 px-4 py-2 rounded border ${
+                      scraping 
+                        ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
+                    onClick={() => {
+                      const orgName = organizationData?.organization?.organizationName;
+                      if (!orgName) {
+                        toast.error("Organization name missing, cannot scrape.");
+                        return;
+                      }
+
+                      handleScrape(
+                        orgName,
+                        setScraping,
+                        setArticles,
+                        setFilteredArticles,
+                        setDisplayedArticles,
+                        setTotalArticles
+                      );
+                    }}
+                    disabled={scraping}
+                  >
+                    {scraping ? (
+                      "Scraping..."
+                    ) : (
+                      <>
+                        <TfiReload className="h-4 w-4" />
+                        <span>Reload Articles</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Table Section for Online Media Articles */}
+              <h3 className="text-lg font-medium mb-4">Online Articles</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-border">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="border border-border p-2 text-left">Source</th>
+                      <th className="border border-border p-2 text-left">Title</th>
+                      <th className="border border-border p-2 text-left">Summary</th>
+                      <th 
+                        className="border border-border p-2 text-left cursor-pointer hover:bg-muted-foreground/10"
+                        onClick={() => {
+                          setArticleSortOrder(prev => prev === "ascending" ? "descending" : "ascending");
+                          setArticleAveSortOrder("");
+                          setArticleReachSortOrder("");
+                          setArticleRankSortOrder("");
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Date Published</span>
+                          {getSortIcon(articleSortOrder)}
+                        </div>
+                      </th>
+                      <th className="border border-border p-2 text-left">Country</th>
+                      <th className="border border-border p-2 text-left">Sentiment</th>
+                      <th className="border border-border p-2 text-left">AVE</th>
+                      <th className="border border-border p-2 text-left">Coverage Type</th>
+                      <th className="border border-border p-2 text-left">Rank</th>
+                      <th className="border border-border p-2 text-left">Reach</th>
+                      <th className="border border-border p-2 text-left"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredArticles.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} className="border border-border p-4 text-center text-muted-foreground">
+                          No articles found for this organization.
+                        </td>
+                      </tr>
+                    ) : (
+                      [...filteredArticles]
+                        .slice(0, 8)
+                        .sort((a, b) => {
+                          if (articleRankSortOrder) {
+                            const rankDiff = (a.rank || 0) - (b.rank || 0);
+                            return articleRankSortOrder === "ascending" ? rankDiff : -rankDiff;
+                          } else if (articleAveSortOrder) {
+                            const aveDiff = (a.ave || 0) - (b.ave || 0);
+                            return articleAveSortOrder === "ascending" ? aveDiff : -aveDiff;
+                          } else if (articleReachSortOrder) {
+                            const reachDiff = (a.reach || 0) - (b.reach || 0);
+                            return articleReachSortOrder === "ascending" ? reachDiff : -reachDiff;
+                          } else if (articleSortOrder) {
+                            const dateDiff = new Date(a.publication_date).getTime() - new Date(b.publication_date).getTime();
+                            return articleSortOrder === "ascending" ? dateDiff : -dateDiff;
+                          }
+                          return 0;
+                        })
+                        .map((article, index) => (
+                          <tr key={index} className="hover:bg-muted/50">
+                            <td className="border border-border p-2">
+                              <div className="flex items-center space-x-2">
+                                {article.logo_url && (
+                                  <img
+                                    src={article.logo_url}
+                                    alt={`${article.source} logo`}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                  />
+                                )}
+                                <span className="font-medium">{article.source}</span>
+                              </div>
+                            </td>
+                            <td className="border border-border p-2">
+                              <a
+                                href={article.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                {article.title} ⤴
+                              </a>
+                            </td>
+                            <td className="border border-border p-2 max-w-xs">
+                              <span className="text-sm text-muted-foreground">
+                                "{article.snippet
+                                  ? `${article.snippet
+                                      .replace(/^Summary:\s*/, "")
+                                      .split(" ")
+                                      .slice(0, 15)
+                                      .join(" ")}...`
+                                  : article.title}"
+                              </span>
+                            </td>
+                            <td className="border border-border p-2 font-medium">
+                              {new Date(article.publication_date).toLocaleDateString()}
+                            </td>
+                            <td className="border border-border p-2">
+                              {article.country || "Unknown"}
+                            </td>
+                            <td className="border border-border p-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                                article.sentiment === 'positive' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : article.sentiment === 'negative'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {article.sentiment === 'positive' && <LuThumbsUp className="w-3 h-3 mr-1" />}
+                                {article.sentiment === 'negative' && <LuThumbsDown className="w-3 h-3 mr-1" />}
+                                {article.sentiment === 'neutral' && <MdOutlineSentimentNeutral className="w-3 h-3 mr-1" />}
+                                {mapSentimentToLabel(article.sentiment)}
+                              </span>
+                            </td>
+                            <td className="border border-border p-2 font-mono text-sm">
+                              {article.ave?.toLocaleString() || 'N/A'}
+                            </td>
+                            <td className="border border-border p-2">
+                              {article.coverage_type || 'Not Set'}
+                            </td>
+                            <td className="border border-border p-2 text-center">
+                              {article.rank || 'N/A'}
+                            </td>
+                            <td className="border border-border p-2 font-mono text-sm">
+                              {article.reach?.toLocaleString() || 'N/A'}
+                            </td>
+                            <td className="border border-border p-2">
+                              <button className="text-muted-foreground hover:text-foreground">
+                                <FaEllipsisV className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+export default ModernDashboard;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
@@ -224,75 +225,98 @@ export default function ModernDashboard() {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  const handleAddProject = () => {
+    toast.info('Add Project feature coming soon!');
+  };
+
+  const handleImportData = () => {
+    toast.info('Import Data feature coming soon!');
+  };
+
+  const handleSearch = (query: string) => {
+    console.log('Search query:', query);
+    // Implement search functionality
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {dashboardData.organizationName}'s Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Monitor your organization's media presence across all platforms
-        </p>
+    <div className="min-h-screen bg-background">
+      {/* Dashboard Header */}
+      <DashboardHeader
+        organizationName={dashboardData.organizationName}
+        userName={`${user.firstName || 'Totok'} ${user.lastName || 'Michael'}`}
+        userEmail={user.email || 'tm2kela2@gmail.com'}
+        onAddProject={handleAddProject}
+        onImportData={handleImportData}
+        onSearch={handleSearch}
+      />
+
+      <div className="container mx-auto p-6 space-y-8">
+        {/* Page Title */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Plan, prioritize, and accomplish your tasks with ease.
+          </p>
+        </div>
+
+        {/* Metrics Cards */}
+        <DashboardMetrics
+          totalArticles={dashboardData.totalArticles}
+          monthlyMentions={dashboardData.monthlyMentions}
+          totalKeywords={dashboardData.totalKeywords}
+          totalTopics={dashboardData.totalTopics}
+        />
+
+        {/* Charts */}
+        <DashboardCharts
+          pieData={pieData}
+          pieOptions={pieOptions}
+          lineData={lineData}
+          lineOptions={lineOptions}
+          currentYear={currentYear}
+        />
+
+        {/* Latest News Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">Latest News</CardTitle>
+                <CardDescription>Recent media mentions and articles</CardDescription>
+              </div>
+              <div className="flex items-center space-x-4">
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onDateChange={handleDateChange}
+                  onClear={handleDateClear}
+                />
+                {user.role === 'super_admin' && (
+                  <Button
+                    onClick={handleRefresh}
+                    disabled={scraping}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <RefreshCw className={`mr-2 h-4 w-4 ${scraping ? 'animate-spin' : ''}`} />
+                    {scraping ? 'Refreshing...' : 'Refresh Articles'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Articles Table */}
+        <ArticlesTable
+          articles={dashboardData.articles}
+          userRole={user.role}
+          orgId={orgId || ''}
+        />
+
+        {/* Additional tables would go here */}
+        {/* Social Media Table, Broadcast Table, Print Media Table */}
       </div>
-
-      {/* Metrics Cards */}
-      <DashboardMetrics
-        totalArticles={dashboardData.totalArticles}
-        monthlyMentions={dashboardData.monthlyMentions}
-        totalKeywords={dashboardData.totalKeywords}
-        totalTopics={dashboardData.totalTopics}
-      />
-
-      {/* Charts */}
-      <DashboardCharts
-        pieData={pieData}
-        pieOptions={pieOptions}
-        lineData={lineData}
-        lineOptions={lineOptions}
-        currentYear={currentYear}
-      />
-
-      {/* Latest News Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl">Latest News</CardTitle>
-              <CardDescription>Recent media mentions and articles</CardDescription>
-            </div>
-            <div className="flex items-center space-x-4">
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onDateChange={handleDateChange}
-                onClear={handleDateClear}
-              />
-              {user.role === 'super_admin' && (
-                <Button
-                  onClick={handleRefresh}
-                  disabled={scraping}
-                  variant="outline"
-                  size="sm"
-                >
-                  <RefreshCw className={`mr-2 h-4 w-4 ${scraping ? 'animate-spin' : ''}`} />
-                  {scraping ? 'Refreshing...' : 'Refresh Articles'}
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Articles Table */}
-      <ArticlesTable
-        articles={dashboardData.articles}
-        userRole={user.role}
-        orgId={orgId || ''}
-      />
-
-      {/* Additional tables would go here */}
-      {/* Social Media Table, Broadcast Table, Print Media Table */}
     </div>
   );
 }

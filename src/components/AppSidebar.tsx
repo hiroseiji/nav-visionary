@@ -45,6 +45,7 @@ const navigationItems = [
   { title: "Dashboard", icon: Home, url: "/dashboard" },
   { title: "Analytics", icon: BarChart3, url: "/analytics" },
   { title: "Competitors", icon: Users, url: "/competitors" },
+  { title: "Reports", icon: BarChart3, url: "/reports" },
 ];
 
 const mediaItems = [
@@ -52,6 +53,7 @@ const mediaItems = [
   { title: "Online Media", icon: Globe, url: "/media/online" },
   { title: "Print Media", icon: Newspaper, url: "/media/print" },
   { title: "Social Media", icon: MessageCircle, url: "/media/social" },
+  { title: "Media Sources", icon: Building2, url: "/media/sources" },
 ];
 
 const userItems = [

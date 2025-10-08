@@ -462,10 +462,10 @@ useEffect(() => {
                 <div className="space-y-3">
                   <p className="text-6xl font-bold">{totalArticles}</p>
                   <div className="flex items-center gap-2">
-                    <div className="rounded-md p-1.5 bg-white/20">
-                      <TrendingUp className="h-3.5 w-3.5" />
+                    <div className="rounded-md p-1.5 bg-primary-foreground/10">
+                      <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
                     </div>
-                    <span className="text-sm text-primary-foreground/90">Increased from last month</span>
+                    <span className="text-sm text-primary-foreground/80">Increased from last month</span>
                   </div>
                 </div>
               </div>

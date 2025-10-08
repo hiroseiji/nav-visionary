@@ -108,7 +108,7 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
               <div className="flex items-center gap-2">
                 <div className={`rounded-md p-1.5 ${
                   metric.isPrimary 
-                    ? 'bg-white/20' 
+                    ? 'bg-primary-foreground/10' 
                     : 'bg-muted'
                 }`}>
                   <span className={metric.isPrimary ? 'text-primary-foreground' : 'text-muted-foreground'}>
@@ -116,7 +116,7 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
                   </span>
                 </div>
                 <span className={`text-sm ${
-                  metric.isPrimary ? 'text-primary-foreground/90' : 'text-muted-foreground'
+                  metric.isPrimary ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 }`}>
                   {metric.trend}
                 </span>

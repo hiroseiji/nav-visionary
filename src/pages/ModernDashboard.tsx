@@ -537,14 +537,15 @@ useEffect(() => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="space-y-3">
-                  <p className="text-6xl font-bold">{totalTopics}</p>
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-md p-1.5 bg-muted">
-                      <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-                    <span className="text-sm text-muted-foreground">Decreased from last month</span>
-                  </div>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {['Online', 'Broadcast', 'Social', 'Print'].map((type, idx) => (
+                    <span 
+                      key={idx}
+                      className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
+                    >
+                      {type}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

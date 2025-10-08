@@ -2,12 +2,14 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardMetricsProps {
   totalArticles: number;
   monthlyMentions: number;
   totalKeywords: number;
   totalTopics: number;
+  mediaTypes?: string[];
 }
 
 type TrendType = 'increase' | 'decrease' | 'same';
@@ -16,7 +18,8 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   totalArticles,
   monthlyMentions,
   totalKeywords,
-  totalTopics
+  totalTopics,
+  mediaTypes = ['Online', 'Broadcast', 'Social', 'Print']
 }) => {
   const metrics = [
     {
@@ -100,27 +103,43 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
               </Tooltip>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className={`text-6xl font-bold ${
-                metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
-              }`}>
-                {metric.value}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className={`rounded-md p-1.5 ${
-                  metric.isPrimary 
-                    ? 'bg-primary-foreground/10' 
-                    : 'bg-muted'
-                }`}>
-                  <span className={metric.isPrimary ? 'text-primary-foreground' : 'text-muted-foreground'}>
-                    {getTrendIcon(metric.trendType)}
-                  </span>
+              {metric.title === "Media Types" ? (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {mediaTypes.map((type, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant="secondary"
+                      className="px-3 py-1.5 text-sm font-medium"
+                    >
+                      {type}
+                    </Badge>
+                  ))}
                 </div>
-                <span className={`text-sm ${
-                  metric.isPrimary ? 'text-primary-foreground/80' : 'text-muted-foreground'
-                }`}>
-                  {metric.trend}
-                </span>
-              </div>
+              ) : (
+                <>
+                  <div className={`text-6xl font-bold ${
+                    metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
+                  }`}>
+                    {metric.value}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`rounded-md p-1.5 ${
+                      metric.isPrimary 
+                        ? 'bg-primary-foreground/10' 
+                        : 'bg-muted'
+                    }`}>
+                      <span className={metric.isPrimary ? 'text-primary-foreground' : 'text-muted-foreground'}>
+                        {getTrendIcon(metric.trendType)}
+                      </span>
+                    </div>
+                    <span className={`text-sm ${
+                      metric.isPrimary ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                    }`}>
+                      {metric.trend}
+                    </span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         ))}

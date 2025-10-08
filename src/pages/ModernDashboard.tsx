@@ -429,12 +429,10 @@ useEffect(() => {
       </CountryModal>
 
       <SidebarLayout>
-        <div className="min-h-screen bg-background">
-          <div className="container mx-auto p-6">
-          <h2 className="text-3xl font-bold mb-6">
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold">
             {organizationData?.organization?.alias || 'Organization'}'s Dashboard
           </h2>
-          <div className="space-y-8">
           <TooltipProvider>
             {/* Card Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -791,9 +789,7 @@ useEffect(() => {
                 </table>
               </div>
             </div>
-          </div>
         </div>
-      </div>
       </SidebarLayout>
     </div>
   );

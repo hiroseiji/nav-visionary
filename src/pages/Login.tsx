@@ -97,9 +97,9 @@ export default function Login() {
           </p>
           <div className="pt-8">
             <img
-              src="/social.jpg"
+              src="/socialDark.png"
               alt="Social Light"
-              className="w-full max-w-sm rounded-lg shadow-2xl"
+              className="w-full max-w-sm "
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:hidden mb-8">
-            <img src="/social.jpg" alt="Social Light" className="w-32 h-32 mx-auto mb-4 rounded-full" />
+            <img src="/social.png" alt="Social Light" className="w-32 h-32 mx-auto mb-4 rounded-full" />
           </div>
 
           <div className="space-y-2 text-center lg:text-left">

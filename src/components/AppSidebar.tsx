@@ -76,7 +76,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   // Logo paths - Vite uses direct public folder access
-  const logoLight = '/social.jpg';
+  const logoLight = '/social.png';
   const logoDark = '/socialDark.png';
 
   // Navigation items with dynamic orgId

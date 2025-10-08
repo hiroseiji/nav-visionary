@@ -43,13 +43,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 
 // Define navigation items
-const navigationItems = [
-  { title: "Dashboard", icon: Home, url: "/dashboard" },
-  { title: "Analytics", icon: ChartNoAxesColumn, url: "/analytics" },
-  { title: "Competitors", icon: Users, url: "/competitors" },
-  { title: "Reports", icon: FileChartLine, url: "/reports" },
-];
-
 const mediaItems = [
   { title: "Broadcast Media", icon: Radio, url: "/media/broadcast" },
   { title: "Online Media", icon: Globe, url: "/media/online" },
@@ -85,6 +78,14 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   // Logo paths - Vite uses direct public folder access
   const logoLight = '/social.jpg';
   const logoDark = '/socialDark.png';
+
+  // Navigation items with dynamic orgId
+  const navigationItems = [
+    { title: "Dashboard", icon: Home, url: "/dashboard" },
+    { title: "Analytics", icon: ChartNoAxesColumn, url: "/analytics" },
+    { title: "Competitors", icon: Users, url: "/competitors" },
+    { title: "Reports", icon: FileChartLine, url: "/reports" },
+  ];
 
   const isActive = (path: string) => location.pathname.includes(path);
 

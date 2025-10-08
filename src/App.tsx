@@ -9,6 +9,10 @@ import ModernDashboard from "./pages/ModernDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import Analytics from "./pages/Analytics";
+import Competitors from "./pages/Competitors";
+import Reports from "./pages/Reports";
+import Alerts from "./pages/Alerts";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +28,10 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard/:orgId" element={<ModernDashboard />} />
+          <Route path="/analytics/:orgId" element={<Analytics />} />
+          <Route path="/competitors/:orgId" element={<Competitors />} />
+          <Route path="/reports/:orgId" element={<Reports />} />
+          <Route path="/alerts/:orgId" element={<Alerts />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

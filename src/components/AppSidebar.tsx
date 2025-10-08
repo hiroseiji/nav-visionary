@@ -129,7 +129,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="bg-card rounded-3xl border-0 overflow-hidden">
+    <Sidebar className="bg-card rounded-3xl border-0 shadow-none outline-none overflow-hidden">
       <SidebarHeader className="border-0 p-6">
         <div className="flex items-center gap-3">
           {!collapsed && (
@@ -270,19 +270,41 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={toggleTheme}
-              className="w-full justify-start text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            >
-              {theme === "light" ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
-              {!collapsed && (
-                <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-              )}
-            </SidebarMenuButton>
+            {!collapsed ? (
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm text-muted-foreground">
+                  {theme === "light" ? "Light" : "Dark"}
+                </span>
+                <button
+                  onClick={toggleTheme}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted"
+                >
+                  <span
+                    className={cn(
+                      "inline-block h-4 w-4 transform rounded-full bg-primary transition-transform",
+                      theme === "dark" ? "translate-x-6" : "translate-x-1"
+                    )}
+                  >
+                    {theme === "light" ? (
+                      <Sun className="h-4 w-4 text-primary-foreground" />
+                    ) : (
+                      <Moon className="h-4 w-4 text-primary-foreground" />
+                    )}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <SidebarMenuButton
+                onClick={toggleTheme}
+                className="w-full justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )}
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
 
           {/* Logout */}

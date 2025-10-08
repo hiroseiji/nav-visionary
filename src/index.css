@@ -59,6 +59,8 @@ All colors MUST be HSL.
     --input: 220 13% 91%;
     --ring: 217 91% 60%;
 
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 35%), hsl(217, 91%, 60%));
+
     --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
@@ -106,6 +108,9 @@ All colors MUST be HSL.
     --border: 217 33% 20%;
     --input: 217 33% 20%;
     --ring: 217 91% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 30%), hsl(217, 91%, 60%));
+
     --sidebar-background: 217 33% 10%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217 91% 60%;

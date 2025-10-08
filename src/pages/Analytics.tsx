@@ -95,8 +95,11 @@ export default function Analytics() {
 
         <TooltipProvider>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* First Card - Primary Blue */}
-            <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            {/* First Card - Primary Blue with gradient */}
+            <div 
+              className="rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-foreground"
+              style={{ background: 'var(--gradient-primary)' }}
+            >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-base font-medium">Total Mentions</h4>
                 <Tooltip>

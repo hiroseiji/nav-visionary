@@ -75,9 +75,10 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
             key={index} 
             className={`relative overflow-hidden transition-all duration-300 ${
               metric.isPrimary 
-                ? 'bg-primary text-primary-foreground' 
+                ? 'text-primary-foreground border-0' 
                 : 'bg-card'
             }`}
+            style={metric.isPrimary ? { background: 'var(--gradient-primary)' } : undefined}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className={`text-base font-medium ${

@@ -1,9 +1,6 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import "chart.js/auto";
-import { Line, Pie } from "react-chartjs-2";
-import type { ChartOptions, TooltipItem, ChartData } from "chart.js";
 import {
   FaChartBar,
   FaRegCalendarAlt,
@@ -22,8 +19,6 @@ import { ImConfused } from "react-icons/im";
 import { MdOutlineSentimentNeutral } from "react-icons/md";
 import { FaAngleDown } from "react-icons/fa6";
 import { toast } from "sonner";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-import { Chart } from "chart.js";
 import Header from "../components/Header";
 import loadingAnimation from "../assets/loadingAnimation.json";
 import DatePicker from "react-datepicker";
@@ -31,6 +26,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ThemeContext } from "../components/ThemeContext";
 import CountryModal from "../components/CountryModal";
 import { SidebarLayout } from "../components/SidebarLayout";
+import { DashboardCharts } from "../components/dashboard/DashboardCharts";
 import {
   fetchOrganizationData,
   fetchBroadcastArticles,
@@ -43,7 +39,6 @@ import {
   mapSentimentToLabel,
   handleSentimentChange,
   confirmCountryUpdate,
-  getScreenConfig,
   fetchCountries,
   handleScrape,
   handleSentimentEdit,
@@ -52,17 +47,13 @@ import {
   handleSentimentCancel,
   generateLogoUrl,
   generateLineData,
-  getGradient,
   generatePieChartData,
-  generatePieChartOptions,
   Article,
   FacebookPost,
   BroadcastArticle,
   PrintMediaArticle,
   OrganizationData,
 } from "../utils/dashboardUtils";
-
-Chart.register(ChartDataLabels);
 
 interface EditingSource {
   articleId: string;
@@ -149,16 +140,8 @@ function ModernDashboard() {
 
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-  const { chartWidth, chartHeight, legendPosition } = getScreenConfig();
-
-  const [pieData, setPieData] = useState<
-    ChartData<"pie", number[], string>
-  >({
-    labels: [],
-    datasets: [
-      { data: [], backgroundColor: [], borderColor: [], borderWidth: 2 },
-    ],
-  });
+  const [pieData, setPieData] = useState<Array<{ name: string; value: number; fill: string }>>([]);
+  const [lineData, setLineData] = useState<Array<{ month: string; online: number; social: number; broadcast: number; print: number }>>([]);
 
   // For articles
   useEffect(() => {
@@ -249,119 +232,26 @@ function ModernDashboard() {
   }, []);
 
 
-// When computing newPieData
+// Generate pie chart data
 useEffect(() => {
-  const chartCanvas = document.createElement("canvas");
-  const ctx = chartCanvas.getContext("2d");
-  if (ctx) {
-    const newPieData = generatePieChartData(
-      keywordDistribution,
-      getGradient,
-      ctx
-    );
-    // Cast once if your util isn't typed to ChartData yet
-    setPieData(newPieData as ChartData<"pie", number[], string>);
-  }
+  const newPieData = generatePieChartData(keywordDistribution);
+  setPieData(newPieData);
 }, [keywordDistribution]);
-
-// Pie chart options — just cast the legend position to the union
-const pieOptions = generatePieChartOptions(
-  pieData,
-  keywordDistribution,
-  theme,
-  legendPosition as "top" | "bottom" | "left" | "right"
-);
 
 
   // Generate dataset for the current year
   const currentYear = new Date().getFullYear();
 
-  // Initialize arrays to hold counts for each category
-  const onlineArticlesByMonth = new Array(12).fill(0);
-  const socialMediaPostsByMonth = new Array(12).fill(0);
-  const broadcastArticlesByMonth = new Array(12).fill(0);
-  const printArticlesByMonth = new Array(12).fill(0);
-
-  // Count the number of articles/posts per month
-  articles.forEach((article) => {
-    const articleDate = new Date(article.publication_date);
-    if (articleDate.getFullYear() === currentYear) {
-      onlineArticlesByMonth[articleDate.getMonth()] += 1;
-    }
-  });
-
-  facebookPosts.forEach((post) => {
-    const postDate = new Date(post.createdTime);
-    if (postDate.getFullYear() === currentYear) {
-      socialMediaPostsByMonth[postDate.getMonth()] += 1;
-    }
-  });
-
-  broadcastArticles.forEach((article) => {
-    const articleDate = new Date(article.mentionDT);
-    if (articleDate.getFullYear() === currentYear) {
-      broadcastArticlesByMonth[articleDate.getMonth()] += 1;
-    }
-  });
-
-  printMediaArticles.forEach((article) => {
-    const articleDate = new Date(article.publicationDate);
-    if (articleDate.getFullYear() === currentYear) {
-      printArticlesByMonth[articleDate.getMonth()] += 1;
-    }
-  });
-
-  // Create the dataset for the line graph
-  const lineData = generateLineData(
-    articles,
-    facebookPosts,
-    broadcastArticles,
-    printMediaArticles
-  );
-
-  const lineOptions: ChartOptions<"line"> = {
-    responsive: true,
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          font: { family: "Raleway" },
-          color: theme === "light" ? "#7a7a7a" : "#fff",
-        },
-      },
-      y: {
-        beginAtZero: true,
-        suggestedMax: 200,
-        grid: { color: "rgba(200, 200, 200, 0.2)" },
-        ticks: {
-          stepSize: 200, // must be here
-          font: { family: "Raleway" },
-          color: theme === "light" ? "#7a7a7a" : "#fff",
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: "top",
-        labels: {
-          usePointStyle: true,
-          pointStyle: "circle",
-          font: { family: "Raleway", size: 13, weight: 500 },
-          color: theme === "light" ? "#7a7a7a" : "#fff",
-          padding: 15, // use padding, not paddingBottom
-        },
-      },
-      tooltip: {
-        callbacks: {
-          // key change: use Chart.js type and coerce raw (it's typed as unknown)
-          label: (ctx: TooltipItem<"line">) => `${Number(ctx.raw)} Articles`,
-        },
-      },
-      datalabels: { display: false },
-    },
-    animation: { duration: 1000 },
-  };
+  // Generate line chart data
+  useEffect(() => {
+    const newLineData = generateLineData(
+      articles,
+      facebookPosts,
+      broadcastArticles,
+      printMediaArticles
+    );
+    setLineData(newLineData);
+  }, [articles, facebookPosts, broadcastArticles, printMediaArticles]);
 
   const hasFetched = useRef(false);
 
@@ -622,33 +512,11 @@ const pieOptions = generatePieChartOptions(
             </div>
 
             {/* Chart Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-card rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">This Month's Top Online Keyword Trends</h3>
-                <div className="h-[300px] flex items-center justify-center">
-                  <Pie
-                    data={pieData}
-                    options={pieOptions}
-                    width={chartWidth}
-                    height={chartHeight}
-                  />
-                </div>
-              </div>
-              
-              <div className="bg-card rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  Aggregated Media Mentions Across Platforms ({currentYear})
-                </h3>
-                <div className="h-[300px]">
-                  <Line
-                    data={lineData}
-                    options={lineOptions}
-                    width={chartWidth}
-                    height={chartHeight}
-                  />
-                </div>
-              </div>
-            </div>
+            <DashboardCharts 
+              pieData={pieData}
+              lineData={lineData}
+              currentYear={currentYear}
+            />
 
             <div className="bg-card rounded-lg border p-6">
               <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>

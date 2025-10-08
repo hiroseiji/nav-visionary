@@ -1,42 +1,31 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Line, Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Cell } from 'recharts';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+interface PieDataItem {
+  name: string;
+  value: number;
+  fill: string;
+}
+
+interface LineDataItem {
+  month: string;
+  online: number;
+  social: number;
+  broadcast: number;
+  print: number;
+}
 
 interface DashboardChartsProps {
-  pieData: any;
-  pieOptions: any;
-  lineData: any;
-  lineOptions: any;
+  pieData: PieDataItem[];
+  lineData: LineDataItem[];
   currentYear: number;
 }
 
 export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   pieData,
-  pieOptions,
   lineData,
-  lineOptions,
   currentYear
 }) => {
   return (
@@ -51,8 +40,25 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="h-[300px] flex items-center justify-center">
-            <Pie data={pieData} options={pieOptions} />
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={(entry) => `${entry.name}: ${entry.value}`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
@@ -68,7 +74,19 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </CardHeader>
         <CardContent className="p-6">
           <div className="h-[300px]">
-            <Line data={lineData} options={lineOptions} />
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={lineData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="month" className="text-xs" />
+                <YAxis className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Legend />
+                <Line type="monotone" dataKey="online" stroke="#3b82f6" strokeWidth={2} name="Online Articles" />
+                <Line type="monotone" dataKey="social" stroke="#10b981" strokeWidth={2} name="Social Media" />
+                <Line type="monotone" dataKey="broadcast" stroke="#f59e0b" strokeWidth={2} name="Broadcast" />
+                <Line type="monotone" dataKey="print" stroke="#ef4444" strokeWidth={2} name="Print Media" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>

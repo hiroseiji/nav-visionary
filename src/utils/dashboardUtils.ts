@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 import type React from "react";
-import type { ChartData } from "chart.js";
 
 export type Setter<T> = React.Dispatch<React.SetStateAction<T>>;
 
@@ -484,24 +483,19 @@ export const mapLabelToSentiment = (label: string): number => {
 };
 
 export const generatePieChartData = (
-  keywordDistribution: Record<string, { count: number; sources: string[] }>,
-  _getGradient: (ctx: CanvasRenderingContext2D, colors: string[]) => CanvasGradient,
-  _ctx: CanvasRenderingContext2D
+  keywordDistribution: Record<string, { count: number; sources: string[] }>
 ) => {
   const keys = Object.keys(keywordDistribution);
   if (keys.length === 0) {
-    return {
-      labels: ["No Data Available Yet For This Month"],
-      datasets: [{ data: [1], backgroundColor: ["#d3d3d3"], borderColor: "transparent", borderWidth: 2 }]
-    };
+    return [{ name: "No Data", value: 1, fill: "#d3d3d3" }];
   }
   const keywords = keys.slice(0, 5);
-  const data = keywords.map(k => keywordDistribution[k].count);
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-  return {
-    labels: keywords,
-    datasets: [{ data, backgroundColor: colors.slice(0, keywords.length), borderColor: colors.slice(0, keywords.length), borderWidth: 2 }]
-  };
+  return keywords.map((keyword, index) => ({
+    name: keyword,
+    value: keywordDistribution[keyword].count,
+    fill: colors[index % colors.length]
+  }));
 };
 
 
@@ -525,7 +519,7 @@ export const getScreenConfig = (): {
 };
 
 
-// Generate line data
+// Generate line data for Recharts
 export const generateLineData = (
   articles: Article[],
   facebookPosts: FacebookPost[],
@@ -544,54 +538,13 @@ export const generateLineData = (
   broadcastArticles.forEach(b => { const d = new Date(b.mentionDT); if (d.getFullYear() === year) broadcast[d.getMonth()]++; });
   printMediaArticles.forEach(p => { const d = new Date(p.publicationDate); if (d.getFullYear() === year) print[d.getMonth()]++; });
 
-  return {
-    labels: months,
-    datasets: [
-      { label: 'Online Articles',    data: online,    borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.4 },
-      { label: 'Social Media Posts', data: social,    borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.4 },
-      { label: 'Broadcast Articles', data: broadcast, borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.4 },
-      { label: 'Print Media Articles', data: print,   borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.4 },
-    ]
-  };
+  return months.map((month, index) => ({
+    month,
+    online: online[index],
+    social: social[index],
+    broadcast: broadcast[index],
+    print: print[index]
+  }));
 };
 
-// Get gradient
-export const getGradient = (ctx: CanvasRenderingContext2D, colors: string[]) => {
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  colors.forEach((color, index) => {
-    gradient.addColorStop(index / (colors.length - 1), color);
-  });
-  return gradient;
-};
-
-// Generate pie chart options
-export const generatePieChartOptions = (
-  _pieData: unknown, // <- was any
-  keywordDistribution: Record<string, { count: number; sources: string[] }>,
-  theme: string,
-  legendPosition: "top" | "bottom" | "left" | "right"
-) => {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: legendPosition,
-        labels: {
-          color: theme === "light" ? "#7a7a7a" : "#fff",
-          font: { family: "Raleway", size: 12 }
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: { label: string; parsed: number }) => {
-            const keyword = context.label;
-            const count = context.parsed;
-            return `${keyword}: ${count} mentions`;
-          }
-        }
-      }
-    }
-  };
-};
 

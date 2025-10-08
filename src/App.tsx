@@ -13,6 +13,11 @@ import Analytics from "./pages/Analytics";
 import Competitors from "./pages/Competitors";
 import Reports from "./pages/Reports";
 import Alerts from "./pages/Alerts";
+import BroadcastMedia from "./pages/BroadcastMedia";
+import OnlineMedia from "./pages/OnlineMedia";
+import PrintMedia from "./pages/PrintMedia";
+import SocialMedia from "./pages/SocialMedia";
+import MediaSources from "./pages/MediaSources";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +37,11 @@ const App = () => (
           <Route path="/competitors/:orgId" element={<Competitors />} />
           <Route path="/reports/:orgId" element={<Reports />} />
           <Route path="/alerts/:orgId" element={<Alerts />} />
+          <Route path="/media/broadcast/:orgId" element={<BroadcastMedia />} />
+          <Route path="/media/online/:orgId" element={<OnlineMedia />} />
+          <Route path="/media/print/:orgId" element={<PrintMedia />} />
+          <Route path="/media/social/:orgId" element={<SocialMedia />} />
+          <Route path="/media/sources/:orgId" element={<MediaSources />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

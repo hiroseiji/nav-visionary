@@ -31,10 +31,10 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 96%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
@@ -130,7 +130,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans;
     letter-spacing: 0.01em;
-    font-weight: 400;
+    font-weight: 500;
   }
 }
 

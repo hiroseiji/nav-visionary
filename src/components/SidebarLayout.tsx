@@ -34,12 +34,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background p-4 gap-4">
+      <div className="min-h-screen flex w-full bg-background p-6 gap-6">
         <AppSidebar theme={theme} toggleTheme={toggleTheme} />
         
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-6">
           {/* Header */}
-          <header className="bg-card rounded-2xl">
+          <header className="bg-card rounded-3xl">
             <div className="flex h-20 items-center px-8 gap-6">
               <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
               
@@ -89,7 +89,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </header>
           
           {/* Main content - with visual separation */}
-          <main className="flex-1 overflow-auto bg-card rounded-2xl">
+          <main className="flex-1 overflow-auto bg-card rounded-3xl">
             {children}
           </main>
         </div>

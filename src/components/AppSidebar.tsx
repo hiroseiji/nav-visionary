@@ -129,7 +129,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="bg-card rounded-3xl border-0">
+    <Sidebar className="bg-card rounded-3xl border-0 overflow-hidden">
       <SidebarHeader className="border-0 p-6">
         <div className="flex items-center gap-3">
           {!collapsed && (

@@ -40,7 +40,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           
           <div className="flex-1 flex flex-col gap-6">
           {/* Header */}
-          <header className="bg-card rounded-3xl">
+          <header className="bg-card rounded-3xl overflow-hidden">
             <div className="flex h-20 items-center px-8 gap-6">
               <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
               
@@ -90,8 +90,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </header>
           
           {/* Main content - with visual separation */}
-          <main className="flex-1 overflow-auto bg-card rounded-3xl">
-            {children}
+          <main className="flex-1 overflow-auto bg-card rounded-3xl p-6">
+            <div className="bg-background rounded-2xl min-h-full p-6">
+              {children}
+            </div>
           </main>
           </div>
         </div>

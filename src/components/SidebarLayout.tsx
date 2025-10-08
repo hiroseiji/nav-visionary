@@ -20,13 +20,15 @@ interface SidebarLayoutProps {
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOrg, setSelectedOrg] = useState("media-org");
+  const [selectedOrg, setSelectedOrg] = useState("");
 
-  const userName = "Totok Michael";
-  const userEmail = "tmichael20@mail.com";
+  // Get user data from localStorage
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userName = user.fullName || "User";
+  const userEmail = user.email || "";
   const userInitials = userName
     .split(' ')
-    .map(name => name[0])
+    .map((name: string) => name[0])
     .join('')
     .toUpperCase();
 
@@ -50,13 +52,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     placeholder="Search task"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-16 bg-muted/30 border-border/50"
+                    className="pl-10 bg-muted/30 border-border/50 rounded-full font-normal"
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                      ⌘ F
-                    </kbd>
-                  </div>
                 </div>
               </div>
 

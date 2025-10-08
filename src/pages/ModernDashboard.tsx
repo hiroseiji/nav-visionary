@@ -429,7 +429,7 @@ useEffect(() => {
       </CountryModal>
 
       <SidebarLayout>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-backround">
           <div className="container mx-auto p-6">
           <h2 className="text-3xl font-bold mb-6">
             {organizationData?.organization?.alias || 'Organization'}'s Dashboard
@@ -440,7 +440,7 @@ useEffect(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* First Card - Primary Blue with gradient */}
               <div 
-                className="rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-foreground"
+                className="rounded-2xl p-6 text-primary-foreground"
                 style={{ background: 'var(--gradient-primary)' }}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -468,7 +468,7 @@ useEffect(() => {
               </div>
 
               {/* Second Card - White */}
-              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className="rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Monthly Mentions</h4>
                   <Tooltip>
@@ -494,7 +494,7 @@ useEffect(() => {
               </div>
 
               {/* Third Card - White */}
-              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className=" rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Total Keyphrases</h4>
                   <Tooltip>
@@ -520,7 +520,7 @@ useEffect(() => {
               </div>
 
               {/* Fourth Card - White */}
-              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className=" rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Media Types</h4>
                   <Tooltip>
@@ -555,7 +555,7 @@ useEffect(() => {
             />
             </TooltipProvider>
 
-            <div className="bg-card rounded-lg border p-6">
+            <div className=" rounded-lg border p-6">
               <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>
 
               <div className="flex items-center justify-between mb-6">

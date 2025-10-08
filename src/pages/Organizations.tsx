@@ -142,7 +142,7 @@ const Organizations = () => {
     setEditingOrgId(null);
   };
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 

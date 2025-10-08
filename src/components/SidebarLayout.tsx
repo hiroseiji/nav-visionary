@@ -93,9 +93,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           
           {/* Main content - with visual separation */}
           <main className="flex-1 overflow-auto bg-card rounded-3xl p-6">
-            <div className="bg-background rounded-2xl min-h-full p-6">
-              {children}
-            </div>
+            {children}
           </main>
           </div>
         </div>

@@ -92,7 +92,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </header>
           
           {/* Main content - with visual separation */}
-          <main className="flex-1 overflow-auto bg-card rounded-3xl p-6">
+          <main className="flex-1 overflow-auto bg-background rounded-3xl p-6">
             {children}
           </main>
           </div>

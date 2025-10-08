@@ -34,10 +34,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background p-6 gap-6">
-        <AppSidebar theme={theme} toggleTheme={toggleTheme} />
-        
-        <div className="flex-1 flex flex-col gap-6">
+      <div className="min-h-screen flex w-full bg-background p-6">
+        <div className="flex w-full gap-6">
+          <AppSidebar theme={theme} toggleTheme={toggleTheme} />
+          
+          <div className="flex-1 flex flex-col gap-6">
           {/* Header */}
           <header className="bg-card rounded-3xl">
             <div className="flex h-20 items-center px-8 gap-6">
@@ -92,6 +93,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <main className="flex-1 overflow-auto bg-card rounded-3xl">
             {children}
           </main>
+          </div>
         </div>
       </div>
     </SidebarProvider>

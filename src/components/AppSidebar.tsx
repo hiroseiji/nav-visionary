@@ -92,9 +92,9 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   const getNavClassName = (url: string) => {
     const active = isActive(url);
     return cn(
-      "w-full justify-start transition-all duration-200",
+      "w-full justify-start transition-all duration-200 relative",
       active 
-        ? "bg-primary/10 text-primary border-r-2 border-primary font-medium" 
+        ? "text-primary font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-8 before:rounded-r-full before:bg-gradient-to-b before:from-[hsl(217,91%,35%)] before:to-[hsl(217,91%,60%)]" 
         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
     );
   };

@@ -24,7 +24,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   // Get user data from localStorage
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userName = user.fullName || "User";
+  const userName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "User";
   const userEmail = user.email || "";
   const userInitials = userName
     .split(' ')

@@ -1,9 +1,9 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useState, useRef, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import "chart.js/auto";
 import { Line, Pie } from "react-chartjs-2";
+import type { ChartOptions, TooltipItem, ChartData } from "chart.js";
 import {
   FaChartBar,
   FaRegCalendarAlt,
@@ -150,15 +150,12 @@ function ModernDashboard() {
 
   const { chartWidth, chartHeight, legendPosition } = getScreenConfig();
 
-  const [pieData, setPieData] = useState({
+  const [pieData, setPieData] = useState<
+    ChartData<"pie", number[], string>
+  >({
     labels: [],
     datasets: [
-      {
-        data: [],
-        backgroundColor: [],
-        borderColor: [],
-        borderWidth: 2,
-      },
+      { data: [], backgroundColor: [], borderColor: [], borderWidth: 2 },
     ],
   });
 
@@ -250,27 +247,30 @@ function ModernDashboard() {
     });
   }, []);
 
-  // Pie chart data preparation
-  useEffect(() => {
-    const chartCanvas = document.createElement("canvas");
-    const ctx = chartCanvas.getContext("2d");
-    if (ctx) {
-      const newPieData = generatePieChartData(
-        keywordDistribution,
-        getGradient,
-        ctx
-      );
-      setPieData(newPieData);
-    }
-  }, [keywordDistribution]);
 
-  // Pie chart options
-  const pieOptions = generatePieChartOptions(
-    pieData,
-    keywordDistribution,
-    theme,
-    legendPosition
-  );
+// When computing newPieData
+useEffect(() => {
+  const chartCanvas = document.createElement("canvas");
+  const ctx = chartCanvas.getContext("2d");
+  if (ctx) {
+    const newPieData = generatePieChartData(
+      keywordDistribution,
+      getGradient,
+      ctx
+    );
+    // Cast once if your util isn't typed to ChartData yet
+    setPieData(newPieData as ChartData<"pie", number[], string>);
+  }
+}, [keywordDistribution]);
+
+// Pie chart options — just cast the legend position to the union
+const pieOptions = generatePieChartOptions(
+  pieData,
+  keywordDistribution,
+  theme,
+  legendPosition as "top" | "bottom" | "left" | "right"
+);
+
 
   // Generate dataset for the current year
   const currentYear = new Date().getFullYear();
@@ -318,7 +318,7 @@ function ModernDashboard() {
     printMediaArticles
   );
 
-  const lineOptions = {
+  const lineOptions: ChartOptions<"line"> = {
     responsive: true,
     scales: {
       x: {
@@ -330,10 +330,10 @@ function ModernDashboard() {
       },
       y: {
         beginAtZero: true,
-        suggestedMax: 200, // Stretch y-axis
-        stepSize: 200,
+        suggestedMax: 200,
         grid: { color: "rgba(200, 200, 200, 0.2)" },
         ticks: {
+          stepSize: 200, // must be here
           font: { family: "Raleway" },
           color: theme === "light" ? "#7a7a7a" : "#fff",
         },
@@ -342,22 +342,19 @@ function ModernDashboard() {
     plugins: {
       legend: {
         display: true,
-        position: "top" as const,
+        position: "top",
         labels: {
           usePointStyle: true,
-          pointStyle: "circle", // Forces circle style
-          font: {
-            family: "Raleway",
-            size: 13,
-            weight: 500,
-          },
+          pointStyle: "circle",
+          font: { family: "Raleway", size: 13, weight: 500 },
           color: theme === "light" ? "#7a7a7a" : "#fff",
-          paddingBottom: 25,
+          padding: 15, // use padding, not paddingBottom
         },
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => `${tooltipItem.raw} Articles`,
+          // key change: use Chart.js type and coerce raw (it's typed as unknown)
+          label: (ctx: TooltipItem<"line">) => `${Number(ctx.raw)} Articles`,
         },
       },
       datalabels: { display: false },

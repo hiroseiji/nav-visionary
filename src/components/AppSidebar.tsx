@@ -2,25 +2,27 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import axios from "axios";
-import { 
-  Home, 
-  BarChart3, 
-  Users, 
-  Bell, 
-  User, 
-  Settings, 
-  Radio, 
-  Globe, 
-  Newspaper, 
+import {
+  Home,
+  ChartNoAxesColumn,
+  FileChartLine,
+  Users,
+  Bell,
+  User,
+  Settings,
+  Radio,
+  Globe,
+  Newspaper,
   MessageCircle,
   Building2,
   ChevronDown,
   Moon,
   Sun,
+  Paperclip,
   LogOut,
   Menu,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -43,9 +45,9 @@ import { cn } from "@/lib/utils";
 // Define navigation items
 const navigationItems = [
   { title: "Dashboard", icon: Home, url: "/dashboard" },
-  { title: "Analytics", icon: BarChart3, url: "/analytics" },
+  { title: "Analytics", icon: ChartNoAxesColumn, url: "/analytics" },
   { title: "Competitors", icon: Users, url: "/competitors" },
-  { title: "Reports", icon: BarChart3, url: "/reports" },
+  { title: "Reports", icon: FileChartLine, url: "/reports" },
 ];
 
 const mediaItems = [
@@ -53,7 +55,7 @@ const mediaItems = [
   { title: "Online Media", icon: Globe, url: "/media/online" },
   { title: "Print Media", icon: Newspaper, url: "/media/print" },
   { title: "Social Media", icon: MessageCircle, url: "/media/social" },
-  { title: "Media Sources", icon: Building2, url: "/media/sources" },
+  { title: "Media Sources", icon: Paperclip, url: "/media/sources" },
 ];
 
 const userItems = [
@@ -70,7 +72,8 @@ interface AppSidebarProps {
 export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { orgId } = useParams();
+  const storedOrgId = localStorage.getItem("selectedOrgId");
+  const orgId = storedOrgId && storedOrgId !== "null" ? storedOrgId : null;
   const { open } = useSidebar();
   const collapsed = !open;
   
@@ -154,8 +157,8 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={`${item.url}/${orgId}`}
+                    <NavLink
+                      to={orgId ? `${item.url}/${orgId}` : "/"}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -184,10 +187,12 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
                         {!collapsed && <span>Media Channels</span>}
                       </div>
                       {!collapsed && (
-                        <ChevronDown className={cn(
-                          "h-4 w-4 transition-transform duration-200",
-                          mediaMenuOpen && "rotate-180"
-                        )} />
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            mediaMenuOpen && "rotate-180"
+                          )}
+                        />
                       )}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -195,12 +200,14 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
                     {mediaItems.map((item) => (
                       <SidebarMenuItem key={item.title} className="ml-4">
                         <SidebarMenuButton asChild>
-                          <NavLink 
-                            to={`${item.url}/${orgId}`}
+                          <NavLink
+                            to={orgId ? `${item.url}/${orgId}` : "/"}
                             className={getNavClassName(item.url)}
                           >
                             <item.icon className="h-4 w-4" />
-                            {!collapsed && <span className="text-sm">{item.title}</span>}
+                            {!collapsed && (
+                              <span className="text-sm">{item.title}</span>
+                            )}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -213,15 +220,15 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
         </SidebarGroup>
 
         {/* Alerts for super_admin */}
-        {user.role === 'super_admin' && (
+        {user.role === "super_admin" && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink 
+                    <NavLink
                       to={`/alerts/${orgId}`}
-                      className={getNavClassName('/alerts')}
+                      className={getNavClassName("/alerts")}
                     >
                       <Bell className="h-4 w-4" />
                       {!collapsed && <span>Alerts</span>}
@@ -243,8 +250,8 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
               {userItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={`${item.url}/${orgId}`}
+                    <NavLink
+                      to={orgId ? `${item.url}/${orgId}` : "/"}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -262,24 +269,24 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               onClick={toggleTheme}
               className="w-full justify-start text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             >
-              {theme === 'light' ? (
+              {theme === "light" ? (
                 <Moon className="h-4 w-4" />
               ) : (
                 <Sun className="h-4 w-4" />
               )}
               {!collapsed && (
-                <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+                <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
               )}
             </SidebarMenuButton>
           </SidebarMenuItem>
-          
+
           {/* Logout */}
           <SidebarMenuItem>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               onClick={handleLogout}
               className="w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >

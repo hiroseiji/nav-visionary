@@ -1,5 +1,13 @@
 import axios from 'axios';
 import { toast } from 'sonner';
+import type React from "react";
+import type { ChartData } from "chart.js";
+
+export type Setter<T> = React.Dispatch<React.SetStateAction<T>>;
+
+export type EditingSentiment = { articleId: string; value: string } | null;
+export type EditingCountry  = { articleId: string; currentCountry: string } | null;
+export type EditingSource = { articleId: string; value: string } | null;
 
 // Types
 export interface Article {
@@ -21,17 +29,19 @@ export interface Article {
 
 export interface FacebookPost {
   createdTime: string;
-  // Add other post properties as needed
+  message?: string;
 }
 
 export interface BroadcastArticle {
   mentionDT: string;
-  // Add other broadcast properties as needed
+  station?: string;   
+  mention?: string;  
 }
 
 export interface PrintMediaArticle {
   publicationDate: string;
-  // Add other print media properties as needed
+  publication?: string; 
+  headline?: string;    
 }
 
 export interface OrganizationData {
@@ -82,81 +92,161 @@ export const fetchArticles = async (
   setError: (error: string) => void,
   setLoading: (loading: boolean) => void
 ) => {
+  setLoading(true); 
   try {
-    const response = await axios.get(
+    const { data } = await axios.get(
       `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles`
     );
-    const articlesData = response.data.articles || [];
-    setArticles(articlesData);
-    setDisplayedArticles(articlesData.slice(0, 8));
-    setTotalArticles(articlesData.length);
-    
-    // Calculate monthly mentions
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const monthlyCount = articlesData.filter((article: Article) => {
-      const date = new Date(article.publication_date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    const raw: Article[] = data.articles || [];
+
+    const updated = raw.map(a => ({
+      ...a,
+      country: sourceCountryMap[a.source] || a.country,
+    }));
+
+    setArticles(updated);
+    setDisplayedArticles(updated.slice(0, 8));
+    setTotalArticles(updated.length);
+
+    const now = new Date();
+    const monthlyCount = updated.filter(a => {
+      const d = new Date(a.publication_date);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
     setMonthlyMentions(monthlyCount);
-  } catch (error) {
-    console.error("Error fetching articles:", error);
+  } catch (err) {
+    console.error("Error fetching articles:", err);
     setError("Failed to load articles");
+    toast.error("Failed to load articles");
   } finally {
     setLoading(false);
   }
 };
 
+
 // Fetch broadcast articles
 export const fetchBroadcastArticles = async (
-  selectedOrg: string,
+  orgId: string | string[],
   setBroadcastArticles: (articles: BroadcastArticle[]) => void,
   setFilteredBroadcastArticles: (articles: BroadcastArticle[]) => void,
   setLoading: (loading: boolean) => void
 ) => {
+  setLoading(true);
   try {
-    // Mock implementation - replace with actual API call
-    setBroadcastArticles([]);
-    setFilteredBroadcastArticles([]);
-  } catch (error) {
-    console.error("Error fetching broadcast articles:", error);
+    const { data } = await axios.post(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi`,
+      { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    setBroadcastArticles(data);
+    setFilteredBroadcastArticles((data || []).slice(0, 8));
+  } catch (e) {
+    console.error("Error fetching broadcast articles:", e);
+    toast.error("Failed to load broadcast articles");
   } finally {
     setLoading(false);
   }
 };
 
-// Fetch print media articles
 export const fetchPrintMediaArticles = async (
-  selectedOrg: string,
+  orgId: string | string[],
   setPrintMediaArticles: (articles: PrintMediaArticle[]) => void,
   setFilteredPrintMediaArticles: (articles: PrintMediaArticle[]) => void,
   setLoading: (loading: boolean) => void
 ) => {
+  setLoading(true);
   try {
-    // Mock implementation - replace with actual API call
-    setPrintMediaArticles([]);
-    setFilteredPrintMediaArticles([]);
-  } catch (error) {
-    console.error("Error fetching print media articles:", error);
+    const { data } = await axios.post(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi`,
+      { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    setPrintMediaArticles(data);
+    setFilteredPrintMediaArticles((data || []).slice(0, 8));
+  } catch (e) {
+    console.error("Error fetching print media articles:", e);
+    toast.error("Failed to load print media articles");
   } finally {
     setLoading(false);
   }
 };
 
+
 // Filter by date range
-export const filterByDateRange = (
-  items: any[],
-  dateField: string,
+export const filterByDateRange = <T, K extends keyof T>(
+  items: T[],
+  dateField: K,
   startDate: Date | null,
   endDate: Date | null
-): any[] => {
+): T[] => {
   if (!startDate || !endDate) return items;
-  
-  return items.filter(item => {
-    const itemDate = new Date(item[dateField]);
-    return itemDate >= startDate && itemDate <= endDate;
+
+  return items.filter((item) => {
+    const value = item[dateField];
+    const d =
+      value instanceof Date
+        ? value
+        : new Date(String(value)); // handles string (and safely coerces anything else)
+    return d >= startDate && d <= endDate;
   });
 };
+
+
+export const handleSourceEdit = (
+  articleId: string,
+  currentSource: string,
+  setEditingSource: Setter<EditingSource>
+) => {
+  setEditingSource({ articleId, value: currentSource });
+};
+
+export const handleSourceChange = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setEditingSource: Setter<EditingSource>
+) => {
+  const value = e.target.value;
+  // if not currently editing, do nothing (prevents creating a partial state)
+  setEditingSource(prev => (prev ? { ...prev, value } : prev));
+};
+
+
+export const handleKeyPress = (
+  e: React.KeyboardEvent<HTMLInputElement>,
+  articleId: string,
+  newSource: string,
+  confirmSourceUpdate: (articleId: string, newSource: string) => void
+) => { if (e.key === "Enter") confirmSourceUpdate(articleId, newSource); };
+
+export const handleBlur = (setEditingSource: (v: null) => void) => setEditingSource(null);
+
+export const confirmSourceUpdate = async (
+  articleId: string,
+  newSource: string,
+  selectedOrg: string,
+  token: string,
+  setArticles: (updater: (prev: Article[]) => Article[]) => void,
+  setDisplayedArticles: (updater: (prev: Article[]) => Article[]) => void,
+  setEditingSource: (v: null) => void
+) => {
+  try {
+    const res = await axios.put(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
+      { newSource },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (res.status === 200) {
+      const apply = (arr: Article[]) => arr.map(a => a._id === articleId ? { ...a, source: newSource } : a);
+      setArticles(apply);
+      setDisplayedArticles(apply);
+      toast.success("Source updated successfully");
+      setEditingSource(null);
+    }
+  } catch (e) {
+    console.error("Error updating source:", e);
+    toast.error("Failed to update source");
+  }
+};
+
 
 // Handle search query
 export const handleSearchQuery = (
@@ -170,38 +260,40 @@ export const handleSearchQuery = (
   setFilteredBroadcastArticles: (articles: BroadcastArticle[]) => void,
   setFilteredPrintMediaArticles: (articles: PrintMediaArticle[]) => void
 ) => {
-  if (!query.trim()) {
-    setFilteredArticles(articles);
-    setFilteredPosts(facebookPosts);
-    setFilteredBroadcastArticles(broadcastArticles);
-    setFilteredPrintMediaArticles(printMediaArticles);
-    return;
-  }
+  const q = (query || "").toLowerCase();
 
-  const lowerQuery = query.toLowerCase();
-  
-  const filteredArticles = articles.filter(article =>
-    article.title.toLowerCase().includes(lowerQuery) ||
-    article.source.toLowerCase().includes(lowerQuery)
+  setFilteredArticles(
+    !q ? articles : articles.filter(a =>
+      a.title?.toLowerCase().includes(q) || a.source?.toLowerCase().includes(q))
   );
-  
-  setFilteredArticles(filteredArticles);
-  setFilteredPosts(facebookPosts);
-  setFilteredBroadcastArticles(broadcastArticles);
-  setFilteredPrintMediaArticles(printMediaArticles);
+
+  setFilteredPosts(
+    !q ? facebookPosts : facebookPosts.filter(p =>
+      p.message?.toLowerCase().includes(q))
+  );
+
+  setFilteredBroadcastArticles(
+    !q ? broadcastArticles : broadcastArticles.filter(b =>
+      b.station?.toLowerCase().includes(q) || b.mention?.toLowerCase().includes(q))
+  );
+
+  setFilteredPrintMediaArticles(
+    !q ? printMediaArticles : printMediaArticles.filter(p =>
+      p.publication?.toLowerCase().includes(q) || p.headline?.toLowerCase().includes(q))
+  );
 };
 
 // Handle sentiment change
 export const handleSentimentChange = (
   e: React.ChangeEvent<HTMLInputElement>,
-  setEditingSentiment: (sentiment: any) => void
+  setEditingSentiment: Setter<EditingSentiment>
 ) => {
-  setEditingSentiment((prev: any) => ({ ...prev, value: e.target.value }));
+  setEditingSentiment(prev => (prev ? { ...prev, value: e.target.value } : prev));
 };
 
 // Handle sentiment edit
 export const handleSentimentEdit = (
-  setEditingSentiment: (sentiment: any) => void,
+  setEditingSentiment: Setter<EditingSentiment>,
   articleId: string,
   currentSentiment: string
 ) => {
@@ -217,56 +309,32 @@ export const handleSentimentCancel = (
 
 // Confirm sentiment update
 export const confirmSentimentUpdate = async (
+  orgId: string,
   articleId: string,
-  newSentiment: string,
-  selectedOrg: string,
+  label: string,
   token: string,
   setArticles: (updater: (prev: Article[]) => Article[]) => void,
-  setEditingSentiment: (sentiment: null) => void,
-  toast: any
+  setEditingSentiment: (v: null) => void,
+  t = toast
 ) => {
   try {
-    const response = await axios.put(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
-      { sentiment: newSentiment },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const res = await axios.put(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${articleId}/sentiment`,
+      { sentiment: label },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
-    if (response.status === 200) {
-      setArticles((prev: Article[]) =>
-        prev.map(article =>
-          article._id === articleId
-            ? { ...article, sentiment: newSentiment }
-            : article
-        )
-      );
-      toast.success("Sentiment updated successfully");
-      setEditingSentiment(null);
-    }
-  } catch (error) {
-    console.error("Error updating sentiment:", error);
-    toast.error("Failed to update sentiment");
+    if (res.status === 200) {
+      setArticles(prev => prev.map(a => a._id === articleId ? { ...a, sentiment: res.data.sentiment ?? label } : a));
+      t.success("Sentiment updated successfully");
+    } else throw new Error("Failed to update sentiment");
+  } catch (e) {
+    console.error("Sentiment update failed:", e);
+    t.error("Failed to update sentiment");
+  } finally {
+    setEditingSentiment(null);
   }
 };
 
-// Handle country edit
-export const handleCountryEdit = (
-  setEditingCountry: (country: any) => void,
-  setIsCountryModalOpen: (open: boolean) => void,
-  setSelectedCountry: (country: string) => void,
-  articleId: string,
-  currentCountry: string
-) => {
-  setEditingCountry({ articleId, currentCountry });
-  setSelectedCountry(currentCountry || "");
-  setIsCountryModalOpen(true);
-};
-
-// Confirm country update
 export const confirmCountryUpdate = async (
   articleId: string,
   newCountry: string,
@@ -274,36 +342,40 @@ export const confirmCountryUpdate = async (
   token: string,
   setArticles: (updater: (prev: Article[]) => Article[]) => void,
   setIsCountryModalOpen: (open: boolean) => void,
-  setEditingCountry: (country: null) => void,
-  toast: any
+  setEditingCountry: (v: null) => void,
+  t = toast
 ) => {
   try {
-    const response = await axios.put(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
+    const res = await axios.put(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}/country`,
       { country: newCountry },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
-    if (response.status === 200) {
-      setArticles((prev: Article[]) =>
-        prev.map(article =>
-          article._id === articleId
-            ? { ...article, country: newCountry }
-            : article
-        )
-      );
-      toast.success("Country updated successfully");
+    if (res.status === 200) {
+      setArticles(prev => prev.map(a => a._id === articleId ? { ...a, country: newCountry } : a));
+      t.success("Country updated successfully");
       setIsCountryModalOpen(false);
-      setEditingCountry(null);
-    }
-  } catch (error) {
-    console.error("Error updating country:", error);
-    toast.error("Failed to update country");
+    } else throw new Error("Update failed");
+  } catch (e) {
+    console.error("Error updating country:", e);
+    t.error("Failed to update country.");
+  } finally {
+    setEditingCountry(null);
   }
+};
+
+
+// Handle country edit
+export const handleCountryEdit = (
+  setEditingCountry: Setter<EditingCountry>,
+  setIsCountryModalOpen: Setter<boolean>,
+  setSelectedCountry: Setter<string>,
+  articleId: string,
+  currentCountry: string
+) => {
+  setEditingCountry({ articleId, currentCountry });
+  setSelectedCountry(currentCountry || "");
+  setIsCountryModalOpen(true);
 };
 
 // Fetch countries
@@ -317,31 +389,72 @@ export const fetchCountries = async (): Promise<string[]> => {
 
 // Handle scrape
 export const handleScrape = async (
-  orgName: string,
-  setScraping: (scraping: boolean) => void,
-  setArticles: (articles: Article[]) => void,
-  setFilteredArticles: (articles: Article[]) => void,
-  setDisplayedArticles: (articles: Article[]) => void,
-  setTotalArticles: (count: number) => void
+    organizationName,
+    setScraping,
+    setArticles,
+    setFilteredArticles,
+    setDisplayedArticles,
+    setTotalArticles
 ) => {
-  setScraping(true);
-  try {
-    // Mock implementation - replace with actual scraping logic
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    toast.success("Articles refreshed successfully");
-    // Refresh articles here
-  } catch (error) {
-    console.error("Error scraping:", error);
-    toast.error("Failed to refresh articles");
-  } finally {
-    setScraping(false);
-  }
+    setScraping(true);
+    try {
+        const response = await axios.get("http://localhost:5001/rapid-scrape", {
+            params: { organizationName },
+        });
+
+        toast.success("Scraping completed!");
+        window.location.reload();
+
+        const articles = response.data.articles || [];
+        setArticles(articles);
+        setFilteredArticles(articles);
+        setDisplayedArticles(articles.slice(0, 8));
+        setTotalArticles(articles.length);
+    } catch (error) {
+        console.error("Scraping error:", error);
+        toast.error("Scraping failed. Please try again.");
+    } finally {
+        setScraping(false);
+    }
 };
 
-// Handle delete
-export const handleDelete = async (articleId: string) => {
-  // Mock implementation
-  console.log("Delete article:", articleId);
+
+const endpointMap = {
+  articles: "articles",
+  posts: "posts",
+  broadcasts: "broadcastMedia",
+  printmedias: "printMedia",
+} as const;
+
+type DeletableKinds = keyof typeof endpointMap;
+type WithId = { _id: string };
+
+export const handleDelete = async <T extends WithId>(
+  type: DeletableKinds,
+  id: string,
+  selectedOrg: string,
+  token: string,
+  updateStateFn: Setter<T[]>,
+  updateFilteredFn?: Setter<T[]>
+): Promise<void> => {
+  if (!window.confirm("Are you sure you want to delete this article?")) return;
+
+  try {
+    const res = await axios.delete(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/${endpointMap[type]}/${id}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (res.status === 200) {
+      toast.success("Deleted successfully");
+      const remove = (prev: T[]) => prev.filter(item => item._id !== id);
+      updateStateFn(remove);
+      if (updateFilteredFn) updateFilteredFn(remove);
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to delete item");
+  }
 };
 
 // Handle menu click
@@ -351,14 +464,46 @@ export const handleMenuClick = (articleId: string) => {
 };
 
 // Map sentiment to label
-export const mapSentimentToLabel = (sentiment: string): string => {
-  switch (sentiment) {
-    case "positive": return "Positive";
-    case "negative": return "Negative";
-    case "neutral": return "Neutral";
-    default: return "Unknown";
-  }
+export const mapSentimentToLabel = (scoreOrLabel: number | string): string => {
+  if (typeof scoreOrLabel === 'string') return scoreOrLabel.toLowerCase();
+  const s = scoreOrLabel;
+  if (s >= 0.75) return "positive";
+  if (s <= -0.5) return "negative";
+  if (s > 0 && s < 0.5) return "mixed";
+  if (s === 0) return "neutral";
+  return "neutral";
 };
+
+export const mapLabelToSentiment = (label: string): number => {
+  const l = (label || "").toLowerCase();
+  if (l === "positive") return 1;
+  if (l === "negative") return -1;
+  if (l === "mixed")    return 0.25;
+  if (l === "neutral")  return 0;
+  return 0;
+};
+
+export const generatePieChartData = (
+  keywordDistribution: Record<string, { count: number; sources: string[] }>,
+  _getGradient: (ctx: CanvasRenderingContext2D, colors: string[]) => CanvasGradient,
+  _ctx: CanvasRenderingContext2D
+) => {
+  const keys = Object.keys(keywordDistribution);
+  if (keys.length === 0) {
+    return {
+      labels: ["No Data Available Yet For This Month"],
+      datasets: [{ data: [1], backgroundColor: ["#d3d3d3"], borderColor: "transparent", borderWidth: 2 }]
+    };
+  }
+  const keywords = keys.slice(0, 5);
+  const data = keywords.map(k => keywordDistribution[k].count);
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  return {
+    labels: keywords,
+    datasets: [{ data, backgroundColor: colors.slice(0, keywords.length), borderColor: colors.slice(0, keywords.length), borderWidth: 2 }]
+  };
+};
+
 
 // Generate logo URL
 export const generateLogoUrl = (source: string): string => {
@@ -366,14 +511,19 @@ export const generateLogoUrl = (source: string): string => {
 };
 
 // Get screen config
-export const getScreenConfig = () => {
+export const getScreenConfig = (): {
+  chartWidth: number;
+  chartHeight: number;
+  legendPosition: "top" | "bottom" | "left" | "right";
+} => {
   const width = window.innerWidth;
   return {
     chartWidth: width < 768 ? 300 : 400,
     chartHeight: width < 768 ? 200 : 300,
-    legendPosition: width < 768 ? 'bottom' : 'right'
+    legendPosition: width < 768 ? "bottom" : "right",
   };
 };
+
 
 // Generate line data
 export const generateLineData = (
@@ -382,52 +532,25 @@ export const generateLineData = (
   broadcastArticles: BroadcastArticle[],
   printMediaArticles: PrintMediaArticle[]
 ) => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const currentYear = new Date().getFullYear();
-  
-  const onlineData = new Array(12).fill(0);
-  const socialData = new Array(12).fill(0);
-  const broadcastData = new Array(12).fill(0);
-  const printData = new Array(12).fill(0);
-  
-  articles.forEach(article => {
-    const date = new Date(article.publication_date);
-    if (date.getFullYear() === currentYear) {
-      onlineData[date.getMonth()]++;
-    }
-  });
-  
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const year = new Date().getFullYear();
+  const online = Array(12).fill(0);
+  const social = Array(12).fill(0);
+  const broadcast = Array(12).fill(0);
+  const print = Array(12).fill(0);
+
+  articles.forEach(a => { const d = new Date(a.publication_date); if (d.getFullYear() === year) online[d.getMonth()]++; });
+  facebookPosts.forEach(p => { const d = new Date(p.createdTime); if (d.getFullYear() === year) social[d.getMonth()]++; });
+  broadcastArticles.forEach(b => { const d = new Date(b.mentionDT); if (d.getFullYear() === year) broadcast[d.getMonth()]++; });
+  printMediaArticles.forEach(p => { const d = new Date(p.publicationDate); if (d.getFullYear() === year) print[d.getMonth()]++; });
+
   return {
     labels: months,
     datasets: [
-      {
-        label: 'Online Articles',
-        data: onlineData,
-        borderColor: '#3b82f6',
-        backgroundColor: '#3b82f6',
-        tension: 0.4,
-      },
-      {
-        label: 'Social Media Posts',
-        data: socialData,
-        borderColor: '#10b981',
-        backgroundColor: '#10b981',
-        tension: 0.4,
-      },
-      {
-        label: 'Broadcast Articles',
-        data: broadcastData,
-        borderColor: '#f59e0b',
-        backgroundColor: '#f59e0b',
-        tension: 0.4,
-      },
-      {
-        label: 'Print Media Articles',
-        data: printData,
-        borderColor: '#ef4444',
-        backgroundColor: '#ef4444',
-        tension: 0.4,
-      }
+      { label: 'Online Articles',    data: online,    borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.4 },
+      { label: 'Social Media Posts', data: social,    borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.4 },
+      { label: 'Broadcast Articles', data: broadcast, borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.4 },
+      { label: 'Print Media Articles', data: print,   borderColor: '#ef4444', backgroundColor: '#ef4444', tension: 0.4 },
     ]
   };
 };
@@ -441,51 +564,27 @@ export const getGradient = (ctx: CanvasRenderingContext2D, colors: string[]) => 
   return gradient;
 };
 
-// Generate pie chart data
-export const generatePieChartData = (
-  keywordDistribution: Record<string, { count: number; sources: string[] }>,
-  getGradient: (ctx: CanvasRenderingContext2D, colors: string[]) => CanvasGradient,
-  ctx: CanvasRenderingContext2D
-) => {
-  const keywords = Object.keys(keywordDistribution).slice(0, 5);
-  const data = keywords.map(keyword => keywordDistribution[keyword].count);
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-  
-  return {
-    labels: keywords,
-    datasets: [{
-      data,
-      backgroundColor: colors.slice(0, keywords.length),
-      borderColor: colors.slice(0, keywords.length),
-      borderWidth: 2,
-    }]
-  };
-};
-
 // Generate pie chart options
 export const generatePieChartOptions = (
-  pieData: any,
+  _pieData: unknown, // <- was any
   keywordDistribution: Record<string, { count: number; sources: string[] }>,
   theme: string,
-  legendPosition: string
+  legendPosition: "top" | "bottom" | "left" | "right"
 ) => {
   return {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: legendPosition as 'top' | 'bottom' | 'left' | 'right',
+        position: legendPosition,
         labels: {
           color: theme === "light" ? "#7a7a7a" : "#fff",
-          font: {
-            family: "Raleway",
-            size: 12,
-          }
+          font: { family: "Raleway", size: 12 }
         }
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: { label: string; parsed: number }) => {
             const keyword = context.label;
             const count = context.parsed;
             return `${keyword}: ${count} mentions`;
@@ -495,3 +594,4 @@ export const generatePieChartOptions = (
     }
   };
 };
+

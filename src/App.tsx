@@ -18,6 +18,9 @@ import OnlineMedia from "./pages/OnlineMedia";
 import PrintMedia from "./pages/PrintMedia";
 import SocialMedia from "./pages/SocialMedia";
 import MediaSources from "./pages/MediaSources";
+import Users from "./pages/Users";
+import Organizations from "./pages/Organizations";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +45,9 @@ const App = () => (
           <Route path="/media/print/:orgId" element={<PrintMedia />} />
           <Route path="/media/social/:orgId" element={<SocialMedia />} />
           <Route path="/media/sources/:orgId" element={<MediaSources />} />
+          <Route path="/users/:orgId" element={<Users />} />
+          <Route path="/organizations/:orgId" element={<Organizations />} />
+          <Route path="/settings/:orgId" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

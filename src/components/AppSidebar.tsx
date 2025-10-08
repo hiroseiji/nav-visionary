@@ -53,7 +53,7 @@ const mediaItems = [
 
 const userItems = [
   { title: "Users", icon: User, url: "/users" },
-  { title: "Organizations", icon: Building2, url: "/organization" },
+  { title: "Organizations", icon: Building2, url: "/organizations" },
   { title: "Settings", icon: Settings, url: "/settings" },
 ];
 

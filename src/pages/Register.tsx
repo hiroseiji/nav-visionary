@@ -48,9 +48,12 @@ export default function Register() {
 
       toast.success("Registration successful! Please log in.");
       navigate("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration failed:", error);
-      toast.error(error.response?.data?.message || "Registration failed. Please try again.");
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : undefined;
+      toast.error(errorMessage || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

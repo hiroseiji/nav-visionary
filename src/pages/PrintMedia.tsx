@@ -118,8 +118,8 @@ export default function PrintMedia() {
     }
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField as keyof PrintArticle];
-      let bVal: any = b[sortField as keyof PrintArticle];
+      let aVal: string | number = a[sortField as keyof PrintArticle] as string | number;
+      let bVal: string | number = b[sortField as keyof PrintArticle] as string | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();

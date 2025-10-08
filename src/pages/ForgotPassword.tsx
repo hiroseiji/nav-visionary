@@ -22,9 +22,12 @@ export default function ForgotPassword() {
       await axios.post(`${API_BASE}/forgot-password`, { email });
       setEmailSent(true);
       toast.success("Password reset instructions sent to your email");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to send reset email:", error);
-      toast.error(error.response?.data?.message || "Failed to send reset email. Please try again.");
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : undefined;
+      toast.error(errorMessage || "Failed to send reset email. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -61,9 +61,12 @@ export default function Login() {
         setOrganizations(orgResponse.data);
         setShowOrgSelect(true);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login failed:", error);
-      toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : undefined;
+      toast.error(errorMessage || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }

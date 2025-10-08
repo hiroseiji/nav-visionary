@@ -121,8 +121,8 @@ export default function BroadcastMedia() {
     }
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField as keyof BroadcastArticle];
-      let bVal: any = b[sortField as keyof BroadcastArticle];
+      let aVal: string | number = a[sortField as keyof BroadcastArticle] as string | number;
+      let bVal: string | number = b[sortField as keyof BroadcastArticle] as string | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();

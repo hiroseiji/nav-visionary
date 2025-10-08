@@ -139,8 +139,8 @@ export default function OnlineMedia() {
 
     // Sorting
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField as keyof Article];
-      let bVal: any = b[sortField as keyof Article];
+      let aVal: string | number = a[sortField as keyof Article] as string | number;
+      let bVal: string | number = b[sortField as keyof Article] as string | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();

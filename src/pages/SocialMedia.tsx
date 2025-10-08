@@ -115,8 +115,8 @@ export default function SocialMedia() {
     }
 
     filtered.sort((a, b) => {
-      let aVal: any = a[sortField as keyof SocialPost];
-      let bVal: any = b[sortField as keyof SocialPost];
+      let aVal: string | number = a[sortField as keyof SocialPost] as string | number;
+      let bVal: string | number = b[sortField as keyof SocialPost] as string | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();

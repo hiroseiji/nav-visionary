@@ -25,7 +25,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const handleSelect = (range: any) => {
+  const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (range?.from && range?.to) {
       onDateChange([range.from, range.to]);
       setIsOpen(false);

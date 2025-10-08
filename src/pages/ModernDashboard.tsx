@@ -446,73 +446,85 @@ useEffect(() => {
           <div className="space-y-8">
             {/* Card Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-card rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <FaChartBar className="h-8 w-8 text-primary mb-2" />
-                    <div className="flex items-center space-x-2">
-                      <IoInformationCircle 
-                        className="h-4 w-4 text-muted-foreground cursor-help" 
-                        title="Total number of online, social, broadcast and print articles found over time."
-                      />
+              {/* First Card - Primary Blue */}
+              <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-medium">Total Mentions</h4>
+                  <div className="rounded-full p-2 bg-white/20">
+                    <FaChartBar className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-6xl font-bold">{totalArticles}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-md p-1.5 bg-white/20">
+                      <LuThumbsUp className="h-3.5 w-3.5" />
                     </div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Total Mentions Overtime</h4>
-                    <p className="text-2xl font-bold">{totalArticles}</p>
+                    <span className="text-sm text-primary-foreground/90">Increased from last month</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-card rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <FaRegCalendarAlt className="h-8 w-8 text-primary mb-2" />
-                    <div className="flex items-center space-x-2">
-                      <IoInformationCircle 
-                        className="h-4 w-4 text-muted-foreground cursor-help" 
-                        title="Number of online, social, broadcast and print articles found this month."
-                      />
+              {/* Second Card - White */}
+              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-medium">Monthly Mentions</h4>
+                  <div className="rounded-full p-2 border-2 border-foreground/20">
+                    <FaRegCalendarAlt className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-6xl font-bold">{monthlyMentions}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-md p-1.5 bg-muted">
+                      <LuThumbsUp className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Total Mentions this Month</h4>
-                    <p className="text-2xl font-bold">{monthlyMentions}</p>
+                    <span className="text-sm text-muted-foreground">Increased from last month</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-card rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <FaKey className="h-8 w-8 text-primary mb-2" />
-                    <div className="flex items-center space-x-2">
-                      <IoInformationCircle 
-                        className="h-4 w-4 text-muted-foreground cursor-help" 
-                        title="Total number of keyphrases matched across articles."
-                      />
+              {/* Third Card - White */}
+              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-medium">Total Keyphrases</h4>
+                  <div className="rounded-full p-2 border-2 border-foreground/20">
+                    <FaKey className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-6xl font-bold">{totalKeywords}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-md p-1.5 bg-muted">
+                      <LuThumbsUp className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Total Keyphrases</h4>
-                    <p className="text-2xl font-bold">{totalKeywords}</p>
+                    <span className="text-sm text-muted-foreground">Increased from last month</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-card rounded-lg border p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <FaRegListAlt className="h-8 w-8 text-primary mb-2" />
-                    <div className="flex items-center space-x-2">
-                      <IoInformationCircle 
-                        className="h-4 w-4 text-muted-foreground cursor-help" 
-                        title="The number of different media types where this organization was mentioned."
-                      />
+              {/* Fourth Card - White */}
+              <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-base font-medium">Media Types</h4>
+                  <div className="rounded-full p-2 border-2 border-foreground/20">
+                    <FaRegListAlt className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-6xl font-bold">{totalTopics}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-md p-1.5 bg-muted">
+                      <ImConfused className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <h4 className="text-sm font-medium text-muted-foreground">No. of Media Types</h4>
-                    <p className="text-2xl font-bold">{totalTopics}</p>
+                    <span className="text-sm text-muted-foreground">On Discuss</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Chart Section */}
-            <DashboardCharts 
+            <DashboardCharts
               pieData={pieData}
               lineData={lineData}
               currentYear={currentYear}

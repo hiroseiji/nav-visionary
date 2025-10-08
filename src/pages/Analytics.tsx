@@ -93,49 +93,81 @@ export default function Analytics() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Mentions</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalArticles.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">All time mentions</p>
-            </CardContent>
-          </Card>
+          {/* First Card - Primary Blue */}
+          <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">Total Mentions</h4>
+              <div className="rounded-full p-2 bg-white/20">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-6xl font-bold">{totalArticles.toLocaleString()}</p>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md p-1.5 bg-white/20">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-sm text-primary-foreground/90">All time mentions</span>
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{monthlyMentions.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Monthly mentions</p>
-            </CardContent>
-          </Card>
+          {/* Second Card - White */}
+          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">This Month</h4>
+              <div className="rounded-full p-2 border-2 border-foreground/20">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-6xl font-bold">{monthlyMentions.toLocaleString()}</p>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md p-1.5 bg-muted">
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <span className="text-sm text-muted-foreground">Monthly mentions</span>
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Topics</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">Tracked topics</p>
-            </CardContent>
-          </Card>
+          {/* Third Card - White */}
+          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">Active Topics</h4>
+              <div className="rounded-full p-2 border-2 border-foreground/20">
+                <Target className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-6xl font-bold">12</p>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md p-1.5 bg-muted">
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <span className="text-sm text-muted-foreground">Tracked topics</span>
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">87%</div>
-              <p className="text-xs text-muted-foreground">Average engagement</p>
-            </CardContent>
-          </Card>
+          {/* Fourth Card - White */}
+          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">Engagement Rate</h4>
+              <div className="rounded-full p-2 border-2 border-foreground/20">
+                <Activity className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-6xl font-bold">87%</p>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md p-1.5 bg-muted">
+                  <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <span className="text-sm text-muted-foreground">Average engagement</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">

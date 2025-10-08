@@ -30,6 +30,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ThemeContext } from "../components/ThemeContext";
 import CountryModal from "../components/CountryModal";
+import { SidebarLayout } from "../components/SidebarLayout";
 import {
   fetchOrganizationData,
   fetchBroadcastArticles,
@@ -539,14 +540,15 @@ const pieOptions = generatePieChartOptions(
         </button>
       </CountryModal>
 
-      <div className="min-h-screen bg-background">
-        <Header
-          userName={`${user.firstName || 'User'} ${user.lastName || ''}`}
-          userRole={user.role || 'user'}
-          onSearch={handleSearch}
-        />
-        
-        <div className="container mx-auto p-6">
+      <SidebarLayout>
+        <div className="min-h-screen bg-background">
+          <Header
+            userName={`${user.firstName || 'User'} ${user.lastName || ''}`}
+            userRole={user.role || 'user'}
+            onSearch={handleSearch}
+          />
+          
+          <div className="container mx-auto p-6">
           <h2 className="text-3xl font-bold mb-6">
             {organizationData?.organization?.alias || 'Organization'}'s Dashboard
           </h2>
@@ -887,6 +889,7 @@ const pieOptions = generatePieChartOptions(
           </div>
         </div>
       </div>
+      </SidebarLayout>
     </div>
   );
 }

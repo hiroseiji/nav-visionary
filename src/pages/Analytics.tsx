@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { BarChart3, TrendingUp, Target, Activity } from "lucide-react";
+import { ArrowUpRight, TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface User {
   role: string;
@@ -92,83 +93,113 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* First Card - Primary Blue */}
-          <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">Total Mentions</h4>
-              <div className="rounded-full p-2 bg-white/20">
-                <BarChart3 className="h-5 w-5" />
+        <TooltipProvider>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* First Card - Primary Blue */}
+            <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-base font-medium">Total Mentions</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="rounded-full p-2 border-2 border-primary-foreground/30 hover:border-primary-foreground/50 cursor-help transition-colors">
+                      <ArrowUpRight className="h-5 w-5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total number of brand mentions across all channels</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
-            <div className="space-y-3">
-              <p className="text-6xl font-bold">{totalArticles.toLocaleString()}</p>
-              <div className="flex items-center gap-2">
-                <div className="rounded-md p-1.5 bg-white/20">
-                  <TrendingUp className="h-3.5 w-3.5" />
+              <div className="space-y-3">
+                <p className="text-6xl font-bold">{totalArticles.toLocaleString()}</p>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-md p-1.5 bg-white/20">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-sm text-primary-foreground/90">Increased from last month</span>
                 </div>
-                <span className="text-sm text-primary-foreground/90">All time mentions</span>
               </div>
             </div>
-          </div>
 
-          {/* Second Card - White */}
-          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">This Month</h4>
-              <div className="rounded-full p-2 border-2 border-foreground/20">
-                <TrendingUp className="h-5 w-5" />
+            {/* Second Card - White */}
+            <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-base font-medium">This Month</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                      <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Number of mentions this month</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
-            <div className="space-y-3">
-              <p className="text-6xl font-bold">{monthlyMentions.toLocaleString()}</p>
-              <div className="flex items-center gap-2">
-                <div className="rounded-md p-1.5 bg-muted">
-                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="space-y-3">
+                <p className="text-6xl font-bold">{monthlyMentions.toLocaleString()}</p>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-md p-1.5 bg-muted">
+                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Increased from last month</span>
                 </div>
-                <span className="text-sm text-muted-foreground">Monthly mentions</span>
               </div>
             </div>
-          </div>
 
-          {/* Third Card - White */}
-          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">Active Topics</h4>
-              <div className="rounded-full p-2 border-2 border-foreground/20">
-                <Target className="h-5 w-5" />
+            {/* Third Card - White */}
+            <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-base font-medium">Active Topics</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                      <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Active media channels being monitored</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
-            <div className="space-y-3">
-              <p className="text-6xl font-bold">12</p>
-              <div className="flex items-center gap-2">
-                <div className="rounded-md p-1.5 bg-muted">
-                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="space-y-3">
+                <p className="text-6xl font-bold">12</p>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-md p-1.5 bg-muted">
+                    <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Same as last month</span>
                 </div>
-                <span className="text-sm text-muted-foreground">Tracked topics</span>
               </div>
             </div>
-          </div>
 
-          {/* Fourth Card - White */}
-          <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">Engagement Rate</h4>
-              <div className="rounded-full p-2 border-2 border-foreground/20">
-                <Activity className="h-5 w-5" />
+            {/* Fourth Card - White */}
+            <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-base font-medium">Engagement Rate</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                      <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Average engagement rate across all content</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
-            <div className="space-y-3">
-              <p className="text-6xl font-bold">87%</p>
-              <div className="flex items-center gap-2">
-                <div className="rounded-md p-1.5 bg-muted">
-                  <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="space-y-3">
+                <p className="text-6xl font-bold">87%</p>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-md p-1.5 bg-muted">
+                    <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Decreased from last month</span>
                 </div>
-                <span className="text-sm text-muted-foreground">Average engagement</span>
               </div>
             </div>
           </div>
-        </div>
+        </TooltipProvider>
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>

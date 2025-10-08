@@ -2,10 +2,6 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  FaChartBar,
-  FaRegCalendarAlt,
-  FaKey,
-  FaRegListAlt,
   FaEllipsisV,
   FaSortAmountDown,
   FaSortAmountUp,
@@ -18,6 +14,8 @@ import { LuThumbsDown, LuThumbsUp } from "react-icons/lu";
 import { ImConfused } from "react-icons/im";
 import { MdOutlineSentimentNeutral } from "react-icons/md";
 import { FaAngleDown } from "react-icons/fa6";
+import { ArrowUpRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import Header from "../components/Header";
 import loadingAnimation from "../assets/loadingAnimation.json";
@@ -442,23 +440,30 @@ useEffect(() => {
           <h2 className="text-3xl font-bold mb-6">
             {organizationData?.organization?.alias || 'Organization'}'s Dashboard
           </h2>
-          
           <div className="space-y-8">
+          <TooltipProvider>
             {/* Card Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* First Card - Primary Blue */}
               <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Total Mentions</h4>
-                  <div className="rounded-full p-2 bg-white/20">
-                    <FaChartBar className="h-5 w-5" />
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="rounded-full p-2 border-2 border-primary-foreground/30 hover:border-primary-foreground/50 cursor-help transition-colors">
+                        <ArrowUpRight className="h-5 w-5" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Total number of brand mentions across all channels</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="space-y-3">
                   <p className="text-6xl font-bold">{totalArticles}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-white/20">
-                      <LuThumbsUp className="h-3.5 w-3.5" />
+                      <TrendingUp className="h-3.5 w-3.5" />
                     </div>
                     <span className="text-sm text-primary-foreground/90">Increased from last month</span>
                   </div>
@@ -469,15 +474,22 @@ useEffect(() => {
               <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Monthly Mentions</h4>
-                  <div className="rounded-full p-2 border-2 border-foreground/20">
-                    <FaRegCalendarAlt className="h-5 w-5" />
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                        <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Number of mentions this month</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="space-y-3">
                   <p className="text-6xl font-bold">{monthlyMentions}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-muted">
-                      <LuThumbsUp className="h-3.5 w-3.5 text-muted-foreground" />
+                      <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                     <span className="text-sm text-muted-foreground">Increased from last month</span>
                   </div>
@@ -488,17 +500,24 @@ useEffect(() => {
               <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Total Keyphrases</h4>
-                  <div className="rounded-full p-2 border-2 border-foreground/20">
-                    <FaKey className="h-5 w-5" />
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                        <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Tracked keyphrases and keywords</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="space-y-3">
                   <p className="text-6xl font-bold">{totalKeywords}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-muted">
-                      <LuThumbsUp className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Minus className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Increased from last month</span>
+                    <span className="text-sm text-muted-foreground">Same as last month</span>
                   </div>
                 </div>
               </div>
@@ -507,17 +526,24 @@ useEffect(() => {
               <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Media Types</h4>
-                  <div className="rounded-full p-2 border-2 border-foreground/20">
-                    <FaRegListAlt className="h-5 w-5" />
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
+                        <ArrowUpRight className="h-5 w-5 text-[#1e40af]" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Active media channels being monitored</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="space-y-3">
                   <p className="text-6xl font-bold">{totalTopics}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-muted">
-                      <ImConfused className="h-3.5 w-3.5 text-muted-foreground" />
+                      <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <span className="text-sm text-muted-foreground">On Discuss</span>
+                    <span className="text-sm text-muted-foreground">Decreased from last month</span>
                   </div>
                 </div>
               </div>
@@ -529,6 +555,7 @@ useEffect(() => {
               lineData={lineData}
               currentYear={currentYear}
             />
+            </TooltipProvider>
 
             <div className="bg-card rounded-lg border p-6">
               <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>

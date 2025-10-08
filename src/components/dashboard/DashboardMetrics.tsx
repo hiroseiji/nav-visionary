@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DashboardMetricsProps {
   totalArticles: number;
@@ -8,6 +9,8 @@ interface DashboardMetricsProps {
   totalKeywords: number;
   totalTopics: number;
 }
+
+type TrendType = 'increase' | 'decrease' | 'same';
 
 export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
   totalArticles,
@@ -20,78 +23,108 @@ export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({
       title: "Total Mentions",
       value: totalArticles,
       trend: "Increased from last month",
+      trendType: 'increase' as TrendType,
+      description: "Total number of brand mentions across all channels",
       isPrimary: true
     },
     {
       title: "Monthly Mentions", 
       value: monthlyMentions,
       trend: "Increased from last month",
+      trendType: 'increase' as TrendType,
+      description: "Number of mentions this month",
       isPrimary: false
     },
     {
       title: "Total Keyphrases",
       value: totalKeywords,
-      trend: "Increased from last month",
+      trend: "Same as last month",
+      trendType: 'same' as TrendType,
+      description: "Tracked keyphrases and keywords",
       isPrimary: false
     },
     {
       title: "Media Types",
       value: totalTopics,
-      trend: "On Discuss",
+      trend: "Decreased from last month",
+      trendType: 'decrease' as TrendType,
+      description: "Active media channels being monitored",
       isPrimary: false
     }
   ];
 
+  const getTrendIcon = (trendType: TrendType) => {
+    switch (trendType) {
+      case 'increase':
+        return <TrendingUp className="h-3.5 w-3.5" />;
+      case 'decrease':
+        return <TrendingDown className="h-3.5 w-3.5" />;
+      case 'same':
+        return <Minus className="h-3.5 w-3.5" />;
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {metrics.map((metric, index) => (
-        <Card 
-          key={index} 
-          className={`relative overflow-hidden transition-all duration-300 ${
-            metric.isPrimary 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-card'
-          }`}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className={`text-base font-medium ${
-              metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
-            }`}>
-              {metric.title}
-            </CardTitle>
-            <div className={`rounded-full p-2 ${
+    <TooltipProvider>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {metrics.map((metric, index) => (
+          <Card 
+            key={index} 
+            className={`relative overflow-hidden transition-all duration-300 ${
               metric.isPrimary 
-                ? 'bg-white/20 text-primary-foreground' 
-                : 'border-2 border-foreground/20'
-            }`}>
-              <ArrowUpRight className="h-5 w-5" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className={`text-6xl font-bold ${
-              metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
-            }`}>
-              {metric.value}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-md p-1.5 ${
-                metric.isPrimary 
-                  ? 'bg-white/20' 
-                  : 'bg-muted'
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-card'
+            }`}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className={`text-base font-medium ${
+                metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
               }`}>
-                <TrendingUp className={`h-3.5 w-3.5 ${
-                  metric.isPrimary ? 'text-primary-foreground' : 'text-muted-foreground'
-                }`} />
+                {metric.title}
+              </CardTitle>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`rounded-full p-2 border-2 cursor-help transition-colors ${
+                    metric.isPrimary 
+                      ? 'border-primary-foreground/30 hover:border-primary-foreground/50' 
+                      : 'border-[#1e40af] hover:border-[#1e3a8a]'
+                  }`}>
+                    <ArrowUpRight className={`h-5 w-5 ${
+                      metric.isPrimary ? 'text-primary-foreground' : 'text-[#1e40af]'
+                    }`} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{metric.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className={`text-6xl font-bold ${
+                metric.isPrimary ? 'text-primary-foreground' : 'text-foreground'
+              }`}>
+                {metric.value}
               </div>
-              <span className={`text-sm ${
-                metric.isPrimary ? 'text-primary-foreground/90' : 'text-muted-foreground'
-              }`}>
-                {metric.trend}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+              <div className="flex items-center gap-2">
+                <div className={`rounded-md p-1.5 ${
+                  metric.isPrimary 
+                    ? 'bg-white/20' 
+                    : 'bg-muted'
+                }`}>
+                  <span className={metric.isPrimary ? 'text-primary-foreground' : 'text-muted-foreground'}>
+                    {getTrendIcon(metric.trendType)}
+                  </span>
+                </div>
+                <span className={`text-sm ${
+                  metric.isPrimary ? 'text-primary-foreground/90' : 'text-muted-foreground'
+                }`}>
+                  {metric.trend}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 };

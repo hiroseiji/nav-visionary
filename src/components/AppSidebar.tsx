@@ -129,19 +129,19 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <SidebarHeader className="border-b border-border/40 p-4">
+    <Sidebar className="bg-card rounded-2xl border-0">
+      <SidebarHeader className="border-0 p-6">
         <div className="flex items-center gap-3">
           {!collapsed && (
             <img
               src={theme === "light" ? logoLight : logoDark}
               alt="logo"
-              className="h-8 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           )}
         </div>
         {selectedOrgName && !collapsed && (
-          <div className="text-xs text-muted-foreground mt-2 px-2 py-1 bg-accent/50 rounded-md">
+          <div className="text-xs text-muted-foreground mt-2 px-2 py-1 bg-accent/50 rounded-md font-light">
             {selectedOrgName}
           </div>
         )}
@@ -150,7 +150,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
       <SidebarContent className="px-2">
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -174,7 +174,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
 
         {/* Media Section */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
             Media
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -243,7 +243,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
 
         {/* User Management */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
             Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -266,7 +266,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/40 p-2">
+      <SidebarFooter className="border-0 p-2">
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem>

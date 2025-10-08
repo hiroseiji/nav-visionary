@@ -34,12 +34,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background p-4 gap-4">
         <AppSidebar theme={theme} toggleTheme={toggleTheme} />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col gap-4">
           {/* Header */}
-          <header className="sticky top-0 z-50 w-full border-b bg-card/50 backdrop-blur-sm">
+          <header className="bg-card rounded-2xl">
             <div className="flex h-20 items-center px-8 gap-6">
               <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
               
@@ -52,7 +52,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     placeholder="Search task"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-muted/30 border-border/50 rounded-full font-normal"
+                    className="pl-10 bg-muted/30 border-0 rounded-full font-light"
                   />
                 </div>
               </div>
@@ -61,7 +61,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
               {/* Organization Switcher */}
               <Select value={selectedOrg} onValueChange={setSelectedOrg}>
-                <SelectTrigger className="w-[200px] bg-muted/30 border-border/50">
+                <SelectTrigger className="w-[200px] bg-transparent border-0 font-light">
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
@@ -76,20 +76,20 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               <div className="flex items-center gap-3 pl-4">
                 <Avatar className="h-12 w-12 border-2 border-primary/20">
                   <AvatarImage src="" alt={userName} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{userName}</span>
-                  <span className="text-xs text-muted-foreground">{userEmail}</span>
+                  <span className="text-sm font-normal">{userName}</span>
+                  <span className="text-xs text-muted-foreground font-light">{userEmail}</span>
                 </div>
               </div>
             </div>
           </header>
           
           {/* Main content - with visual separation */}
-          <main className="flex-1 overflow-auto bg-background">
+          <main className="flex-1 overflow-auto bg-card rounded-2xl">
             {children}
           </main>
         </div>

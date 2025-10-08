@@ -457,7 +457,7 @@ useEffect(() => {
                   </Tooltip>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-6xl font-bold">{totalArticles}</p>
+                  <p className="text-6xl font-medium">{totalArticles}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-primary-foreground/10">
                       <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
@@ -483,7 +483,7 @@ useEffect(() => {
                   </Tooltip>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-6xl font-bold">{monthlyMentions}</p>
+                  <p className="text-6xl font-medium">{monthlyMentions}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-muted">
                       <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
@@ -509,7 +509,7 @@ useEffect(() => {
                   </Tooltip>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-6xl font-bold">{totalKeywords}</p>
+                  <p className="text-6xl font-medium">{totalKeywords}</p>
                   <div className="flex items-center gap-2">
                     <div className="rounded-md p-1.5 bg-muted">
                       <Minus className="h-3.5 w-3.5 text-muted-foreground" />

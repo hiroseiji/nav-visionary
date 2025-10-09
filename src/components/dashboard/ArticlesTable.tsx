@@ -10,22 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { 
-  MoreHorizontal, 
   ThumbsUp, 
   ThumbsDown, 
   Minus, 
   ArrowUpDown,
-  ExternalLink,
-  Download,
-  Mail,
-  Trash2
+  Pencil,
+  Trash2,
+  ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -179,40 +171,28 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                   <TableCell className="text-sm py-4">{article.coverage_type}</TableCell>
                   <TableCell className="text-sm py-4">{article.reach?.toLocaleString() || '-'}</TableCell>
                   <TableCell className="py-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <a href={article.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open Article
-                          </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <a href={`mailto:?subject=Interesting Article&body=${article.url}`}>
-                            <Mail className="mr-2 h-4 w-4" />
-                            Share via Email
-                          </a>
-                        </DropdownMenuItem>
-                        {userRole === 'super_admin' && onDelete && (
-                          <DropdownMenuItem 
-                            onClick={() => onDelete(article._id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onSentimentEdit && onSentimentEdit(article._id, article.sentiment)}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title="Edit article"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      {userRole === 'super_admin' && onDelete && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this article?')) {
+                              onDelete(article._id);
+                            }
+                          }}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          title="Delete article"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

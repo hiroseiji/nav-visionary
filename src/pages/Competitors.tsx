@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, ThumbsUp, ThumbsDown, Minus, Plus } from "lucide-react";
+import { Search, ThumbsUp, ThumbsDown, Minus, Plus, Pencil, Trash2 } from "lucide-react";
 
 interface User {
   role: string;
@@ -36,6 +36,7 @@ export default function Competitors() {
   const [printArticles, setPrintArticles] = useState<Article[]>([]);
   const [visibleArticles, setVisibleArticles] = useState(20);
   const [sentimentFilter, setSentimentFilter] = useState("all");
+  const [editingArticle, setEditingArticle] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
@@ -106,12 +107,13 @@ export default function Competitors() {
                 <TableHead className="font-medium">Sentiment</TableHead>
                 <TableHead className="font-medium">Date</TableHead>
                 {type === "online" && <TableHead className="font-medium">Country</TableHead>}
+                <TableHead className="font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={type === "online" ? 5 : 4} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={type === "online" ? 6 : 5} className="text-center py-8 text-muted-foreground">
                     No articles found
                   </TableCell>
                 </TableRow>
@@ -125,6 +127,48 @@ export default function Competitors() {
                     </TableCell>
                     <TableCell className="py-4 text-sm">{new Date(article.publication_date).toLocaleDateString()}</TableCell>
                     {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingArticle(article._id)}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          title="Edit article"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        {user?.role === 'super_admin' && (
+                          <button
+                            onClick={async () => {
+                              if (confirm('Are you sure you want to delete this article?')) {
+                                try {
+                                  const orgId = user.role === "super_admin" ? selectedOrg : user.organizationId;
+                                  await axios.delete(
+                                    `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
+                                  );
+                                  toast.success('Article deleted successfully');
+                                  // Refresh data
+                                  const [onlineRes, printRes, broadcastRes] = await Promise.all([
+                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`),
+                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/printMedia`),
+                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`),
+                                  ]);
+                                  setOnlineArticles(onlineRes.data);
+                                  setPrintArticles(printRes.data);
+                                  setBroadcastArticles(broadcastRes.data);
+                                } catch (err) {
+                                  console.error('Failed to delete article:', err);
+                                  toast.error('Failed to delete article');
+                                }
+                              }
+                            }}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                            title="Delete article"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}

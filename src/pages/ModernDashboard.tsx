@@ -14,7 +14,7 @@ import { LuThumbsDown, LuThumbsUp } from "react-icons/lu";
 import { ImConfused } from "react-icons/im";
 import { MdOutlineSentimentNeutral } from "react-icons/md";
 import { FaAngleDown } from "react-icons/fa6";
-import { ArrowUpRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowUpRight, TrendingUp, TrendingDown, Minus, Pencil, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -778,9 +778,35 @@ useEffect(() => {
                               {article.reach?.toLocaleString() || 'N/A'}
                             </td>
                             <td className="p-4">
-                              <button className="text-muted-foreground hover:text-foreground">
-                                <FaEllipsisV className="h-4 w-4" />
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingSentiment({ articleId: article._id, value: article.sentiment });
+                                  }}
+                                  className="text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Edit article"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                {user.role === 'super_admin' && (
+                                  <button
+                                    onClick={() => {
+                                      handleDelete(
+                                        'articles',
+                                        article._id,
+                                        selectedOrg || '',
+                                        token || '',
+                                        setArticles,
+                                        setFilteredArticles
+                                      );
+                                    }}
+                                    className="text-muted-foreground hover:text-destructive transition-colors"
+                                    title="Delete article"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))

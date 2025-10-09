@@ -65,7 +65,7 @@ interface AppSidebarProps {
 export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const storedOrgId = localStorage.getItem("selectedOrgId");
+  const storedOrgId = localStorage.getItem("selectedOrgId") || localStorage.getItem("selectedOrg");
   const orgId = storedOrgId && storedOrgId !== "null" ? storedOrgId : null;
   const { open } = useSidebar();
   const collapsed = !open;

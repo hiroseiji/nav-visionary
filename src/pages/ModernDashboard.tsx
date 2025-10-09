@@ -16,6 +16,7 @@ import { MdOutlineSentimentNeutral } from "react-icons/md";
 import { FaAngleDown } from "react-icons/fa6";
 import { ArrowUpRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Header from "../components/Header";
 import loadingAnimation from "../assets/loadingAnimation.json";
@@ -752,18 +753,16 @@ useEffect(() => {
                               {article.country || "Unknown"}
                             </td>
                             <td className="border border-border p-2">
-                              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                                article.sentiment === 'positive' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : article.sentiment === 'negative'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {article.sentiment === 'positive' && <LuThumbsUp className="w-3 h-3 mr-1" />}
-                                {article.sentiment === 'negative' && <LuThumbsDown className="w-3 h-3 mr-1" />}
-                                {article.sentiment === 'neutral' && <MdOutlineSentimentNeutral className="w-3 h-3 mr-1" />}
+                              <Badge
+                                variant={
+                                  (article.sentiment || '').toLowerCase() === 'positive' ? 'positive' :
+                                  (article.sentiment || '').toLowerCase() === 'negative' ? 'negative' :
+                                  (article.sentiment || '').toLowerCase() === 'mixed' ? 'mixed' : 'neutral'
+                                }
+                                className="capitalize"
+                              >
                                 {mapSentimentToLabel(article.sentiment)}
-                              </span>
+                              </Badge>
                             </td>
                             <td className="border border-border p-2 font-mono text-sm">
                               {article.ave?.toLocaleString() || 'N/A'}

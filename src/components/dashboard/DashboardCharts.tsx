@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
-import { PieChart, Pie, LineChart, Line, Area, XAxis, YAxis, CartesianGrid, Legend, Cell, Tooltip } from 'recharts';
+import { PieChart, Pie, ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Legend, Cell, Tooltip } from 'recharts';
 
 interface PieDataItem {
   name: string;
@@ -97,7 +97,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         </CardHeader>
         <CardContent className="p-6">
           <ChartContainer config={lineChartConfig} className="h-[300px] w-full">
-            <LineChart data={lineData}>
+            <ComposedChart data={lineData}>
               <defs>
                 <linearGradient id="colorOnline" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
@@ -129,7 +129,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
               <Line type="monotone" dataKey="social" stroke="#10b981" strokeWidth={2} name="Social Media" />
               <Line type="monotone" dataKey="broadcast" stroke="#f59e0b" strokeWidth={2} name="Broadcast" />
               <Line type="monotone" dataKey="print" stroke="#ef4444" strokeWidth={2} name="Print Media" />
-            </LineChart>
+            </ComposedChart>
           </ChartContainer>
         </CardContent>
       </Card>

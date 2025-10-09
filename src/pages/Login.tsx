@@ -104,21 +104,15 @@ export default function Login() {
           <p className="text-lg text-white/95 font-medium">
             Login to continue accessing your account and track your media presence.
           </p>
-          <div className="pt-6">
-            <img
-              src="/socialDark.png"
-              alt="Social Light"
-              className="w-full max-w-[280px]"
-            />
-          </div>
         </div>
       </div>
 
       {/* Right side - Login form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md space-y-8">
-          <div className="text-center lg:hidden mb-8">
-            <img src="/social.png" alt="Social Light" className="w-32 h-32 mx-auto mb-4 rounded-full" />
+          {/* Logo at top - always visible */}
+          <div className="text-center mb-8">
+            <img src="/social.png" alt="Social Light" className="w-20 h-20 mx-auto mb-6 rounded-full" />
           </div>
 
           <div className="space-y-2 text-center lg:text-left">

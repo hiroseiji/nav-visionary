@@ -1,9 +1,12 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import { AiOutlineUserSwitch } from 'react-icons/ai';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ThemeContext } from "./ThemeContext";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -12,6 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -21,7 +27,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrg, setSelectedOrg] = useState("");
-
+  const [showOrgSelect, setShowOrgSelect] = useState(false);
+  const [organizations, setOrganizations] = useState<Array<{ _id: string; organizationName: string }>>([]);
+  
   // Get user data from localStorage
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userName = user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : "User";
@@ -31,6 +39,18 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     .map((name: string) => name[0])
     .join('')
     .toUpperCase();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'super_admin') {
+      axios.get('https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations')
+        .then(res => setOrganizations(res.data))
+        .catch(err => {
+          console.error('Error fetching organizations:', err);
+          toast.error('Error fetching organizations');
+        });
+    }
+  }, [user?.role]);
 
   return (
     <SidebarProvider>
@@ -53,7 +73,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     placeholder="Search task"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-muted/30 border-0 rounded-full font-light"
+                    className="pl-10 bg-card text-foreground border border-border rounded-full font-light shadow-sm"
                   />
                 </div>
               </div>
@@ -61,17 +81,53 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               <div className="flex-1" />
 
               {/* Organization Switcher */}
-              <Select value={selectedOrg} onValueChange={setSelectedOrg}>
-                <SelectTrigger className="w-[200px] bg-transparent border-0 font-light">
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="media-org">Media Organization</SelectItem>
-                  <SelectItem value="tech-corp">Tech Corporation</SelectItem>
-                  <SelectItem value="startup-inc">Startup Inc</SelectItem>
-                  <SelectItem value="agency-co">Agency Co</SelectItem>
-                </SelectContent>
-              </Select>
+              {user?.role === 'super_admin' && (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowOrgSelect(true)}
+                    title="Switch organizations"
+                  >
+                    <AiOutlineUserSwitch className="h-5 w-5" />
+                  </Button>
+
+                  <Dialog open={showOrgSelect} onOpenChange={setShowOrgSelect}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Switch Organization</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Select value={selectedOrg} onValueChange={setSelectedOrg}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choose organization" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizations.map((org) => (
+                              <SelectItem key={org._id} value={org._id}>
+                                {org.organizationName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          onClick={() => {
+                            if (!selectedOrg) { toast.error('Please select an organization'); return; }
+                            localStorage.setItem('selectedOrg', selectedOrg);
+                            localStorage.setItem('selectedOrgId', selectedOrg);
+                            setShowOrgSelect(false);
+                            navigate(`/dashboard/${selectedOrg}`);
+                            toast.success('Organization switched successfully');
+                          }}
+                          className="w-full"
+                        >
+                          Continue
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
 
               {/* User Profile */}
               <div className="flex items-center gap-3 pl-4">

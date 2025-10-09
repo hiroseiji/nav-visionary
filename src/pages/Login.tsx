@@ -89,17 +89,26 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Welcome section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 p-12 flex-col justify-center items-center text-primary-foreground">
-        <div className="max-w-md space-y-6">
-          <h1 className="text-5xl font-bold">Welcome Back!</h1>
-          <p className="text-xl text-primary-foreground/90">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.9)] to-[hsl(var(--primary)/0.7)] p-12 flex-col justify-center items-center text-primary-foreground">
+        {/* Flowing white curves */}
+        <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M-100,200 Q200,100 500,200 T1100,200" stroke="white" strokeWidth="3" fill="none" opacity="0.6"/>
+          <path d="M-50,350 Q250,250 600,350 T1200,350" stroke="white" strokeWidth="2.5" fill="none" opacity="0.5"/>
+          <path d="M-150,500 Q150,400 550,500 T1150,500" stroke="white" strokeWidth="2" fill="none" opacity="0.4"/>
+          <path d="M100,50 Q400,150 700,50 T1300,50" stroke="white" strokeWidth="2" fill="none" opacity="0.3"/>
+        </svg>
+
+        {/* Glassmorphism overlay card */}
+        <div className="relative z-10 max-w-md space-y-6 backdrop-blur-md bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl">
+          <h1 className="text-5xl font-bold drop-shadow-lg">Welcome Back!</h1>
+          <p className="text-xl text-primary-foreground/95 drop-shadow">
             Login to continue accessing your account and track your media presence.
           </p>
           <div className="pt-8">
             <img
               src="/socialDark.png"
               alt="Social Light"
-              className="w-full max-w-sm "
+              className="w-full max-w-sm drop-shadow-xl"
             />
           </div>
         </div>

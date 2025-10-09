@@ -90,19 +90,18 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Left side - Welcome section */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6] p-12 flex-col justify-center items-center text-white">
-        {/* Flowing white curves - organic flowing lines */}
+        {/* Flowing white curves - diagonal organic flowing lines */}
         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-          <path d="M-50,200 Q150,150 300,200 T600,180 T900,220 L1000,220 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.08"/>
-          <path d="M-50,350 C100,300 250,380 400,340 S650,300 850,370 L1000,370 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.06"/>
-          <path d="M-100,500 Q50,450 200,500 T500,480 T800,520 T1100,500" stroke="white" strokeWidth="3" fill="none" opacity="0.15"/>
-          <path d="M-100,650 Q100,600 300,650 T700,630 T1100,670" stroke="white" strokeWidth="2.5" fill="none" opacity="0.12"/>
-          <path d="M-50,800 C150,750 300,820 500,780 S750,740 950,800" stroke="white" strokeWidth="2" fill="none" opacity="0.1"/>
+          <path d="M-100,-50 Q200,250 400,200 T800,400 T1100,600" stroke="white" strokeWidth="4" fill="none" opacity="0.08"/>
+          <path d="M-200,100 Q100,350 350,300 T700,500 T1200,700" stroke="white" strokeWidth="3.5" fill="none" opacity="0.07"/>
+          <path d="M-150,250 Q150,450 450,400 T850,650 T1300,850" stroke="white" strokeWidth="3" fill="none" opacity="0.06"/>
+          <path d="M200,-100 Q400,150 600,100 T900,300 T1200,500" stroke="white" strokeWidth="3.5" fill="none" opacity="0.05"/>
         </svg>
 
         {/* Content directly on background */}
         <div className="relative z-10 max-w-md space-y-6">
-          <h1 className="text-5xl font-bold">Welcome Back!</h1>
-          <p className="text-lg text-white/95">
+          <h1 className="text-5xl font-medium">Welcome Back!</h1>
+          <p className="text-lg text-white/95 font-medium">
             Login to continue accessing your account and track your media presence.
           </p>
           <div className="pt-6">

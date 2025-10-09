@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ThemeContext } from "@/components/ThemeContext";
 import axios from "axios";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const API_BASE = "https://sociallightbw-backend-34f7586fa57c.herokuapp.com";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { theme } = useContext(ThemeContext);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: "",
     password: "",
@@ -112,7 +114,11 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo at top - always visible */}
           <div className="text-center mb-8">
-            <img src="/social.png" alt="Social Light" className="w-20 h-20 mx-auto mb-6 rounded-full" />
+            <img 
+              src={theme === 'dark' ? "/socialDark.png" : "/social.png"} 
+              alt="Social Light" 
+              className="w-20 h-20 mx-auto mb-6 rounded-full" 
+            />
           </div>
 
           <div className="space-y-2 text-center lg:text-left">

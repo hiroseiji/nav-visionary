@@ -130,7 +130,8 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
 
   return (
     <Sidebar
-      className={cn( "bg-background",
+      className={cn(
+        "bg-card dark:bg-card",
         "ml-6 my-6 w-auto max-w-[280px] min-w-[260px]",
         "rounded-[24px]",
         "overflow-hidden flex flex-col"
@@ -270,7 +271,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-0 p-2">
+      <SidebarFooter className="border-0 p-6">
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem>

@@ -129,7 +129,13 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="bg-muted rounded-3xl border-0 shadow-none outline-none ring-0 focus:outline-none focus:ring-0 overflow-hidden">
+    <Sidebar
+      className={cn( "bg-background",
+        "ml-6 my-6 w-auto max-w-[280px] min-w-[260px]",
+        "rounded-[24px]",
+        "overflow-hidden flex flex-col"
+      )}
+    >
       <SidebarHeader className="border-0 p-6">
         <div className="flex items-center gap-3">
           {!collapsed && (
@@ -146,7 +152,6 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           </div>
         )}
       </SidebarHeader>
-
       <SidebarContent className="px-2">
         {/* Main Navigation */}
         <SidebarGroup>
@@ -265,7 +270,6 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter className="border-0 p-2">
         <SidebarMenu>
           {/* Theme Toggle */}

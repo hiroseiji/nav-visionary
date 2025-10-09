@@ -7,6 +7,19 @@ import { ThemeProvider } from "@/components/ThemeContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ModernDashboard from "./pages/ModernDashboard";
+import { Navigate } from "react-router-dom";
+
+const DashboardRedirect = () => {
+  const selectedOrg = localStorage.getItem('selectedOrgId') || localStorage.getItem('selectedOrg');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const orgId = user.role === 'super_admin' ? selectedOrg : user.organizationId;
+  
+  if (!orgId) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <Navigate to={`/dashboard/${orgId}`} replace />;
+};
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -37,6 +50,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
             <Route path="/dashboard/:orgId" element={<ModernDashboard />} />
             <Route path="/analytics/:orgId" element={<Analytics />} />
             <Route path="/competitors/:orgId" element={<Competitors />} />

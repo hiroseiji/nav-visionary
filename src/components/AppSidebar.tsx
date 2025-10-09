@@ -131,24 +131,25 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   return (
     <Sidebar
       className={cn(
-        "bg-card dark:bg-card",
-        "ml-6 my-6 w-auto max-w-[280px] min-w-[260px]",
+        "bg-muted border-b border-border",
+        "ml-4 my-4 w-auto max-w-[280px] min-w-[260px]",
+        "h-[calc(100vh-2rem)]",
         "rounded-[24px]",
         "overflow-hidden flex flex-col"
       )}
     >
       <SidebarHeader className="border-0 p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-3 w-full">
           {!collapsed && (
             <img
               src={theme === "light" ? logoLight : logoDark}
               alt="logo"
-              className="h-12 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           )}
         </div>
         {selectedOrgName && !collapsed && (
-          <div className="text-xs text-muted-foreground mt-2 px-2 py-1 bg-accent/50 rounded-md font-light">
+          <div className="text-xs text-muted-foreground mt-2 px-2 py-1 bg-accent/50 rounded-md font-light text-center w-full">
             {selectedOrgName}
           </div>
         )}

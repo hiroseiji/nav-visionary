@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { ArrowDownUp, Search } from 'lucide-react';
 import { AiOutlineUserSwitch } from 'react-icons/ai';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
@@ -57,98 +57,114 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       <div className="min-h-screen flex w-full bg-background p-6">
         <div className="flex w-full gap-6 items-start">
           <AppSidebar theme={theme} toggleTheme={toggleTheme} />
-          
+
           <div className="flex-1 flex flex-col gap-6">
-          {/* Header */}
-          <header className="bg-muted rounded-3xl overflow-hidden">
-            <div className="flex h-20 items-center px-8 gap-6">
-              <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
-              
-              {/* Search Bar */}
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search task"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-card text-foreground border border-border rounded-full font-light shadow-sm"
-                  />
+            {/* Header */}
+            <header className="bg-muted rounded-3xl overflow-hidden">
+              <div className="flex h-20 items-center px-8 gap-6">
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
+
+                {/* Search Bar */}
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      type="text"
+                      placeholder="Search for articles"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-card text-foreground border border-border rounded-full font-light"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1" />
+
+                {/* Organization Switcher */}
+                {user?.role === "super_admin" && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowOrgSelect(true)}
+                      title="Switch organizations"
+                    >
+                      <ArrowDownUp className="h-7 w-7" /> Switch Organisations
+                    </Button>
+
+                    <Dialog
+                      open={showOrgSelect}
+                      onOpenChange={setShowOrgSelect}
+                    >
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Switch Organization</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Select
+                            value={selectedOrg}
+                            onValueChange={setSelectedOrg}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Choose organization" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {organizations.map((org) => (
+                                <SelectItem key={org._id} value={org._id}>
+                                  {org.organizationName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            onClick={() => {
+                              if (!selectedOrg) {
+                                toast.error("Please select an organization");
+                                return;
+                              }
+                              localStorage.setItem("selectedOrg", selectedOrg);
+                              localStorage.setItem(
+                                "selectedOrgId",
+                                selectedOrg
+                              );
+                              setShowOrgSelect(false);
+                              navigate(`/dashboard/${selectedOrg}`);
+                              toast.success(
+                                "Organization switched successfully"
+                              );
+                            }}
+                            className="w-full"
+                          >
+                            Continue
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                )}
+
+                {/* User Profile */}
+                <div className="flex items-center gap-3 pl-4">
+                  <Avatar className="h-12 w-12 border-2 border-primary/20">
+                    <AvatarImage src="" alt={userName} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-normal">{userName}</span>
+                    <span className="text-xs text-muted-foreground font-light">
+                      {userEmail}
+                    </span>
+                  </div>
                 </div>
               </div>
+            </header>
 
-              <div className="flex-1" />
-
-              {/* Organization Switcher */}
-              {user?.role === 'super_admin' && (
-                <>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setShowOrgSelect(true)}
-                    title="Switch organizations"
-                  >
-                    <AiOutlineUserSwitch className="h-5 w-5" />
-                  </Button>
-
-                  <Dialog open={showOrgSelect} onOpenChange={setShowOrgSelect}>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Switch Organization</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Select value={selectedOrg} onValueChange={setSelectedOrg}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Choose organization" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {organizations.map((org) => (
-                              <SelectItem key={org._id} value={org._id}>
-                                {org.organizationName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          onClick={() => {
-                            if (!selectedOrg) { toast.error('Please select an organization'); return; }
-                            localStorage.setItem('selectedOrg', selectedOrg);
-                            localStorage.setItem('selectedOrgId', selectedOrg);
-                            setShowOrgSelect(false);
-                            navigate(`/dashboard/${selectedOrg}`);
-                            toast.success('Organization switched successfully');
-                          }}
-                          className="w-full"
-                        >
-                          Continue
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              )}
-
-              {/* User Profile */}
-              <div className="flex items-center gap-3 pl-4">
-                <Avatar className="h-12 w-12 border-2 border-primary/20">
-                  <AvatarImage src="" alt={userName} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-normal">{userName}</span>
-                  <span className="text-xs text-muted-foreground font-light">{userEmail}</span>
-                </div>
-              </div>
-            </div>
-          </header>
-          
-          {/* Main content - with visual separation */}
-          <main className="flex-1 overflow-auto bg-muted rounded-3xl p-6">
-            {children}
-          </main>
+            {/* Main content - with visual separation */}
+            <main className="flex-1 overflow-auto bg-muted rounded-3xl p-6">
+              {children}
+            </main>
           </div>
         </div>
       </div>

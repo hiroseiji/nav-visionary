@@ -100,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
                 onClick={toggleOrgSelect}
                 title="Switch organizations"
               >
-                <AiOutlineUserSwitch className="h-5 w-5" />
+                <AiOutlineUserSwitch className="h-7 w-7" />
               </Button>
             )}
             

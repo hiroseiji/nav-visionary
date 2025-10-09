@@ -131,7 +131,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   return (
     <Sidebar
       className={cn(
-        "bg-muted border-b border-border",
+        "bg-background border-b border-border",
         "ml-4 my-4 w-auto max-w-[280px] min-w-[260px]",
         "h-[calc(100vh-2rem)]",
         "rounded-[24px]",

@@ -78,8 +78,15 @@ export default function Competitors() {
   };
 
   const getSentimentBadge = (sentiment: string) => {
-    const variant = sentiment === "positive" ? "default" : sentiment === "negative" ? "destructive" : "secondary";
-    return <Badge variant={variant}>{sentiment}</Badge>;
+    const sentimentLower = sentiment.toLowerCase();
+    let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
+    
+    if (sentimentLower === 'positive') variant = 'positive';
+    else if (sentimentLower === 'negative') variant = 'negative';
+    else if (sentimentLower === 'mixed') variant = 'mixed';
+    else variant = 'neutral';
+    
+    return <Badge variant={variant} className="capitalize">{sentiment}</Badge>;
   };
 
   const renderArticleTable = (articles: Article[], type: string) => {
@@ -114,10 +121,7 @@ export default function Competitors() {
                     <TableCell className="font-medium">{article.title}</TableCell>
                     <TableCell>{article.source}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getSentimentIcon(article.sentiment)}
-                        {getSentimentBadge(article.sentiment)}
-                      </div>
+                      {getSentimentBadge(article.sentiment)}
                     </TableCell>
                     <TableCell>{new Date(article.publication_date).toLocaleDateString()}</TableCell>
                     {type === "online" && <TableCell>{article.country || "N/A"}</TableCell>}

@@ -72,12 +72,16 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   };
 
   const getSentimentBadge = (sentiment: string) => {
-    const variant = sentiment.toLowerCase() === 'positive' ? 'default' :
-                   sentiment.toLowerCase() === 'negative' ? 'destructive' : 'secondary';
+    const sentimentLower = sentiment.toLowerCase();
+    let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
+    
+    if (sentimentLower === 'positive') variant = 'positive';
+    else if (sentimentLower === 'negative') variant = 'negative';
+    else if (sentimentLower === 'mixed') variant = 'mixed';
+    else variant = 'neutral';
     
     return (
-      <Badge variant={variant} className="flex items-center space-x-1">
-        {getSentimentIcon(sentiment)}
+      <Badge variant={variant}>
         <span className="capitalize">{sentiment}</span>
       </Badge>
     );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { EditArticleDialog } from './EditArticleDialog';
 
 interface Article {
   _id: string;
@@ -39,25 +40,32 @@ interface Article {
 
 interface ArticlesTableProps {
   articles: Article[];
-  onSentimentEdit?: (id: string, sentiment: string) => void;
   onDelete?: (id: string) => void;
+  onArticleUpdate?: (articleId: string, updatedData: Partial<Article>) => void;
   userRole: string;
   orgId: string;
-  editingSentiment: { articleId: string; value: string } | null;
-  setEditingSentiment: (value: { articleId: string; value: string } | null) => void;
-  onSentimentConfirm: (id: string, sentiment: string) => void;
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   articles,
-  onSentimentEdit,
   onDelete,
+  onArticleUpdate,
   userRole,
-  orgId,
-  editingSentiment,
-  setEditingSentiment,
-  onSentimentConfirm
+  orgId
 }) => {
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const handleEditClick = (article: Article) => {
+    setEditingArticle(article);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveArticle = (articleId: string, updatedData: Partial<Article>) => {
+    if (onArticleUpdate) {
+      onArticleUpdate(articleId, updatedData);
+    }
+  };
   const getSentimentIcon = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
       case 'positive':
@@ -86,6 +94,16 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   };
 
   return (
+    <>
+      <EditArticleDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingArticle(null);
+        }}
+        article={editingArticle}
+        onSave={handleSaveArticle}
+      />
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -166,45 +184,7 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                   </TableCell>
                   <TableCell className="text-sm py-4">{article.country || 'Unknown'}</TableCell>
                   <TableCell className="py-4">
-                    {editingSentiment && editingSentiment.articleId === article._id ? (
-                      <div className="absolute z-50 bg-background border rounded-lg shadow-lg p-4 min-w-[200px]">
-                        <h4 className="text-sm font-semibold mb-3">Modify Sentiment</h4>
-                        <div className="space-y-2">
-                          {['positive', 'neutral', 'negative', 'mixed'].map((sentiment) => (
-                            <label key={sentiment} className="flex items-center space-x-2 cursor-pointer">
-                              <input
-                                type="radio"
-                                value={sentiment}
-                                checked={editingSentiment.value === sentiment}
-                                onChange={(e) => setEditingSentiment({ 
-                                  articleId: article._id, 
-                                  value: e.target.value 
-                                })}
-                                className="cursor-pointer"
-                              />
-                              <span className="text-sm capitalize">{sentiment}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            size="sm"
-                            onClick={() => onSentimentConfirm(article._id, editingSentiment.value)}
-                          >
-                            Confirm
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingSentiment(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      getSentimentBadge(article.sentiment)
-                    )}
+                    {getSentimentBadge(article.sentiment)}
                   </TableCell>
                   <TableCell className="font-medium text-sm py-4">
                     {article.ave?.toLocaleString(undefined, {
@@ -217,9 +197,9 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                   <TableCell className="py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setEditingSentiment({ articleId: article._id, value: article.sentiment })}
+                        onClick={() => handleEditClick(article)}
                         className="text-muted-foreground hover:text-foreground transition-colors"
-                        title="Edit sentiment"
+                        title="Edit article"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -251,5 +231,6 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
         )}
       </CardContent>
     </Card>
+    </>
   );
 };

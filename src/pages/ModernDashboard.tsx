@@ -781,7 +781,7 @@ useEffect(() => {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => {
-                                    setEditingSentiment({ articleId: article._id, value: article.sentiment });
+                                    // This will be handled by ArticlesTable component now
                                   }}
                                   className="text-muted-foreground hover:text-foreground transition-colors"
                                   title="Edit article"

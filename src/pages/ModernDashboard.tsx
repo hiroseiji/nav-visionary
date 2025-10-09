@@ -753,16 +753,17 @@ useEffect(() => {
                               {article.country || "Unknown"}
                             </td>
                             <td className="border border-border p-2">
-                              <Badge
-                                variant={
-                                  (article.sentiment || '').toLowerCase() === 'positive' ? 'positive' :
-                                  (article.sentiment || '').toLowerCase() === 'negative' ? 'negative' :
-                                  (article.sentiment || '').toLowerCase() === 'mixed' ? 'mixed' : 'neutral'
-                                }
-                                className="capitalize"
-                              >
-                                {mapSentimentToLabel(article.sentiment)}
-                              </Badge>
+                              {(() => {
+                                const sentimentStr = String(article.sentiment || 'neutral').toLowerCase();
+                                const variant = sentimentStr === 'positive' ? 'positive' :
+                                                sentimentStr === 'negative' ? 'negative' :
+                                                sentimentStr === 'mixed' ? 'mixed' : 'neutral';
+                                return (
+                                  <Badge variant={variant} className="capitalize">
+                                    {mapSentimentToLabel(article.sentiment)}
+                                  </Badge>
+                                );
+                              })()}
                             </td>
                             <td className="border border-border p-2 font-mono text-sm">
                               {article.ave?.toLocaleString() || 'N/A'}

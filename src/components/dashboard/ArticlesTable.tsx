@@ -104,36 +104,36 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Source</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Summary</TableHead>
-                <TableHead className="cursor-pointer hover:bg-muted/50">
+              <TableRow className="border-b bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-medium">Source</TableHead>
+                <TableHead className="font-medium">Title</TableHead>
+                <TableHead className="font-medium">Summary</TableHead>
+                <TableHead className="cursor-pointer hover:bg-muted/30 font-medium">
                   <div className="flex items-center space-x-1">
                     <span>Date Published</span>
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Sentiment</TableHead>
-                <TableHead className="cursor-pointer hover:bg-muted/50">
+                <TableHead className="font-medium">Country</TableHead>
+                <TableHead className="font-medium">Sentiment</TableHead>
+                <TableHead className="cursor-pointer hover:bg-muted/30 font-medium">
                   <div className="flex items-center space-x-1">
                     <span>AVE</span>
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead>Coverage</TableHead>
-                <TableHead>Reach</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="font-medium">Coverage</TableHead>
+                <TableHead className="font-medium">Reach</TableHead>
+                <TableHead className="w-[50px] font-medium"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {articles.slice(0, 8).map((article) => (
-                <TableRow key={article._id} className="hover:bg-muted/50">
-                  <TableCell>
+                <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                  <TableCell className="py-4">
                     <div className="flex items-center space-x-2">
                       {article.logo_url && (
                         <img
@@ -142,20 +142,20 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                           className="h-8 w-8 rounded-full object-cover border"
                         />
                       )}
-                      <span className="font-medium">{article.source}</span>
+                      <span className="font-medium text-sm">{article.source}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-[300px]">
+                  <TableCell className="max-w-[300px] py-4">
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline line-clamp-2"
+                      className="text-primary hover:underline line-clamp-2 text-sm"
                     >
                       {article.title}
                     </a>
                   </TableCell>
-                  <TableCell className="max-w-[200px]">
+                  <TableCell className="max-w-[200px] py-4">
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {article.snippet ? 
                         `"${article.snippet.replace(/^Summary:\s*/, '').split(' ').slice(0, 15).join(' ')}..."` :
@@ -163,22 +163,22 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                       }
                     </p>
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="text-sm py-4">
                     {new Date(article.publication_date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{article.country || 'Unknown'}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm py-4">{article.country || 'Unknown'}</TableCell>
+                  <TableCell className="py-4">
                     {getSentimentBadge(article.sentiment)}
                   </TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium text-sm py-4">
                     {article.ave?.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     }) || '-'}
                   </TableCell>
-                  <TableCell>{article.coverage_type}</TableCell>
-                  <TableCell>{article.reach?.toLocaleString() || '-'}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm py-4">{article.coverage_type}</TableCell>
+                  <TableCell className="text-sm py-4">{article.reach?.toLocaleString() || '-'}</TableCell>
+                  <TableCell className="py-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

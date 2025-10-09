@@ -655,15 +655,15 @@ useEffect(() => {
 
               {/* Table Section for Online Media Articles */}
               <h3 className="text-lg font-medium mb-4">Online Articles</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-border">
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full">
                   <thead>
-                    <tr className="bg-muted">
-                      <th className="border border-border p-2 text-left">Source</th>
-                      <th className="border border-border p-2 text-left">Title</th>
-                      <th className="border border-border p-2 text-left">Summary</th>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-4 font-medium text-sm">Source</th>
+                      <th className="text-left p-4 font-medium text-sm">Title</th>
+                      <th className="text-left p-4 font-medium text-sm">Summary</th>
                       <th 
-                        className="border border-border p-2 text-left cursor-pointer hover:bg-muted-foreground/10"
+                        className="text-left p-4 font-medium text-sm cursor-pointer hover:bg-muted/30"
                         onClick={() => {
                           setArticleSortOrder(prev => prev === "ascending" ? "descending" : "ascending");
                           setArticleAveSortOrder("");
@@ -676,19 +676,19 @@ useEffect(() => {
                           {getSortIcon(articleSortOrder)}
                         </div>
                       </th>
-                      <th className="border border-border p-2 text-left">Country</th>
-                      <th className="border border-border p-2 text-left">Sentiment</th>
-                      <th className="border border-border p-2 text-left">AVE</th>
-                      <th className="border border-border p-2 text-left">Coverage Type</th>
-                      <th className="border border-border p-2 text-left">Rank</th>
-                      <th className="border border-border p-2 text-left">Reach</th>
-                      <th className="border border-border p-2 text-left"></th>
+                      <th className="text-left p-4 font-medium text-sm">Country</th>
+                      <th className="text-left p-4 font-medium text-sm">Sentiment</th>
+                      <th className="text-left p-4 font-medium text-sm">AVE</th>
+                      <th className="text-left p-4 font-medium text-sm">Coverage Type</th>
+                      <th className="text-left p-4 font-medium text-sm">Rank</th>
+                      <th className="text-left p-4 font-medium text-sm">Reach</th>
+                      <th className="text-left p-4 font-medium text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredArticles.length === 0 ? (
                       <tr>
-                        <td colSpan={11} className="border border-border p-4 text-center text-muted-foreground">
+                        <td colSpan={11} className="p-8 text-center text-muted-foreground">
                           No articles found for this organization.
                         </td>
                       </tr>
@@ -712,31 +712,31 @@ useEffect(() => {
                           return 0;
                         })
                         .map((article, index) => (
-                          <tr key={index} className="hover:bg-muted/50">
-                            <td className="border border-border p-2">
+                          <tr key={index} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                            <td className="p-4">
                               <div className="flex items-center space-x-2">
                                 {article.logo_url && (
                                   <img
                                     src={article.logo_url}
                                     alt={`${article.source} logo`}
-                                    className="w-6 h-6 rounded-full object-cover"
+                                    className="w-8 h-8 rounded-full object-cover"
                                   />
                                 )}
-                                <span className="font-medium">{article.source}</span>
+                                <span className="font-medium text-sm">{article.source}</span>
                               </div>
                             </td>
-                            <td className="border border-border p-2">
+                            <td className="p-4 max-w-xs">
                               <a
                                 href={article.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-primary hover:underline"
+                                className="text-primary hover:underline text-sm line-clamp-2"
                               >
-                                {article.title} ⤴
+                                {article.title}
                               </a>
                             </td>
-                            <td className="border border-border p-2 max-w-xs">
-                              <span className="text-sm text-muted-foreground">
+                            <td className="p-4 max-w-sm">
+                              <span className="text-sm text-muted-foreground line-clamp-2">
                                 "{article.snippet
                                   ? `${article.snippet
                                       .replace(/^Summary:\s*/, "")
@@ -746,13 +746,13 @@ useEffect(() => {
                                   : article.title}"
                               </span>
                             </td>
-                            <td className="border border-border p-2 font-medium">
+                            <td className="p-4 text-sm">
                               {new Date(article.publication_date).toLocaleDateString()}
                             </td>
-                            <td className="border border-border p-2">
+                            <td className="p-4 text-sm">
                               {article.country || "Unknown"}
                             </td>
-                            <td className="border border-border p-2">
+                            <td className="p-4">
                               {(() => {
                                 const sentimentStr = String(article.sentiment || 'neutral').toLowerCase();
                                 const variant = sentimentStr === 'positive' ? 'positive' :
@@ -765,19 +765,19 @@ useEffect(() => {
                                 );
                               })()}
                             </td>
-                            <td className="border border-border p-2 font-mono text-sm">
+                            <td className="p-4 text-sm font-medium">
                               {article.ave?.toLocaleString() || 'N/A'}
                             </td>
-                            <td className="border border-border p-2">
+                            <td className="p-4 text-sm">
                               {article.coverage_type || 'Not Set'}
                             </td>
-                            <td className="border border-border p-2 text-center">
+                            <td className="p-4 text-sm text-center">
                               {article.rank || 'N/A'}
                             </td>
-                            <td className="border border-border p-2 font-mono text-sm">
+                            <td className="p-4 text-sm font-medium">
                               {article.reach?.toLocaleString() || 'N/A'}
                             </td>
-                            <td className="border border-border p-2">
+                            <td className="p-4">
                               <button className="text-muted-foreground hover:text-foreground">
                                 <FaEllipsisV className="h-4 w-4" />
                               </button>

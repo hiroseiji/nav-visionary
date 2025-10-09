@@ -97,15 +97,15 @@ export default function Competitors() {
 
     return (
       <div className="space-y-4">
-        <div className="rounded-md border">
+        <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Sentiment</TableHead>
-                <TableHead>Date</TableHead>
-                {type === "online" && <TableHead>Country</TableHead>}
+              <TableRow className="border-b bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-medium">Title</TableHead>
+                <TableHead className="font-medium">Source</TableHead>
+                <TableHead className="font-medium">Sentiment</TableHead>
+                <TableHead className="font-medium">Date</TableHead>
+                {type === "online" && <TableHead className="font-medium">Country</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -117,14 +117,14 @@ export default function Competitors() {
                 </TableRow>
               ) : (
                 filtered.map((article) => (
-                  <TableRow key={article._id}>
-                    <TableCell className="font-medium">{article.title}</TableCell>
-                    <TableCell>{article.source}</TableCell>
-                    <TableCell>
+                  <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                    <TableCell className="font-medium py-4 text-sm">{article.title}</TableCell>
+                    <TableCell className="py-4 text-sm">{article.source}</TableCell>
+                    <TableCell className="py-4">
                       {getSentimentBadge(article.sentiment)}
                     </TableCell>
-                    <TableCell>{new Date(article.publication_date).toLocaleDateString()}</TableCell>
-                    {type === "online" && <TableCell>{article.country || "N/A"}</TableCell>}
+                    <TableCell className="py-4 text-sm">{new Date(article.publication_date).toLocaleDateString()}</TableCell>
+                    {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
                   </TableRow>
                 ))
               )}

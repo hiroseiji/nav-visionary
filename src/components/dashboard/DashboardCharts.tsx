@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
-import { PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Cell, Tooltip } from 'recharts';
+import { PieChart, Pie, LineChart, Line, Area, XAxis, YAxis, CartesianGrid, Legend, Cell, Tooltip } from 'recharts';
 
 interface PieDataItem {
   name: string;
@@ -98,11 +98,33 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <CardContent className="p-6">
           <ChartContainer config={lineChartConfig} className="h-[300px] w-full">
             <LineChart data={lineData}>
+              <defs>
+                <linearGradient id="colorOnline" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorSocial" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorBroadcast" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorPrint" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="month" className="text-xs" />
               <YAxis className="text-xs" />
               <Tooltip />
               <Legend />
+              <Area type="monotone" dataKey="online" stroke="none" fill="url(#colorOnline)" />
+              <Area type="monotone" dataKey="social" stroke="none" fill="url(#colorSocial)" />
+              <Area type="monotone" dataKey="broadcast" stroke="none" fill="url(#colorBroadcast)" />
+              <Area type="monotone" dataKey="print" stroke="none" fill="url(#colorPrint)" />
               <Line type="monotone" dataKey="online" stroke="#3b82f6" strokeWidth={2} name="Online Articles" />
               <Line type="monotone" dataKey="social" stroke="#10b981" strokeWidth={2} name="Social Media" />
               <Line type="monotone" dataKey="broadcast" stroke="#f59e0b" strokeWidth={2} name="Broadcast" />

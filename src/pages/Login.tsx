@@ -89,26 +89,27 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Welcome section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.9)] to-[hsl(var(--primary)/0.7)] p-12 flex-col justify-center items-center text-primary-foreground">
-        {/* Flowing white curves */}
-        <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M-100,200 Q200,100 500,200 T1100,200" stroke="white" strokeWidth="3" fill="none" opacity="0.6"/>
-          <path d="M-50,350 Q250,250 600,350 T1200,350" stroke="white" strokeWidth="2.5" fill="none" opacity="0.5"/>
-          <path d="M-150,500 Q150,400 550,500 T1150,500" stroke="white" strokeWidth="2" fill="none" opacity="0.4"/>
-          <path d="M100,50 Q400,150 700,50 T1300,50" stroke="white" strokeWidth="2" fill="none" opacity="0.3"/>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[hsl(220,70%,65%)] via-[hsl(240,75%,70%)] to-[hsl(260,65%,75%)] p-12 flex-col justify-center items-center text-white">
+        {/* Flowing white curves - organic flowing lines like in reference */}
+        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+          <path d="M-50,200 Q150,150 300,200 T600,180 T900,220 L1000,220 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.08"/>
+          <path d="M-50,350 C100,300 250,380 400,340 S650,300 850,370 L1000,370 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.06"/>
+          <path d="M-100,500 Q50,450 200,500 T500,480 T800,520 T1100,500" stroke="white" strokeWidth="3" fill="none" opacity="0.15"/>
+          <path d="M-100,650 Q100,600 300,650 T700,630 T1100,670" stroke="white" strokeWidth="2.5" fill="none" opacity="0.12"/>
+          <path d="M-50,800 C150,750 300,820 500,780 S750,740 950,800" stroke="white" strokeWidth="2" fill="none" opacity="0.1"/>
         </svg>
 
         {/* Glassmorphism overlay card */}
-        <div className="relative z-10 max-w-md space-y-6 backdrop-blur-md bg-white/10 p-8 rounded-3xl border border-white/20 shadow-2xl">
-          <h1 className="text-5xl font-bold drop-shadow-lg">Welcome Back!</h1>
-          <p className="text-xl text-primary-foreground/95 drop-shadow">
+        <div className="relative z-10 max-w-md space-y-6 backdrop-blur-xl bg-white/15 p-10 rounded-3xl border border-white/25 shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]">
+          <h1 className="text-5xl font-bold">Welcome Back!</h1>
+          <p className="text-lg text-white/95">
             Login to continue accessing your account and track your media presence.
           </p>
-          <div className="pt-8">
+          <div className="pt-6">
             <img
               src="/socialDark.png"
               alt="Social Light"
-              className="w-full max-w-sm drop-shadow-xl"
+              className="w-full max-w-[280px] mx-auto"
             />
           </div>
         </div>

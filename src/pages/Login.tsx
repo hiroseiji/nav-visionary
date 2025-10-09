@@ -89,8 +89,8 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Welcome section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[hsl(220,70%,65%)] via-[hsl(240,75%,70%)] to-[hsl(260,65%,75%)] p-12 flex-col justify-center items-center text-white">
-        {/* Flowing white curves - organic flowing lines like in reference */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#3b82f6] p-12 flex-col justify-center items-center text-white">
+        {/* Flowing white curves - organic flowing lines */}
         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
           <path d="M-50,200 Q150,150 300,200 T600,180 T900,220 L1000,220 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.08"/>
           <path d="M-50,350 C100,300 250,380 400,340 S650,300 850,370 L1000,370 L1000,0 L-50,0 Z" fill="white" fillOpacity="0.06"/>
@@ -99,8 +99,8 @@ export default function Login() {
           <path d="M-50,800 C150,750 300,820 500,780 S750,740 950,800" stroke="white" strokeWidth="2" fill="none" opacity="0.1"/>
         </svg>
 
-        {/* Glassmorphism overlay card */}
-        <div className="relative z-10 max-w-md space-y-6 backdrop-blur-xl bg-white/15 p-10 rounded-3xl border border-white/25 shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]">
+        {/* Content directly on background */}
+        <div className="relative z-10 max-w-md space-y-6">
           <h1 className="text-5xl font-bold">Welcome Back!</h1>
           <p className="text-lg text-white/95">
             Login to continue accessing your account and track your media presence.
@@ -109,7 +109,7 @@ export default function Login() {
             <img
               src="/socialDark.png"
               alt="Social Light"
-              className="w-full max-w-[280px] mx-auto"
+              className="w-full max-w-[280px]"
             />
           </div>
         </div>

@@ -26,6 +26,7 @@ import { ThemeContext } from "../components/ThemeContext";
 import CountryModal from "../components/CountryModal";
 import { SidebarLayout } from "../components/SidebarLayout";
 import { DashboardCharts } from "../components/dashboard/DashboardCharts";
+import { ArticlesTable } from "../components/dashboard/ArticlesTable";
 import {
   fetchOrganizationData,
   fetchBroadcastArticles,
@@ -653,167 +654,53 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Table Section for Online Media Articles */}
-              <h3 className="text-lg font-medium mb-4">Online Articles</h3>
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left p-4 font-medium text-sm">Source</th>
-                      <th className="text-left p-4 font-medium text-sm">Title</th>
-                      <th className="text-left p-4 font-medium text-sm">Summary</th>
-                      <th 
-                        className="text-left p-4 font-medium text-sm cursor-pointer hover:bg-muted/30"
-                        onClick={() => {
-                          setArticleSortOrder(prev => prev === "ascending" ? "descending" : "ascending");
-                          setArticleAveSortOrder("");
-                          setArticleReachSortOrder("");
-                          setArticleRankSortOrder("");
-                        }}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <span>Date Published</span>
-                          {getSortIcon(articleSortOrder)}
-                        </div>
-                      </th>
-                      <th className="text-left p-4 font-medium text-sm">Country</th>
-                      <th className="text-left p-4 font-medium text-sm">Sentiment</th>
-                      <th className="text-left p-4 font-medium text-sm">AVE</th>
-                      <th className="text-left p-4 font-medium text-sm">Coverage Type</th>
-                      <th className="text-left p-4 font-medium text-sm">Rank</th>
-                      <th className="text-left p-4 font-medium text-sm">Reach</th>
-                      <th className="text-left p-4 font-medium text-sm">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredArticles.length === 0 ? (
-                      <tr>
-                        <td colSpan={11} className="p-8 text-center text-muted-foreground">
-                          No articles found for this organization.
-                        </td>
-                      </tr>
-                    ) : (
-                      [...filteredArticles]
-                        .slice(0, 8)
-                        .sort((a, b) => {
-                          if (articleRankSortOrder) {
-                            const rankDiff = (a.rank || 0) - (b.rank || 0);
-                            return articleRankSortOrder === "ascending" ? rankDiff : -rankDiff;
-                          } else if (articleAveSortOrder) {
-                            const aveDiff = (a.ave || 0) - (b.ave || 0);
-                            return articleAveSortOrder === "ascending" ? aveDiff : -aveDiff;
-                          } else if (articleReachSortOrder) {
-                            const reachDiff = (a.reach || 0) - (b.reach || 0);
-                            return articleReachSortOrder === "ascending" ? reachDiff : -reachDiff;
-                          } else if (articleSortOrder) {
-                            const dateDiff = new Date(a.publication_date).getTime() - new Date(b.publication_date).getTime();
-                            return articleSortOrder === "ascending" ? dateDiff : -dateDiff;
-                          }
-                          return 0;
-                        })
-                        .map((article, index) => (
-                          <tr key={index} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                {article.logo_url && (
-                                  <img
-                                    src={article.logo_url}
-                                    alt={`${article.source} logo`}
-                                    className="w-8 h-8 rounded-full object-cover"
-                                  />
-                                )}
-                                <span className="font-medium text-sm">{article.source}</span>
-                              </div>
-                            </td>
-                            <td className="p-4 max-w-xs">
-                              <a
-                                href={article.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline text-sm line-clamp-2"
-                              >
-                                {article.title}
-                              </a>
-                            </td>
-                            <td className="p-4 max-w-sm">
-                              <span className="text-sm text-muted-foreground line-clamp-2">
-                                "{article.snippet
-                                  ? `${article.snippet
-                                      .replace(/^Summary:\s*/, "")
-                                      .split(" ")
-                                      .slice(0, 15)
-                                      .join(" ")}...`
-                                  : article.title}"
-                              </span>
-                            </td>
-                            <td className="p-4 text-sm">
-                              {new Date(article.publication_date).toLocaleDateString()}
-                            </td>
-                            <td className="p-4 text-sm">
-                              {article.country || "Unknown"}
-                            </td>
-                            <td className="p-4">
-                              {(() => {
-                                const sentimentStr = String(article.sentiment || 'neutral').toLowerCase();
-                                const variant = sentimentStr === 'positive' ? 'positive' :
-                                                sentimentStr === 'negative' ? 'negative' :
-                                                sentimentStr === 'mixed' ? 'mixed' : 'neutral';
-                                return (
-                                  <Badge variant={variant} className="capitalize">
-                                    {mapSentimentToLabel(article.sentiment)}
-                                  </Badge>
-                                );
-                              })()}
-                            </td>
-                            <td className="p-4 text-sm font-medium">
-                              {article.ave?.toLocaleString() || 'N/A'}
-                            </td>
-                            <td className="p-4 text-sm">
-                              {article.coverage_type || 'Not Set'}
-                            </td>
-                            <td className="p-4 text-sm text-center">
-                              {article.rank || 'N/A'}
-                            </td>
-                            <td className="p-4 text-sm font-medium">
-                              {article.reach?.toLocaleString() || 'N/A'}
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    // This will be handled by ArticlesTable component now
-                                  }}
-                                  className="text-muted-foreground hover:text-foreground transition-colors"
-                                  title="Edit article"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </button>
-                                {user.role === 'super_admin' && (
-                                  <button
-                                    onClick={() => {
-                                      handleDelete(
-                                        'articles',
-                                        article._id,
-                                        selectedOrg || '',
-                                        token || '',
-                                        setArticles,
-                                        setFilteredArticles
-                                      );
-                                    }}
-                                    className="text-muted-foreground hover:text-destructive transition-colors"
-                                    title="Delete article"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              {/* Articles Table Component */}
+              <ArticlesTable
+                articles={filteredArticles}
+                onDelete={(articleId) => {
+                  handleDelete(
+                    'articles',
+                    articleId,
+                    selectedOrg || '',
+                    token || '',
+                    setArticles,
+                    setFilteredArticles
+                  );
+                }}
+                onArticleUpdate={async (articleId, updatedData) => {
+                  try {
+                    const response = await axios.put(
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
+                      updatedData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+                    
+                    if (response.data) {
+                      // Update local state with the updated article
+                      setArticles(prev => 
+                        prev.map(article => 
+                          article._id === articleId ? { ...article, ...updatedData } : article
+                        )
+                      );
+                      setFilteredArticles(prev => 
+                        prev.map(article => 
+                          article._id === articleId ? { ...article, ...updatedData } : article
+                        )
+                      );
+                      toast.success('Article updated successfully');
+                    }
+                  } catch (error) {
+                    console.error('Error updating article:', error);
+                    toast.error('Failed to update article');
+                  }
+                }}
+                userRole={user.role}
+                orgId={selectedOrg || ''}
+              />
             </div>
         </div>
       </SidebarLayout>

@@ -67,7 +67,8 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
     }
   };
   const getSentimentIcon = (sentiment: string) => {
-    switch (sentiment.toLowerCase()) {
+    const sentimentStr = String(sentiment || 'neutral').toLowerCase();
+    switch (sentimentStr) {
       case 'positive':
         return <ThumbsUp className="h-4 w-4 text-green-600" />;
       case 'negative':
@@ -78,7 +79,8 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   };
 
   const getSentimentBadge = (sentiment: string) => {
-    const sentimentLower = sentiment.toLowerCase();
+    const sentimentStr = String(sentiment || 'neutral');
+    const sentimentLower = sentimentStr.toLowerCase();
     let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
     
     if (sentimentLower === 'positive') variant = 'positive';
@@ -88,7 +90,7 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
     
     return (
       <Badge variant={variant}>
-        <span className="capitalize">{sentiment}</span>
+        <span className="capitalize">{sentimentStr}</span>
       </Badge>
     );
   };

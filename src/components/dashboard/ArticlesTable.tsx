@@ -10,6 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   ThumbsUp, 
   ThumbsDown, 
@@ -17,7 +24,10 @@ import {
   ArrowUpDown,
   Pencil,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  Filter,
+  Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditArticleDialog } from './EditArticleDialog';
@@ -122,6 +132,35 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
         </div>
       </CardHeader>
       <CardContent>
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="positive">Positive</SelectItem>
+              <SelectItem value="negative">Negative</SelectItem>
+              <SelectItem value="neutral">Neutral</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              <Calendar className="mr-2 h-4 w-4" />
+              Date Range
+            </Button>
+            <Button variant="outline" size="sm">
+              <Filter className="mr-2 h-4 w-4" />
+              Filter
+            </Button>
+            <Button variant="outline" size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add new column
+            </Button>
+          </div>
+        </div>
+
         <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>

@@ -495,7 +495,11 @@ export default function PrintMedia() {
                             <Badge variant="outline">{article.section}</Badge>
                           </TableCell>
                           <TableCell>{article.country}</TableCell>
-                          <TableCell>{format(new Date(article.datePublished), "PP")}</TableCell>
+                          <TableCell>
+                            {article.datePublished && !isNaN(new Date(article.datePublished).getTime())
+                              ? format(new Date(article.datePublished), "PP")
+                              : "N/A"}
+                          </TableCell>
                           <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>
                           <TableCell className="text-right">${article.ave?.toLocaleString()}</TableCell>
                           <TableCell>

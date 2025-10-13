@@ -277,24 +277,21 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           {/* Theme Toggle */}
           <SidebarMenuItem>
             {!collapsed ? (
-              <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm text-muted-foreground">
-                  {theme === "light" ? "Light" : "Dark"}
-                </span>
+              <div className="flex items-center justify-center px-3 py-2">
                 <button
                   onClick={toggleTheme}
-                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted"
+                  className="relative inline-flex h-10 w-20 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted border border-border"
                 >
                   <span
                     className={cn(
-                      "inline-block h-4 w-4 transform rounded-full bg-primary transition-transform",
-                      theme === "dark" ? "translate-x-6" : "translate-x-1"
+                      "inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-background shadow-md transition-all duration-300",
+                      theme === "dark" ? "translate-x-11" : "translate-x-1"
                     )}
                   >
                     {theme === "light" ? (
-                      <Sun className="h-4 w-4 text-primary-foreground" />
+                      <Sun className="h-5 w-5 text-foreground" />
                     ) : (
-                      <Moon className="h-4 w-4 text-primary-foreground" />
+                      <Moon className="h-5 w-5 text-foreground" />
                     )}
                   </span>
                 </button>

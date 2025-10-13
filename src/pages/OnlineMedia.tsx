@@ -697,7 +697,9 @@ export default function OnlineMedia() {
                             <TableCell>{article.source}</TableCell>
                             <TableCell>{article.country}</TableCell>
                             <TableCell>
-                              {format(new Date(article.datePublished), "PP")}
+                              {article.datePublished && !isNaN(new Date(article.datePublished).getTime())
+                                ? format(new Date(article.datePublished), "PP")
+                                : "N/A"}
                             </TableCell>
                             <TableCell>
                               {getSentimentBadge(article.sentiment)}

@@ -14,7 +14,7 @@ import { format } from "date-fns";
 interface Report {
   _id: string;
   title: string;
-  modules: string[] | Record<string, any>;
+  modules: string[] | Record<string, boolean>;
   scope: string[];
   createdBy: string;
   createdAt: string;
@@ -97,7 +97,7 @@ export default function Reports() {
     setVisibleReports(20);
   };
 
-  const formatModules = (modules: string[] | Record<string, any>) => {
+  const formatModules = (modules: string[] | Record<string, boolean>) => {
     if (Array.isArray(modules)) return modules.join(", ");
     if (typeof modules === "object") return Object.keys(modules).join(", ");
     return String(modules || "");

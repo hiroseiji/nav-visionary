@@ -211,12 +211,12 @@ export default function PrintMedia() {
   };
 
   const getSentimentBadge = (sentiment: string) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, "default" | "destructive" | "secondary"> = {
       positive: "default",
       negative: "destructive",
       neutral: "secondary",
     };
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ReactNode> = {
       positive: <ThumbsUp className="h-3 w-3" />,
       negative: <ThumbsDown className="h-3 w-3" />,
       neutral: <Minus className="h-3 w-3" />,

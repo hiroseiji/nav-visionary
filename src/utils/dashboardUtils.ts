@@ -397,7 +397,7 @@ export const handleScrape = async (
 ) => {
     setScraping(true);
     try {
-        const response = await axios.get("http://localhost:5001/rapid-scrape", {
+        const response = await axios.get("http://localhost:5001/scrape", {
             params: { organizationName },
         });
 

@@ -18,6 +18,10 @@ import { Search, Plus, MoreVertical, ThumbsUp, ThumbsDown, Minus, CalendarIcon, 
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  mapSentimentToLabel,
+  mapLabelToSentiment,
+} from "@/utils/sentimentUtils";
 
 interface Article {
   _id: string;

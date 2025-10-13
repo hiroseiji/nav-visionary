@@ -22,8 +22,7 @@ interface SocialPost {
   pageName: string;
   postId: string;
   message: string;
-  source: string;
-  platform: string;
+  source: string; // This is the platform (facebook, twitter, etc.)
   group: string;
   country: string;
   datePublished: string;
@@ -41,7 +40,7 @@ export default function SocialMedia() {
   const [searchQuery, setSearchQuery] = useState("");
   
   // Filters
-  const [platformFilter, setPlatformFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all"); // Platform filter
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [groupFilter, setGroupFilter] = useState<string>("all");
   
@@ -59,8 +58,7 @@ export default function SocialMedia() {
     pageName: "",
     postId: "",
     message: "",
-    source: "",
-    platform: "facebook",
+    source: "facebook", // Platform field
     group: "",
     country: "",
     datePublished: "",
@@ -113,8 +111,8 @@ export default function SocialMedia() {
       );
     }
 
-    if (platformFilter !== "all") {
-      filtered = filtered.filter((post) => post.platform === platformFilter);
+    if (sourceFilter !== "all") {
+      filtered = filtered.filter((post) => post.source === sourceFilter);
     }
 
     if (sentimentFilter !== "all") {
@@ -142,7 +140,7 @@ export default function SocialMedia() {
     });
 
     setFilteredPosts(filtered);
-  }, [posts, searchQuery, platformFilter, sentimentFilter, groupFilter, sortField, sortOrder]);
+  }, [posts, searchQuery, sourceFilter, sentimentFilter, groupFilter, sortField, sortOrder]);
 
   const handleAddPost = async () => {
     try {
@@ -197,8 +195,7 @@ export default function SocialMedia() {
       pageName: post.pageName,
       postId: post.postId,
       message: post.message,
-      source: post.source,
-      platform: post.platform,
+      source: post.source, // Platform field
       group: post.group,
       country: post.country,
       datePublished: post.datePublished,
@@ -216,8 +213,7 @@ export default function SocialMedia() {
       pageName: "",
       postId: "",
       message: "",
-      source: "",
-      platform: "facebook",
+      source: "facebook", // Platform field
       group: "",
       country: "",
       datePublished: "",
@@ -245,7 +241,7 @@ export default function SocialMedia() {
     );
   };
 
-  const uniquePlatforms = Array.from(new Set(posts.map(p => p.platform).filter(Boolean)));
+  const uniqueSources = Array.from(new Set(posts.map(p => p.source).filter(Boolean))); // Platform options
   const uniqueGroups = Array.from(new Set(posts.map(p => p.group).filter(Boolean)));
 
   return (
@@ -273,25 +269,14 @@ export default function SocialMedia() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="pageName">Page Name</Label>
-                      <Input
-                        id="pageName"
-                        value={newPost.pageName}
-                        onChange={(e) => setNewPost({ ...newPost, pageName: e.target.value })}
-                        placeholder="Page or account name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="source">Source</Label>
-                      <Input
-                        id="source"
-                        value={newPost.source}
-                        onChange={(e) => setNewPost({ ...newPost, source: e.target.value })}
-                        placeholder="Source name"
-                      />
-                    </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="pageName">Page Name</Label>
+                    <Input
+                      id="pageName"
+                      value={newPost.pageName}
+                      onChange={(e) => setNewPost({ ...newPost, pageName: e.target.value })}
+                      placeholder="Page or account name"
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="message">Message</Label>
@@ -303,11 +288,11 @@ export default function SocialMedia() {
                       rows={4}
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="platform">Platform</Label>
-                      <Select value={newPost.platform} onValueChange={(value) => setNewPost({ ...newPost, platform: value })}>
-                        <SelectTrigger id="platform">
+                      <Label htmlFor="source">Platform</Label>
+                      <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
+                        <SelectTrigger id="source">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -320,15 +305,6 @@ export default function SocialMedia() {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="group">Group</Label>
-                      <Input
-                        id="group"
-                        value={newPost.group}
-                        onChange={(e) => setNewPost({ ...newPost, group: e.target.value })}
-                        placeholder="Group name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
                       <Label htmlFor="country">Country</Label>
                       <Input
                         id="country"
@@ -337,6 +313,15 @@ export default function SocialMedia() {
                         placeholder="Country"
                       />
                     </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="group">Group</Label>
+                    <Input
+                      id="group"
+                      value={newPost.group}
+                      onChange={(e) => setNewPost({ ...newPost, group: e.target.value })}
+                      placeholder="Group name"
+                    />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="grid gap-2">
@@ -422,15 +407,15 @@ export default function SocialMedia() {
                     className="pl-8"
                   />
                 </div>
-                <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Platform" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Platforms</SelectItem>
-                    {uniquePlatforms.map((platform) => (
-                      <SelectItem key={platform} value={platform}>
-                        {platform}
+                    {uniqueSources.map((source) => (
+                      <SelectItem key={source} value={source}>
+                        {source}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -522,7 +507,7 @@ export default function SocialMedia() {
                           </TableCell>
                           <TableCell>{post.pageName}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">{post.platform}</Badge>
+                            <Badge variant="outline" className="capitalize">{post.source}</Badge>
                           </TableCell>
                           <TableCell>
                             {post.datePublished && !isNaN(new Date(post.datePublished).getTime())

@@ -25,7 +25,7 @@ interface SocialPost {
   source: string; // This is the platform (facebook, twitter, etc.)
   group: string;
   country: string;
-  datePublished: string;
+  createdTime: string;
   sentiment: string;
   reach: number;
   ave: number;
@@ -45,7 +45,7 @@ export default function SocialMedia() {
   const [groupFilter, setGroupFilter] = useState<string>("all");
   
   // Sorting
-  const [sortField, setSortField] = useState<string>("datePublished");
+  const [sortField, setSortField] = useState<string>("createdTime");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   
   // Pagination
@@ -61,7 +61,7 @@ export default function SocialMedia() {
     source: "facebook", // Platform field
     group: "",
     country: "",
-    datePublished: "",
+    createdTime: "",
     sentiment: "neutral",
     reach: 0,
     ave: 0,
@@ -111,8 +111,13 @@ export default function SocialMedia() {
       );
     }
 
+<<<<<<< Updated upstream
     if (sourceFilter !== "all") {
       filtered = filtered.filter((post) => post.source === sourceFilter);
+=======
+    if (platformFilter !== "all") {
+      filtered = filtered.filter((post) => post.source === platformFilter);
+>>>>>>> Stashed changes
     }
 
     if (sentimentFilter !== "all") {
@@ -127,7 +132,7 @@ export default function SocialMedia() {
       let aVal: string | number = a[sortField as keyof SocialPost] as string | number;
       let bVal: string | number = b[sortField as keyof SocialPost] as string | number;
 
-      if (sortField === "datePublished") {
+      if (sortField === "createdTime") {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -195,10 +200,15 @@ export default function SocialMedia() {
       pageName: post.pageName,
       postId: post.postId,
       message: post.message,
+<<<<<<< Updated upstream
       source: post.source, // Platform field
+=======
+      source: post.source,
+      platform: post.source,
+>>>>>>> Stashed changes
       group: post.group,
       country: post.country,
-      datePublished: post.datePublished,
+      createdTime: post.createdTime,
       sentiment: post.sentiment,
       reach: post.reach,
       ave: post.ave,
@@ -216,7 +226,7 @@ export default function SocialMedia() {
       source: "facebook", // Platform field
       group: "",
       country: "",
-      datePublished: "",
+      createdTime: "",
       sentiment: "neutral",
       reach: 0,
       ave: 0,
@@ -290,9 +300,15 @@ export default function SocialMedia() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
+<<<<<<< Updated upstream
                       <Label htmlFor="source">Platform</Label>
                       <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
                         <SelectTrigger id="source">
+=======
+                      <Label htmlFor="platform">Platform</Label>
+                      <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
+                        <SelectTrigger id="platform">
+>>>>>>> Stashed changes
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -361,12 +377,12 @@ export default function SocialMedia() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="datePublished">Date Published</Label>
+                      <Label htmlFor="createdTime">Date Published</Label>
                       <Input
-                        id="datePublished"
+                        id="createdTime"
                         type="date"
-                        value={newPost.datePublished}
-                        onChange={(e) => setNewPost({ ...newPost, datePublished: e.target.value })}
+                        value={newPost.createdTime}
+                        onChange={(e) => setNewPost({ ...newPost, createdTime: e.target.value })}
                       />
                     </div>
                     <div className="grid gap-2">
@@ -461,7 +477,7 @@ export default function SocialMedia() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="datePublished">Date</SelectItem>
+                      <SelectItem value="createdTime">Date</SelectItem>
                       <SelectItem value="reach">Reach</SelectItem>
                       <SelectItem value="ave">AVE</SelectItem>
                     </SelectContent>
@@ -512,8 +528,8 @@ export default function SocialMedia() {
                             <Badge variant="outline" className="capitalize">{post.source}</Badge>
                           </TableCell>
                           <TableCell>
-                            {post.datePublished && !isNaN(new Date(post.datePublished).getTime())
-                              ? format(new Date(post.datePublished), "PP")
+                            {post.createdTime && !isNaN(new Date(post.createdTime).getTime())
+                              ? format(new Date(post.createdTime), "PP")
                               : "N/A"}
                           </TableCell>
                           <TableCell>{getSentimentBadge(post.sentiment)}</TableCell>

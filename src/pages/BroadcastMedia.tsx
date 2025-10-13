@@ -65,7 +65,7 @@ interface BroadcastArticle {
   station: string;
   stationType: string;
   country: string;
-  datePublished: string;
+  mentionDT: string;
   sentiment: string;
   ave: number;
   transcript?: string;
@@ -88,7 +88,7 @@ export default function BroadcastMedia() {
   const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
-  const [sortField, setSortField] = useState<string>("datePublished");
+  const [sortField, setSortField] = useState<string>("mentionDT");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Pagination
@@ -104,7 +104,7 @@ export default function BroadcastMedia() {
     station: "",
     stationType: "tv",
     country: "",
-    datePublished: "",
+    mentionDT: "",
     sentiment: "neutral",
     ave: 0,
     transcript: "",
@@ -151,12 +151,12 @@ export default function BroadcastMedia() {
 
     if (startDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) >= startDate
+        (article) => new Date(article.mentionDT) >= startDate
       );
     }
     if (endDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) <= endDate
+        (article) => new Date(article.mentionDT) <= endDate
       );
     }
 
@@ -186,7 +186,7 @@ export default function BroadcastMedia() {
         | string
         | number;
 
-      if (sortField === "datePublished") {
+      if (sortField === "mentionDT") {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -266,7 +266,7 @@ export default function BroadcastMedia() {
       station: article.station,
       stationType: article.stationType,
       country: article.country,
-      datePublished: article.datePublished,
+      mentionDT: article.mentionDT,
       sentiment: article.sentiment,
       ave: article.ave,
       transcript: article.transcript || "",
@@ -281,7 +281,7 @@ export default function BroadcastMedia() {
       station: "",
       stationType: "tv",
       country: "",
-      datePublished: "",
+      mentionDT: "",
       sentiment: "neutral",
       ave: 0,
       transcript: "",
@@ -446,15 +446,15 @@ export default function BroadcastMedia() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="datePublished">Date Published</Label>
+                    <Label htmlFor="mentionDT">Date Published</Label>
                     <Input
-                      id="datePublished"
+                      id="mentionDT"
                       type="date"
-                      value={newArticle.datePublished}
+                      value={newArticle.mentionDT}
                       onChange={(e) =>
                         setNewArticle({
                           ...newArticle,
-                          datePublished: e.target.value,
+                          mentionDT: e.target.value,
                         })
                       }
                     />
@@ -621,7 +621,7 @@ export default function BroadcastMedia() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="datePublished">Date</SelectItem>
+                      <SelectItem value="mentionDT">Date</SelectItem>
                       <SelectItem value="ave">AVE</SelectItem>
                     </SelectContent>
                   </Select>
@@ -671,8 +671,8 @@ export default function BroadcastMedia() {
                           </TableCell>
                           <TableCell>{article.country}</TableCell>
                           <TableCell>
-                            {article.datePublished && !isNaN(new Date(article.datePublished).getTime())
-                              ? format(new Date(article.datePublished), "PP")
+                            {article.mentionDT && !isNaN(new Date(article.mentionDT).getTime())
+                              ? format(new Date(article.mentionDT), "PP")
                               : "N/A"}
                           </TableCell>
                           <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>

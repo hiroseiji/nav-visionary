@@ -64,7 +64,7 @@ interface PrintArticle {
   source: string;
   section: string;
   country: string;
-  datePublished: string;
+  publicationDate: string;
   sentiment: string;
   ave: number;
 }
@@ -84,7 +84,7 @@ export default function PrintMedia() {
   const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
-  const [sortField, setSortField] = useState<string>("datePublished");
+  const [sortField, setSortField] = useState<string>("publicationDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Pagination
@@ -100,7 +100,7 @@ export default function PrintMedia() {
     source: "",
     section: "",
     country: "",
-    datePublished: "",
+    publicationDate: "",
     sentiment: "neutral",
     ave: 0,
   });
@@ -146,12 +146,12 @@ export default function PrintMedia() {
 
     if (startDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) >= startDate
+        (article) => new Date(article.publicationDate) >= startDate
       );
     }
     if (endDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) <= endDate
+        (article) => new Date(article.publicationDate) <= endDate
       );
     }
 
@@ -181,7 +181,7 @@ export default function PrintMedia() {
         | string
         | number;
 
-      if (sortField === "datePublished") {
+      if (sortField === "publicationDate") {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -261,7 +261,7 @@ export default function PrintMedia() {
       source: article.source,
       section: article.section,
       country: article.country,
-      datePublished: article.datePublished,
+      publicationDate: article.publicationDate,
       sentiment: article.sentiment,
       ave: article.ave,
     });
@@ -275,7 +275,7 @@ export default function PrintMedia() {
       source: "",
       section: "",
       country: "",
-      datePublished: "",
+      publicationDate: "",
       sentiment: "neutral",
       ave: 0,
     });
@@ -439,15 +439,15 @@ export default function PrintMedia() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="datePublished">Date Published</Label>
+                    <Label htmlFor="publicationDate">Date Published</Label>
                     <Input
-                      id="datePublished"
+                      id="publicationDate"
                       type="date"
-                      value={newArticle.datePublished}
+                      value={newArticle.publicationDate}
                       onChange={(e) =>
                         setNewArticle({
                           ...newArticle,
-                          datePublished: e.target.value,
+                          publicationDate: e.target.value,
                         })
                       }
                     />
@@ -597,7 +597,7 @@ export default function PrintMedia() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="datePublished">Date</SelectItem>
+                      <SelectItem value="publicationDate">Date</SelectItem>
                       <SelectItem value="ave">AVE</SelectItem>
                     </SelectContent>
                   </Select>
@@ -647,8 +647,8 @@ export default function PrintMedia() {
                           </TableCell>
                           <TableCell>{article.country}</TableCell>
                           <TableCell>
-                            {article.datePublished && !isNaN(new Date(article.datePublished).getTime())
-                              ? format(new Date(article.datePublished), "PP")
+                            {article.publicationDate && !isNaN(new Date(article.publicationDate).getTime())
+                              ? format(new Date(article.publicationDate), "PP")
                               : "N/A"}
                           </TableCell>
                           <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>

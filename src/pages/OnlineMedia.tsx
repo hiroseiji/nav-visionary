@@ -28,7 +28,7 @@ interface Article {
   headline: string;
   source: string;
   country: string;
-  datePublished: string;
+  publication_date: string;
   ave: number;
   reach: number;
   sentiment: string;
@@ -53,7 +53,7 @@ export default function OnlineMedia() {
   const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
-  const [sortField, setSortField] = useState<string>("datePublished");
+  const [sortField, setSortField] = useState<string>("publication_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Pagination
@@ -66,7 +66,7 @@ export default function OnlineMedia() {
     headline: "",
     source: "",
     country: "",
-    datePublished: "",
+    publication_date: "",
     ave: 0,
     reach: 0,
     sentiment: "neutral",
@@ -123,12 +123,12 @@ export default function OnlineMedia() {
     // Date filter
     if (startDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) >= startDate
+        (article) => new Date(article.publication_date) >= startDate
       );
     }
     if (endDate) {
       filtered = filtered.filter(
-        (article) => new Date(article.datePublished) <= endDate
+        (article) => new Date(article.publication_date) <= endDate
       );
     }
 
@@ -169,7 +169,7 @@ export default function OnlineMedia() {
         | string
         | number;
 
-      if (sortField === "datePublished") {
+      if (sortField === "publication_date") {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -249,7 +249,7 @@ export default function OnlineMedia() {
       headline: article.headline,
       source: article.source,
       country: article.country,
-      datePublished: article.datePublished,
+      publication_date: article.publication_date,
       ave: article.ave,
       reach: article.reach,
       sentiment: article.sentiment,
@@ -266,7 +266,7 @@ export default function OnlineMedia() {
       headline: "",
       source: "",
       country: "",
-      datePublished: "",
+      publication_date: "",
       ave: 0,
       reach: 0,
       sentiment: "neutral",
@@ -450,15 +450,15 @@ export default function OnlineMedia() {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="datePublished">Date</Label>
+                      <Label htmlFor="publication_date">Date</Label>
                       <Input
-                        id="datePublished"
+                        id="publication_date"
                         type="date"
-                        value={newArticle.datePublished}
+                        value={newArticle.publication_date}
                         onChange={(e) =>
                           setNewArticle({
                             ...newArticle,
-                            datePublished: e.target.value,
+                            publication_date: e.target.value,
                           })
                         }
                       />
@@ -635,7 +635,7 @@ export default function OnlineMedia() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="datePublished">Date</SelectItem>
+                      <SelectItem value="publication_date">Date</SelectItem>
                       <SelectItem value="ave">AVE</SelectItem>
                       <SelectItem value="reach">Reach</SelectItem>
                     </SelectContent>
@@ -699,8 +699,14 @@ export default function OnlineMedia() {
                             <TableCell>{article.source}</TableCell>
                             <TableCell>{article.country}</TableCell>
                             <TableCell>
-                              {article.datePublished && !isNaN(new Date(article.datePublished).getTime())
-                                ? format(new Date(article.datePublished), "PP")
+                              {article.publication_date &&
+                              !isNaN(
+                                new Date(article.publication_date).getTime()
+                              )
+                                ? format(
+                                    new Date(article.publication_date),
+                                    "PP"
+                                  )
                                 : "N/A"}
                             </TableCell>
                             <TableCell>

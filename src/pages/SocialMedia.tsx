@@ -525,7 +525,11 @@ export default function SocialMedia() {
                           <TableCell>
                             <Badge variant="outline" className="capitalize">{post.platform}</Badge>
                           </TableCell>
-                          <TableCell>{format(new Date(post.datePublished), "PP")}</TableCell>
+                          <TableCell>
+                            {post.datePublished && !isNaN(new Date(post.datePublished).getTime())
+                              ? format(new Date(post.datePublished), "PP")
+                              : "N/A"}
+                          </TableCell>
                           <TableCell>{getSentimentBadge(post.sentiment)}</TableCell>
                           <TableCell className="text-right">{post.reach?.toLocaleString()}</TableCell>
                           <TableCell className="text-right">${post.ave?.toLocaleString()}</TableCell>

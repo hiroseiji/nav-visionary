@@ -540,7 +540,7 @@ export default function SocialMedia() {
                                     href={post.link} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
-                                    className="line-clamp-2 hover:underline text-foreground"
+                                    className="line-clamp-2 hover:underline text-primary cursor-pointer"
                                   >
                                     {post.message}
                                   </a>

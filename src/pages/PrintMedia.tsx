@@ -70,7 +70,7 @@ export default function PrintMedia() {
     setLoading(true);
     try {
       const response = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/print/multi`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi`,
         {
           organizationIds: [orgId],
         },

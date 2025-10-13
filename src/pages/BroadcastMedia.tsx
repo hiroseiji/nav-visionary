@@ -73,7 +73,7 @@ const fetchArticles = async () => {
   setLoading(true);
   try {
     const response = await axios.post(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcast/multi`,
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi`,
       {
         organizationIds: [orgId],
       },

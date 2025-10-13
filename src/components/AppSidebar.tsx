@@ -277,15 +277,15 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           {/* Theme Toggle */}
           <SidebarMenuItem>
             {!collapsed ? (
-              <div className="flex items-center justify-center px-3 py-2">
+              <div className="px-3 py-2">
                 <button
                   onClick={toggleTheme}
-                  className="relative inline-flex h-10 w-20 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted border border-border"
+                  className="relative inline-flex h-10 w-24 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted border-2 dark:border-white/20 border-black/20"
                 >
                   <span
                     className={cn(
-                      "inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-background shadow-md transition-all duration-300",
-                      theme === "dark" ? "translate-x-11" : "translate-x-1"
+                      "inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-background shadow-md transition-all duration-300 border dark:border-white/30 border-black/30",
+                      theme === "dark" ? "translate-x-14" : "translate-x-1"
                     )}
                   >
                     {theme === "light" ? (

@@ -116,7 +116,7 @@ export default function SocialMedia() {
     }
 
     if (sentimentFilter !== "all") {
-      filtered = filtered.filter((post) => post.sentiment === sentimentFilter);
+      filtered = filtered.filter((post) => mapSentimentToLabel(post.sentiment) === sentimentFilter);
     }
 
     if (groupFilter !== "all") {

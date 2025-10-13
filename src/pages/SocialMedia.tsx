@@ -70,17 +70,27 @@ export default function SocialMedia() {
   });
 
   useEffect(() => {
-    fetchPosts();
+    if (orgId) fetchPosts();
   }, [orgId]);
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${orgId}`
+      const response = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi`,
+        {
+          organizationIds: [orgId], // wrap it in an array
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      setPosts(response.data || []);
-      setFilteredPosts(response.data || []);
+
+      const posts = response.data || [];
+      setPosts(posts);
+      setFilteredPosts(posts);
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Failed to load social media posts");

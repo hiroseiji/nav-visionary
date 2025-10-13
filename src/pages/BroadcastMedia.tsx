@@ -65,25 +65,35 @@ export default function BroadcastMedia() {
     transcript: ""
   });
 
-  useEffect(() => {
-    fetchArticles();
-  }, [orgId]);
+useEffect(() => {
+  if (orgId) fetchArticles();
+}, [orgId]);
 
-  const fetchArticles = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast/${orgId}`
-      );
-      setArticles(response.data || []);
-      setFilteredArticles(response.data || []);
-    } catch (error) {
-      console.error("Error fetching broadcast articles:", error);
-      toast.error("Failed to load broadcast articles");
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchArticles = async () => {
+  setLoading(true);
+  try {
+    const response = await axios.post(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcast/multi`,
+      {
+        organizationIds: [orgId],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    const articles = response.data.articles || [];
+    setArticles(articles);
+    setFilteredArticles(articles);
+  } catch (error) {
+    console.error("Error fetching broadcast articles:", error);
+    toast.error("Failed to load broadcast articles");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Apply filters
   useEffect(() => {

@@ -41,20 +41,20 @@ export default function OnlineMedia() {
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  
+
   // Filters
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
   const [focusFilter, setFocusFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
-  
+
   // Sorting
   const [sortField, setSortField] = useState<string>("datePublished");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
+
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
-  
+
   // Add/Edit article dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
@@ -68,22 +68,33 @@ export default function OnlineMedia() {
     sentiment: "neutral",
     visibility: "moderate",
     focusOfCoverage: "",
-    url: ""
+    url: "",
   });
 
   // Fetch articles
   useEffect(() => {
-    fetchArticles();
+    if (orgId) fetchArticles();
   }, [orgId]);
 
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/online/${orgId}`
+      const response = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/articles/multi`,
+        {
+          organizationIds: [orgId],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      setArticles(response.data || []);
-      setFilteredArticles(response.data || []);
+
+      // Correct access to article array
+      const articles = response.data.articles || [];
+      setArticles(articles);
+      setFilteredArticles(articles);
     } catch (error) {
       console.error("Error fetching articles:", error);
       toast.error("Failed to load articles");
@@ -119,28 +130,40 @@ export default function OnlineMedia() {
 
     // Sentiment filter
     if (sentimentFilter !== "all") {
-      filtered = filtered.filter((article) => article.sentiment === sentimentFilter);
+      filtered = filtered.filter(
+        (article) => article.sentiment === sentimentFilter
+      );
     }
 
     // Visibility filter
     if (visibilityFilter !== "all") {
-      filtered = filtered.filter((article) => article.visibility === visibilityFilter);
+      filtered = filtered.filter(
+        (article) => article.visibility === visibilityFilter
+      );
     }
 
     // Focus filter
     if (focusFilter !== "all") {
-      filtered = filtered.filter((article) => article.focusOfCoverage === focusFilter);
+      filtered = filtered.filter(
+        (article) => article.focusOfCoverage === focusFilter
+      );
     }
 
     // Country filter
     if (countryFilter !== "all") {
-      filtered = filtered.filter((article) => article.country === countryFilter);
+      filtered = filtered.filter(
+        (article) => article.country === countryFilter
+      );
     }
 
     // Sorting
     filtered.sort((a, b) => {
-      let aVal: string | number = a[sortField as keyof Article] as string | number;
-      let bVal: string | number = b[sortField as keyof Article] as string | number;
+      let aVal: string | number = a[sortField as keyof Article] as
+        | string
+        | number;
+      let bVal: string | number = b[sortField as keyof Article] as
+        | string
+        | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();
@@ -155,7 +178,18 @@ export default function OnlineMedia() {
     });
 
     setFilteredArticles(filtered);
-  }, [articles, searchQuery, startDate, endDate, sentimentFilter, visibilityFilter, focusFilter, countryFilter, sortField, sortOrder]);
+  }, [
+    articles,
+    searchQuery,
+    startDate,
+    endDate,
+    sentimentFilter,
+    visibilityFilter,
+    focusFilter,
+    countryFilter,
+    sortField,
+    sortOrder,
+  ]);
 
   const handleAddArticle = async () => {
     try {
@@ -191,7 +225,8 @@ export default function OnlineMedia() {
   };
 
   const handleDeleteArticle = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this article?")) return;
+    if (!window.confirm("Are you sure you want to delete this article?"))
+      return;
     try {
       await axios.delete(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/online/${id}`
@@ -216,7 +251,7 @@ export default function OnlineMedia() {
       sentiment: article.sentiment,
       visibility: article.visibility,
       focusOfCoverage: article.focusOfCoverage,
-      url: article.url || ""
+      url: article.url || "",
     });
     setIsDialogOpen(true);
   };
@@ -233,7 +268,7 @@ export default function OnlineMedia() {
       sentiment: "neutral",
       visibility: "moderate",
       focusOfCoverage: "",
-      url: ""
+      url: "",
     });
   };
 
@@ -256,7 +291,9 @@ export default function OnlineMedia() {
     );
   };
 
-  const uniqueCountries = Array.from(new Set(articles.map(a => a.country).filter(Boolean)));
+  const uniqueCountries = Array.from(
+    new Set(articles.map((a) => a.country).filter(Boolean))
+  );
 
   return (
     <SidebarLayout>
@@ -265,10 +302,20 @@ export default function OnlineMedia() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Online Media</h1>
-              <p className="text-muted-foreground">Manage and track online media coverage</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                Online Media
+              </h1>
+              <p className="text-muted-foreground">
+                Manage and track online media coverage
+              </p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -277,9 +324,13 @@ export default function OnlineMedia() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingArticle ? "Edit Article" : "Add New Article"}</DialogTitle>
+                  <DialogTitle>
+                    {editingArticle ? "Edit Article" : "Add New Article"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editingArticle ? "Update the article details below" : "Fill in the details for the new article"}
+                    {editingArticle
+                      ? "Update the article details below"
+                      : "Fill in the details for the new article"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -288,7 +339,12 @@ export default function OnlineMedia() {
                     <Input
                       id="headline"
                       value={newArticle.headline}
-                      onChange={(e) => setNewArticle({ ...newArticle, headline: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          headline: e.target.value,
+                        })
+                      }
                       placeholder="Article headline"
                     />
                   </div>
@@ -298,7 +354,12 @@ export default function OnlineMedia() {
                       <Input
                         id="source"
                         value={newArticle.source}
-                        onChange={(e) => setNewArticle({ ...newArticle, source: e.target.value })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            source: e.target.value,
+                          })
+                        }
                         placeholder="Media source"
                       />
                     </div>
@@ -307,7 +368,12 @@ export default function OnlineMedia() {
                       <Input
                         id="country"
                         value={newArticle.country}
-                        onChange={(e) => setNewArticle({ ...newArticle, country: e.target.value })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            country: e.target.value,
+                          })
+                        }
                         placeholder="Country"
                       />
                     </div>
@@ -319,7 +385,12 @@ export default function OnlineMedia() {
                         id="ave"
                         type="number"
                         value={newArticle.ave}
-                        onChange={(e) => setNewArticle({ ...newArticle, ave: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            ave: Number(e.target.value),
+                          })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -329,7 +400,12 @@ export default function OnlineMedia() {
                         id="reach"
                         type="number"
                         value={newArticle.reach}
-                        onChange={(e) => setNewArticle({ ...newArticle, reach: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            reach: Number(e.target.value),
+                          })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -337,7 +413,12 @@ export default function OnlineMedia() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select value={newArticle.sentiment} onValueChange={(value) => setNewArticle({ ...newArticle, sentiment: value })}>
+                      <Select
+                        value={newArticle.sentiment}
+                        onValueChange={(value) =>
+                          setNewArticle({ ...newArticle, sentiment: value })
+                        }
+                      >
                         <SelectTrigger id="sentiment">
                           <SelectValue />
                         </SelectTrigger>
@@ -350,7 +431,12 @@ export default function OnlineMedia() {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="visibility">Visibility</Label>
-                      <Select value={newArticle.visibility} onValueChange={(value) => setNewArticle({ ...newArticle, visibility: value })}>
+                      <Select
+                        value={newArticle.visibility}
+                        onValueChange={(value) =>
+                          setNewArticle({ ...newArticle, visibility: value })
+                        }
+                      >
                         <SelectTrigger id="visibility">
                           <SelectValue />
                         </SelectTrigger>
@@ -367,7 +453,12 @@ export default function OnlineMedia() {
                         id="datePublished"
                         type="date"
                         value={newArticle.datePublished}
-                        onChange={(e) => setNewArticle({ ...newArticle, datePublished: e.target.value })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            datePublished: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -376,7 +467,12 @@ export default function OnlineMedia() {
                     <Input
                       id="focusOfCoverage"
                       value={newArticle.focusOfCoverage}
-                      onChange={(e) => setNewArticle({ ...newArticle, focusOfCoverage: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          focusOfCoverage: e.target.value,
+                        })
+                      }
                       placeholder="Main topic or focus"
                     />
                   </div>
@@ -385,16 +481,28 @@ export default function OnlineMedia() {
                     <Input
                       id="url"
                       value={newArticle.url}
-                      onChange={(e) => setNewArticle({ ...newArticle, url: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({ ...newArticle, url: e.target.value })
+                      }
                       placeholder="https://..."
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={editingArticle ? handleUpdateArticle : handleAddArticle}>
+                  <Button
+                    onClick={
+                      editingArticle ? handleUpdateArticle : handleAddArticle
+                    }
+                  >
                     {editingArticle ? "Update" : "Add"} Article
                   </Button>
                 </DialogFooter>
@@ -418,7 +526,10 @@ export default function OnlineMedia() {
                     className="pl-8"
                   />
                 </div>
-                <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                <Select
+                  value={sentimentFilter}
+                  onValueChange={setSentimentFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sentiment" />
                   </SelectTrigger>
@@ -429,7 +540,10 @@ export default function OnlineMedia() {
                     <SelectItem value="negative">Negative</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={setVisibilityFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Visibility" />
                   </SelectTrigger>
@@ -457,28 +571,50 @@ export default function OnlineMedia() {
               <div className="flex gap-4">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : "Start date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
                   </PopoverContent>
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "End date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
                   </PopoverContent>
                 </Popover>
                 {(startDate || endDate) && (
-                  <Button variant="ghost" onClick={() => { setStartDate(undefined); setEndDate(undefined); }}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setStartDate(undefined);
+                      setEndDate(undefined);
+                    }}
+                  >
                     Clear dates
                   </Button>
                 )}
@@ -505,7 +641,9 @@ export default function OnlineMedia() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                    onClick={() =>
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }
                   >
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
@@ -514,9 +652,13 @@ export default function OnlineMedia() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading articles...</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading articles...
+                </div>
               ) : filteredArticles.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No articles found</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  No articles found
+                </div>
               ) : (
                 <>
                   <Table>
@@ -534,50 +676,77 @@ export default function OnlineMedia() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredArticles.slice(0, visibleCount).map((article) => (
-                        <TableRow key={article._id}>
-                          <TableCell className="font-medium max-w-md">
-                            {article.url ? (
-                              <a href={article.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-primary">
-                                {article.headline}
-                              </a>
-                            ) : (
-                              article.headline
-                            )}
-                          </TableCell>
-                          <TableCell>{article.source}</TableCell>
-                          <TableCell>{article.country}</TableCell>
-                          <TableCell>{format(new Date(article.datePublished), "PP")}</TableCell>
-                          <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{article.visibility}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">${article.ave?.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">{article.reach?.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(article)}>
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteArticle(article._id)} className="text-destructive">
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredArticles
+                        .slice(0, visibleCount)
+                        .map((article) => (
+                          <TableRow key={article._id}>
+                            <TableCell className="font-medium max-w-md">
+                              {article.url ? (
+                                <a
+                                  href={article.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline text-primary"
+                                >
+                                  {article.headline}
+                                </a>
+                              ) : (
+                                article.headline
+                              )}
+                            </TableCell>
+                            <TableCell>{article.source}</TableCell>
+                            <TableCell>{article.country}</TableCell>
+                            <TableCell>
+                              {format(new Date(article.datePublished), "PP")}
+                            </TableCell>
+                            <TableCell>
+                              {getSentimentBadge(article.sentiment)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {article.visibility}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              ${article.ave?.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {article.reach?.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => openEditDialog(article)}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteArticle(article._id)
+                                    }
+                                    className="text-destructive"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                   {filteredArticles.length > visibleCount && (
                     <div className="mt-4 text-center">
-                      <Button variant="outline" onClick={() => setVisibleCount(visibleCount + 20)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setVisibleCount(visibleCount + 20)}
+                      >
                         Load More
                       </Button>
                     </div>

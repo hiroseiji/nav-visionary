@@ -63,17 +63,27 @@ export default function PrintMedia() {
   });
 
   useEffect(() => {
-    fetchArticles();
+    if (orgId) fetchArticles();
   }, [orgId]);
 
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${orgId}`
+      const response = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/print/multi`,
+        {
+          organizationIds: [orgId],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      setArticles(response.data || []);
-      setFilteredArticles(response.data || []);
+
+      const articles = response.data.articles || [];
+      setArticles(articles);
+      setFilteredArticles(articles);
     } catch (error) {
       console.error("Error fetching print articles:", error);
       toast.error("Failed to load print articles");

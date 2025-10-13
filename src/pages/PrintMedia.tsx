@@ -639,7 +639,6 @@ export default function PrintMedia() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-<<<<<<< Updated upstream
                       {filteredArticles.slice(0, visibleCount).map((article) => (
                         <TableRow key={article._id}>
                           <TableCell className="font-medium max-w-md">{article.headline}</TableCell>
@@ -674,55 +673,6 @@ export default function PrintMedia() {
                           </TableCell>
                         </TableRow>
                       ))}
-=======
-                      {filteredArticles
-                        .slice(0, visibleCount)
-                        .map((article) => (
-                          <TableRow key={article._id}>
-                            <TableCell className="font-medium max-w-md">
-                              {article.headline}
-                            </TableCell>
-                            <TableCell>{article.source}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{article.section}</Badge>
-                            </TableCell>
-                            <TableCell>{article.country}</TableCell>
-                            <TableCell>
-                              {format(new Date(article.datePublished), "PP")}
-                            </TableCell>
-                            <TableCell>
-                              {getSentimentBadge(article.sentiment)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              ${article.ave?.toLocaleString()}
-                            </TableCell>
-                            <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => openEditDialog(article)}
-                                  >
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleDeleteArticle(article._id)
-                                    }
-                                    className="text-destructive"
-                                  >
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        ))}
->>>>>>> Stashed changes
                     </TableBody>
                   </Table>
                   {filteredArticles.length > visibleCount && (

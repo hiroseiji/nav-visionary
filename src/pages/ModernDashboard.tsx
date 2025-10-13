@@ -709,6 +709,8 @@ useEffect(() => {
               <div className="mb-8">
                 <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4>
                 <ArticlesTable
+                  title="Broadcast Articles"
+                  subtitle="Latest broadcast media mentions"
                   articles={filteredBroadcastArticles.map(article => ({
                     _id: article._id,
                     title: article.title,
@@ -774,6 +776,8 @@ useEffect(() => {
               <div className="mb-8">
                 <h4 className="text-lg font-semibold mb-4">Print Media</h4>
                 <ArticlesTable
+                  title="Print Articles"
+                  subtitle="Latest print media mentions"
                   articles={filteredPrintMediaArticles.map(article => ({
                     _id: article._id,
                     title: article.title,
@@ -839,6 +843,8 @@ useEffect(() => {
               <div className="mb-8">
                 <h4 className="text-lg font-semibold mb-4">Social Media</h4>
                 <ArticlesTable
+                  title="Social Media Posts"
+                  subtitle="Latest social media mentions"
                   articles={filteredPosts.map(post => ({
                     _id: post._id,
                     title: post.message,

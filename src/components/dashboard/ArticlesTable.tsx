@@ -55,6 +55,8 @@ interface ArticlesTableProps {
   onArticleUpdate?: (articleId: string, updatedData: Partial<Article>) => void;
   userRole: string;
   orgId: string;
+  title?: string;
+  subtitle?: string;
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
@@ -62,7 +64,9 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   onDelete,
   onArticleUpdate,
   userRole,
-  orgId
+  orgId,
+  title = "Online Articles",
+  subtitle = "Latest online media mentions"
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -122,8 +126,8 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Online Articles</CardTitle>
-            <CardDescription>Latest online media mentions</CardDescription>
+            <CardTitle className="text-lg">{title}</CardTitle>
+            <CardDescription>{subtitle}</CardDescription>
           </div>
           <Link to={`/media/online/${orgId}`}>
             <Button variant="outline" size="sm">

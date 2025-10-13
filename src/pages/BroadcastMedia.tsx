@@ -6,15 +6,55 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Plus, MoreVertical, ThumbsUp, ThumbsDown, Minus, ArrowUpDown, CalendarIcon, Radio } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  ArrowUpDown,
+  CalendarIcon,
+  Radio,
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -33,27 +73,31 @@ interface BroadcastArticle {
 export default function BroadcastMedia() {
   const { orgId } = useParams();
   const [articles, setArticles] = useState<BroadcastArticle[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<BroadcastArticle[]>([]);
+  const [filteredArticles, setFilteredArticles] = useState<BroadcastArticle[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  
+
   // Filters
   const [stationTypeFilter, setStationTypeFilter] = useState<string>("all");
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
-  
+
   // Sorting
   const [sortField, setSortField] = useState<string>("datePublished");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
+
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
-  
+
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<BroadcastArticle | null>(null);
+  const [editingArticle, setEditingArticle] = useState<BroadcastArticle | null>(
+    null
+  );
   const [newArticle, setNewArticle] = useState({
     headline: "",
     station: "",
@@ -62,38 +106,35 @@ export default function BroadcastMedia() {
     datePublished: "",
     sentiment: "neutral",
     ave: 0,
-    transcript: ""
+    transcript: "",
   });
 
-useEffect(() => {
-  if (orgId) fetchArticles();
-}, [orgId]);
+  useEffect(() => {
+    if (orgId) fetchArticles();
+  }, [orgId]);
 
-const fetchArticles = async () => {
-  setLoading(true);
-  try {
-    const response = await axios.post(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcast/multi`,
-      {
-        organizationIds: [orgId],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
+  const fetchArticles = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi",
+        { organizationIds: [orgId] },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
 
-    const articles = response.data.articles || [];
-    setArticles(articles);
-    setFilteredArticles(articles);
-  } catch (error) {
-    console.error("Error fetching broadcast articles:", error);
-    toast.error("Failed to load broadcast articles");
-  } finally {
-    setLoading(false);
-  }
-};
+      // response.data is already the array
+      const articles = Array.isArray(response.data) ? response.data : [];
+      setArticles(articles);
+      setFilteredArticles(articles);
+    } catch (error) {
+      console.error("Error fetching broadcast articles:", error);
+      toast.error("Failed to load broadcast articles");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Apply filters
   useEffect(() => {
@@ -119,20 +160,30 @@ const fetchArticles = async () => {
     }
 
     if (stationTypeFilter !== "all") {
-      filtered = filtered.filter((article) => article.stationType === stationTypeFilter);
+      filtered = filtered.filter(
+        (article) => article.stationType === stationTypeFilter
+      );
     }
 
     if (sentimentFilter !== "all") {
-      filtered = filtered.filter((article) => article.sentiment === sentimentFilter);
+      filtered = filtered.filter(
+        (article) => article.sentiment === sentimentFilter
+      );
     }
 
     if (countryFilter !== "all") {
-      filtered = filtered.filter((article) => article.country === countryFilter);
+      filtered = filtered.filter(
+        (article) => article.country === countryFilter
+      );
     }
 
     filtered.sort((a, b) => {
-      let aVal: string | number = a[sortField as keyof BroadcastArticle] as string | number;
-      let bVal: string | number = b[sortField as keyof BroadcastArticle] as string | number;
+      let aVal: string | number = a[sortField as keyof BroadcastArticle] as
+        | string
+        | number;
+      let bVal: string | number = b[sortField as keyof BroadcastArticle] as
+        | string
+        | number;
 
       if (sortField === "datePublished") {
         aVal = new Date(aVal).getTime();
@@ -147,7 +198,17 @@ const fetchArticles = async () => {
     });
 
     setFilteredArticles(filtered);
-  }, [articles, searchQuery, startDate, endDate, stationTypeFilter, sentimentFilter, countryFilter, sortField, sortOrder]);
+  }, [
+    articles,
+    searchQuery,
+    startDate,
+    endDate,
+    stationTypeFilter,
+    sentimentFilter,
+    countryFilter,
+    sortField,
+    sortOrder,
+  ]);
 
   const handleAddArticle = async () => {
     try {
@@ -183,7 +244,8 @@ const fetchArticles = async () => {
   };
 
   const handleDeleteArticle = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this article?")) return;
+    if (!window.confirm("Are you sure you want to delete this article?"))
+      return;
     try {
       await axios.delete(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast/${id}`
@@ -206,7 +268,7 @@ const fetchArticles = async () => {
       datePublished: article.datePublished,
       sentiment: article.sentiment,
       ave: article.ave,
-      transcript: article.transcript || ""
+      transcript: article.transcript || "",
     });
     setIsDialogOpen(true);
   };
@@ -221,7 +283,7 @@ const fetchArticles = async () => {
       datePublished: "",
       sentiment: "neutral",
       ave: 0,
-      transcript: ""
+      transcript: "",
     });
   };
 
@@ -244,7 +306,9 @@ const fetchArticles = async () => {
     );
   };
 
-  const uniqueCountries = Array.from(new Set(articles.map(a => a.country).filter(Boolean)));
+  const uniqueCountries = Array.from(
+    new Set(articles.map((a) => a.country).filter(Boolean))
+  );
 
   return (
     <SidebarLayout>
@@ -257,9 +321,17 @@ const fetchArticles = async () => {
                 <Radio className="h-8 w-8" />
                 Broadcast Media
               </h1>
-              <p className="text-muted-foreground">Track TV and radio coverage</p>
+              <p className="text-muted-foreground">
+                Track TV and radio coverage
+              </p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -268,9 +340,13 @@ const fetchArticles = async () => {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingArticle ? "Edit Article" : "Add New Article"}</DialogTitle>
+                  <DialogTitle>
+                    {editingArticle ? "Edit Article" : "Add New Article"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editingArticle ? "Update the broadcast article details" : "Add a new broadcast coverage entry"}
+                    {editingArticle
+                      ? "Update the broadcast article details"
+                      : "Add a new broadcast coverage entry"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -279,7 +355,12 @@ const fetchArticles = async () => {
                     <Input
                       id="headline"
                       value={newArticle.headline}
-                      onChange={(e) => setNewArticle({ ...newArticle, headline: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          headline: e.target.value,
+                        })
+                      }
                       placeholder="Story headline"
                     />
                   </div>
@@ -289,13 +370,23 @@ const fetchArticles = async () => {
                       <Input
                         id="station"
                         value={newArticle.station}
-                        onChange={(e) => setNewArticle({ ...newArticle, station: e.target.value })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            station: e.target.value,
+                          })
+                        }
                         placeholder="Station name"
                       />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="stationType">Station Type</Label>
-                      <Select value={newArticle.stationType} onValueChange={(value) => setNewArticle({ ...newArticle, stationType: value })}>
+                      <Select
+                        value={newArticle.stationType}
+                        onValueChange={(value) =>
+                          setNewArticle({ ...newArticle, stationType: value })
+                        }
+                      >
                         <SelectTrigger id="stationType">
                           <SelectValue />
                         </SelectTrigger>
@@ -312,13 +403,23 @@ const fetchArticles = async () => {
                       <Input
                         id="country"
                         value={newArticle.country}
-                        onChange={(e) => setNewArticle({ ...newArticle, country: e.target.value })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            country: e.target.value,
+                          })
+                        }
                         placeholder="Country"
                       />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select value={newArticle.sentiment} onValueChange={(value) => setNewArticle({ ...newArticle, sentiment: value })}>
+                      <Select
+                        value={newArticle.sentiment}
+                        onValueChange={(value) =>
+                          setNewArticle({ ...newArticle, sentiment: value })
+                        }
+                      >
                         <SelectTrigger id="sentiment">
                           <SelectValue />
                         </SelectTrigger>
@@ -335,7 +436,12 @@ const fetchArticles = async () => {
                         id="ave"
                         type="number"
                         value={newArticle.ave}
-                        onChange={(e) => setNewArticle({ ...newArticle, ave: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setNewArticle({
+                            ...newArticle,
+                            ave: Number(e.target.value),
+                          })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -346,7 +452,12 @@ const fetchArticles = async () => {
                       id="datePublished"
                       type="date"
                       value={newArticle.datePublished}
-                      onChange={(e) => setNewArticle({ ...newArticle, datePublished: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          datePublished: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div className="grid gap-2">
@@ -354,17 +465,32 @@ const fetchArticles = async () => {
                     <Textarea
                       id="transcript"
                       value={newArticle.transcript}
-                      onChange={(e) => setNewArticle({ ...newArticle, transcript: e.target.value })}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          transcript: e.target.value,
+                        })
+                      }
                       placeholder="Story transcript or summary..."
                       rows={6}
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={editingArticle ? handleUpdateArticle : handleAddArticle}>
+                  <Button
+                    onClick={
+                      editingArticle ? handleUpdateArticle : handleAddArticle
+                    }
+                  >
                     {editingArticle ? "Update" : "Add"} Article
                   </Button>
                 </DialogFooter>
@@ -388,7 +514,10 @@ const fetchArticles = async () => {
                     className="pl-8"
                   />
                 </div>
-                <Select value={stationTypeFilter} onValueChange={setStationTypeFilter}>
+                <Select
+                  value={stationTypeFilter}
+                  onValueChange={setStationTypeFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Station Type" />
                   </SelectTrigger>
@@ -398,7 +527,10 @@ const fetchArticles = async () => {
                     <SelectItem value="radio">Radio</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                <Select
+                  value={sentimentFilter}
+                  onValueChange={setSentimentFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sentiment" />
                   </SelectTrigger>
@@ -426,28 +558,50 @@ const fetchArticles = async () => {
               <div className="flex gap-4">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : "Start date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
                   </PopoverContent>
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "End date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
                   </PopoverContent>
                 </Popover>
                 {(startDate || endDate) && (
-                  <Button variant="ghost" onClick={() => { setStartDate(undefined); setEndDate(undefined); }}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setStartDate(undefined);
+                      setEndDate(undefined);
+                    }}
+                  >
                     Clear dates
                   </Button>
                 )}
@@ -459,7 +613,9 @@ const fetchArticles = async () => {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Broadcast Coverage ({filteredArticles.length})</CardTitle>
+                <CardTitle>
+                  Broadcast Coverage ({filteredArticles.length})
+                </CardTitle>
                 <div className="flex gap-2">
                   <Select value={sortField} onValueChange={setSortField}>
                     <SelectTrigger className="w-[180px]">
@@ -473,7 +629,9 @@ const fetchArticles = async () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                    onClick={() =>
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }
                   >
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
@@ -482,9 +640,13 @@ const fetchArticles = async () => {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading articles...</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading articles...
+                </div>
               ) : filteredArticles.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No articles found</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  No articles found
+                </div>
               ) : (
                 <>
                   <Table>
@@ -501,6 +663,7 @@ const fetchArticles = async () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
+<<<<<<< Updated upstream
                       {filteredArticles.slice(0, visibleCount).map((article) => (
                         <TableRow key={article._id}>
                           <TableCell className="font-medium max-w-md">{article.headline}</TableCell>
@@ -535,11 +698,65 @@ const fetchArticles = async () => {
                           </TableCell>
                         </TableRow>
                       ))}
+=======
+                      {filteredArticles
+                        .slice(0, visibleCount)
+                        .map((article) => (
+                          <TableRow key={article._id}>
+                            <TableCell className="font-medium max-w-md">
+                              {article.headline}
+                            </TableCell>
+                            <TableCell>{article.station}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="uppercase">
+                                {article.stationType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{article.country}</TableCell>
+                            <TableCell>
+                              {format(new Date(article.datePublished), "PP")}
+                            </TableCell>
+                            <TableCell>
+                              {getSentimentBadge(article.sentiment)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              ${article.ave?.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => openEditDialog(article)}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteArticle(article._id)
+                                    }
+                                    className="text-destructive"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+>>>>>>> Stashed changes
                     </TableBody>
                   </Table>
                   {filteredArticles.length > visibleCount && (
                     <div className="mt-4 text-center">
-                      <Button variant="outline" onClick={() => setVisibleCount(visibleCount + 20)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setVisibleCount(visibleCount + 20)}
+                      >
                         Load More
                       </Button>
                     </div>

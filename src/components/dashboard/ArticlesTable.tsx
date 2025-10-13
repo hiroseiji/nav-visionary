@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditArticleDialog } from './EditArticleDialog';
+import { mapSentimentToLabel } from '@/utils/dashboardUtils';
 
 interface Article {
   _id: string;
@@ -88,9 +89,10 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
     }
   };
 
-  const getSentimentBadge = (sentiment: string) => {
-    const sentimentStr = String(sentiment || 'neutral');
-    const sentimentLower = sentimentStr.toLowerCase();
+  const getSentimentBadge = (sentiment: string | number) => {
+    // Convert numeric sentiment to label using the mapping function
+    const sentimentLabel = mapSentimentToLabel(sentiment);
+    const sentimentLower = sentimentLabel.toLowerCase();
     let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
     
     if (sentimentLower === 'positive') variant = 'positive';
@@ -100,7 +102,7 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
     
     return (
       <Badge variant={variant}>
-        <span className="capitalize">{sentimentStr}</span>
+        <span className="capitalize">{sentimentLabel}</span>
       </Badge>
     );
   };

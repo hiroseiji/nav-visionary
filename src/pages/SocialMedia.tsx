@@ -334,6 +334,7 @@ export default function SocialMedia() {
                           <SelectItem value="positive">Positive</SelectItem>
                           <SelectItem value="neutral">Neutral</SelectItem>
                           <SelectItem value="negative">Negative</SelectItem>
+                          <SelectItem value="mixed">Mixed</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -429,6 +430,7 @@ export default function SocialMedia() {
                     <SelectItem value="positive">Positive</SelectItem>
                     <SelectItem value="neutral">Neutral</SelectItem>
                     <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="mixed">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={groupFilter} onValueChange={setGroupFilter}>

@@ -27,20 +27,41 @@ export interface Article {
 }
 
 export interface FacebookPost {
+  _id: string;
   createdTime: string;
-  message?: string;
+  message: string;
+  source?: string;
+  sentiment: string;
+  link?: string;
+  logo_url?: string;
 }
 
 export interface BroadcastArticle {
+  _id: string;
   mentionDT: string;
-  station?: string;   
-  mention?: string;  
+  station?: string;
+  mention?: string;
+  title: string;
+  source: string;
+  sentiment: string;
+  matched_keywords?: string[];
+  country?: string;
+  url?: string;
+  ave?: number;
 }
 
 export interface PrintMediaArticle {
+  _id: string;
   publicationDate: string;
-  publication?: string; 
-  headline?: string;    
+  publication?: string;
+  headline?: string;
+  title: string;
+  source: string;
+  sentiment: string;
+  matched_keywords?: string[];
+  country?: string;
+  url?: string;
+  ave?: number;
 }
 
 export interface OrganizationData {

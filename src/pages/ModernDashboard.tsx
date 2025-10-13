@@ -655,53 +655,250 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Articles Table Component */}
-              <ArticlesTable
-                articles={filteredArticles}
-                onDelete={(articleId) => {
-                  handleDelete(
-                    'articles',
-                    articleId,
-                    selectedOrg || '',
-                    token || '',
-                    setArticles,
-                    setFilteredArticles
-                  );
-                }}
-                onArticleUpdate={async (articleId, updatedData) => {
-                  try {
-                    const response = await axios.put(
-                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
-                      updatedData,
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                        },
-                      }
+              {/* Online Articles Table */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold mb-4">Online Media</h4>
+                <ArticlesTable
+                  articles={filteredArticles}
+                  onDelete={(articleId) => {
+                    handleDelete(
+                      'articles',
+                      articleId,
+                      selectedOrg || '',
+                      token || '',
+                      setArticles,
+                      setFilteredArticles
                     );
-                    
-                    if (response.data) {
-                      // Update local state with the updated article
-                      setArticles(prev => 
-                        prev.map(article => 
-                          article._id === articleId ? { ...article, ...updatedData } : article
-                        )
+                  }}
+                  onArticleUpdate={async (articleId, updatedData) => {
+                    try {
+                      const response = await axios.put(
+                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
+                        updatedData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
                       );
-                      setFilteredArticles(prev => 
-                        prev.map(article => 
-                          article._id === articleId ? { ...article, ...updatedData } : article
-                        )
-                      );
-                      toast.success('Article updated successfully');
+                      
+                      if (response.data) {
+                        setArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        setFilteredArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        toast.success('Article updated successfully');
+                      }
+                    } catch (error) {
+                      console.error('Error updating article:', error);
+                      toast.error('Failed to update article');
                     }
-                  } catch (error) {
-                    console.error('Error updating article:', error);
-                    toast.error('Failed to update article');
-                  }
-                }}
-                userRole={user.role}
-                orgId={selectedOrg || ''}
-              />
+                  }}
+                  userRole={user.role}
+                  orgId={selectedOrg || ''}
+                />
+              </div>
+
+              {/* Broadcast Media Table */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4>
+                <ArticlesTable
+                  articles={filteredBroadcastArticles.map(article => ({
+                    _id: article._id,
+                    title: article.title,
+                    source: article.source,
+                    publication_date: article.mentionDT,
+                    sentiment: article.sentiment,
+                    matched_keywords: article.matched_keywords || [],
+                    country: article.country || '',
+                    url: article.url || '',
+                    ave: article.ave || 0,
+                    snippet: '',
+                    coverage_type: '',
+                    rank: 0,
+                    reach: 0,
+                    logo_url: ''
+                  }))}
+                  onDelete={(articleId) => {
+                    handleDelete(
+                      'broadcasts',
+                      articleId,
+                      selectedOrg || '',
+                      token || '',
+                      setBroadcastArticles,
+                      setFilteredBroadcastArticles
+                    );
+                  }}
+                  onArticleUpdate={async (articleId, updatedData) => {
+                    try {
+                      const response = await axios.put(
+                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/broadcast/${articleId}`,
+                        updatedData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
+                      );
+                      
+                      if (response.data) {
+                        setBroadcastArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        setFilteredBroadcastArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        toast.success('Broadcast article updated successfully');
+                      }
+                    } catch (error) {
+                      console.error('Error updating broadcast article:', error);
+                      toast.error('Failed to update broadcast article');
+                    }
+                  }}
+                  userRole={user.role}
+                  orgId={selectedOrg || ''}
+                />
+              </div>
+
+              {/* Print Media Table */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold mb-4">Print Media</h4>
+                <ArticlesTable
+                  articles={filteredPrintMediaArticles.map(article => ({
+                    _id: article._id,
+                    title: article.title,
+                    source: article.source,
+                    publication_date: article.publicationDate,
+                    sentiment: article.sentiment,
+                    matched_keywords: article.matched_keywords || [],
+                    country: article.country || '',
+                    url: article.url || '',
+                    ave: article.ave || 0,
+                    snippet: '',
+                    coverage_type: '',
+                    rank: 0,
+                    reach: 0,
+                    logo_url: ''
+                  }))}
+                  onDelete={(articleId) => {
+                    handleDelete(
+                      'printmedias',
+                      articleId,
+                      selectedOrg || '',
+                      token || '',
+                      setPrintMediaArticles,
+                      setFilteredPrintMediaArticles
+                    );
+                  }}
+                  onArticleUpdate={async (articleId, updatedData) => {
+                    try {
+                      const response = await axios.put(
+                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/printmedia/${articleId}`,
+                        updatedData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
+                      );
+                      
+                      if (response.data) {
+                        setPrintMediaArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        setFilteredPrintMediaArticles(prev => 
+                          prev.map(article => 
+                            article._id === articleId ? { ...article, ...updatedData } : article
+                          )
+                        );
+                        toast.success('Print article updated successfully');
+                      }
+                    } catch (error) {
+                      console.error('Error updating print article:', error);
+                      toast.error('Failed to update print article');
+                    }
+                  }}
+                  userRole={user.role}
+                  orgId={selectedOrg || ''}
+                />
+              </div>
+
+              {/* Social Media Table */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold mb-4">Social Media</h4>
+                <ArticlesTable
+                  articles={filteredPosts.map(post => ({
+                    _id: post._id,
+                    title: post.message,
+                    source: post.source || 'Facebook',
+                    publication_date: post.createdTime,
+                    sentiment: post.sentiment,
+                    matched_keywords: [],
+                    country: '',
+                    url: post.link || '',
+                    ave: 0,
+                    snippet: '',
+                    coverage_type: '',
+                    rank: 0,
+                    reach: 0,
+                    logo_url: post.logo_url || ''
+                  }))}
+                  onDelete={(postId) => {
+                    handleDelete(
+                      'posts',
+                      postId,
+                      selectedOrg || '',
+                      token || '',
+                      setFacebookPosts,
+                      setFilteredPosts
+                    );
+                  }}
+                  onArticleUpdate={async (postId, updatedData) => {
+                    try {
+                      const response = await axios.put(
+                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/social/${postId}`,
+                        updatedData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
+                      );
+                      
+                      if (response.data) {
+                        setFacebookPosts(prev => 
+                          prev.map(post => 
+                            post._id === postId ? { ...post, ...updatedData } : post
+                          )
+                        );
+                        setFilteredPosts(prev => 
+                          prev.map(post => 
+                            post._id === postId ? { ...post, ...updatedData } : post
+                          )
+                        );
+                        toast.success('Social post updated successfully');
+                      }
+                    } catch (error) {
+                      console.error('Error updating social post:', error);
+                      toast.error('Failed to update social post');
+                    }
+                  }}
+                  userRole={user.role}
+                  orgId={selectedOrg || ''}
+                />
+              </div>
             </div>
         </div>
       </SidebarLayout>

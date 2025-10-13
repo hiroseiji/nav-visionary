@@ -111,13 +111,8 @@ export default function SocialMedia() {
       );
     }
 
-<<<<<<< Updated upstream
     if (sourceFilter !== "all") {
       filtered = filtered.filter((post) => post.source === sourceFilter);
-=======
-    if (platformFilter !== "all") {
-      filtered = filtered.filter((post) => post.source === platformFilter);
->>>>>>> Stashed changes
     }
 
     if (sentimentFilter !== "all") {
@@ -200,12 +195,7 @@ export default function SocialMedia() {
       pageName: post.pageName,
       postId: post.postId,
       message: post.message,
-<<<<<<< Updated upstream
       source: post.source, // Platform field
-=======
-      source: post.source,
-      platform: post.source,
->>>>>>> Stashed changes
       group: post.group,
       country: post.country,
       createdTime: post.createdTime,
@@ -300,15 +290,9 @@ export default function SocialMedia() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-<<<<<<< Updated upstream
                       <Label htmlFor="source">Platform</Label>
                       <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
                         <SelectTrigger id="source">
-=======
-                      <Label htmlFor="platform">Platform</Label>
-                      <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
-                        <SelectTrigger id="platform">
->>>>>>> Stashed changes
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

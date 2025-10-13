@@ -1,19 +1,26 @@
 // utils/sentimentUtils.ts
 
-export const mapSentimentToLabel = (score: number): string => {
-  if (score >= 0.75) return "positive";
-  if (score <= -0.5) return "negative";
-  if (score > 0 && score < 0.5) return "mixed";
-  if (score === 0) return "neutral";
-  return "neutral";
+export const mapSentimentToLabel = (scoreOrLabel: number | string): string => {
+  if (typeof scoreOrLabel === 'string') {
+    const normalized = scoreOrLabel.trim().toLowerCase();
+    if (['positive', 'negative', 'neutral', 'mixed'].includes(normalized)) return normalized;
+    const n = Number(normalized);
+    if (!Number.isNaN(n)) return mapSentimentToLabel(n);
+    return 'neutral';
+  }
+  const s = scoreOrLabel;
+  if (s >= 0.75) return 'positive';
+  if (s <= -0.5) return 'negative';
+  if (s > 0 && s < 0.5) return 'mixed';
+  if (s === 0) return 'neutral';
+  return 'neutral';
 };
 
 export const mapLabelToSentiment = (label: string): number => {
-  switch (label) {
-    case "positive": return 1;
-    case "negative": return -1;
-    case "mixed": return 0.25;
-    case "neutral": return 0;
-    default: return 0;
-  }
+  const l = (label || '').toLowerCase();
+  if (l === 'positive') return 1;
+  if (l === 'negative') return -1;
+  if (l === 'mixed') return 0.25;
+  if (l === 'neutral') return 0;
+  return 0;
 };

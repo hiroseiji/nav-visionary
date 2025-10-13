@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditArticleDialog } from './EditArticleDialog';
-import { mapSentimentToLabel } from '@/utils/dashboardUtils';
+import { mapSentimentToLabel } from '@/utils/sentimentUtils';
 
 interface Article {
   _id: string;

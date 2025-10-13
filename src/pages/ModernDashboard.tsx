@@ -36,7 +36,7 @@ import {
   handleSearchQuery,
   filterByDateRange,
   confirmSentimentUpdate,
-  mapSentimentToLabel,
+  
   handleSentimentChange,
   confirmCountryUpdate,
   fetchCountries,
@@ -54,6 +54,7 @@ import {
   PrintMediaArticle,
   OrganizationData,
 } from "../utils/dashboardUtils";
+import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 
 interface EditingSource {
   articleId: string;

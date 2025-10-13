@@ -276,21 +276,19 @@ export default function OnlineMedia() {
     });
   };
 
-  const getSentimentBadge = (sentiment: string) => {
-    const variants: Record<string, "default" | "destructive" | "secondary"> = {
-      positive: "default",
-      negative: "destructive",
-      neutral: "secondary",
-    };
-    const icons: Record<string, React.ReactNode> = {
-      positive: <ThumbsUp className="h-3 w-3" />,
-      negative: <ThumbsDown className="h-3 w-3" />,
-      neutral: <Minus className="h-3 w-3" />,
-    };
+  const getSentimentBadge = (sentiment: string | number) => {
+    const sentimentLabel = mapSentimentToLabel(sentiment);
+    const sentimentLower = sentimentLabel.toLowerCase();
+    let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
+    
+    if (sentimentLower === 'positive') variant = 'positive';
+    else if (sentimentLower === 'negative') variant = 'negative';
+    else if (sentimentLower === 'mixed') variant = 'mixed';
+    else variant = 'neutral';
+    
     return (
-      <Badge variant={variants[sentiment] || "secondary"} className="gap-1">
-        {icons[sentiment]}
-        {sentiment}
+      <Badge variant={variant}>
+        <span className="capitalize">{sentimentLabel}</span>
       </Badge>
     );
   };
@@ -714,7 +712,7 @@ export default function OnlineMedia() {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              ${article.ave?.toLocaleString()}
+                              {article.ave?.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right">
                               {article.reach?.toLocaleString()}

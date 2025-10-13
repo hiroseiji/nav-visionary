@@ -30,6 +30,8 @@ interface SocialPost {
   reach: number;
   ave: number;
   url?: string;
+  logo_url?: string;
+  link?: string;
 }
 
 export default function SocialMedia() {
@@ -65,7 +67,9 @@ export default function SocialMedia() {
     sentiment: "neutral",
     reach: 0,
     ave: 0,
-    url: ""
+    url: "",
+    logo_url: "",
+    link: ""
   });
 
   useEffect(() => {
@@ -202,7 +206,9 @@ export default function SocialMedia() {
       sentiment: post.sentiment,
       reach: post.reach,
       ave: post.ave,
-      url: post.url || ""
+      url: post.url || "",
+      logo_url: post.logo_url || "",
+      link: post.link || ""
     });
     setIsDialogOpen(true);
   };
@@ -220,7 +226,9 @@ export default function SocialMedia() {
       sentiment: "neutral",
       reach: 0,
       ave: 0,
-      url: ""
+      url: "",
+      logo_url: "",
+      link: ""
     });
   };
 
@@ -276,6 +284,24 @@ export default function SocialMedia() {
                       value={newPost.pageName}
                       onChange={(e) => setNewPost({ ...newPost, pageName: e.target.value })}
                       placeholder="Page or account name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="logo_url">Logo URL</Label>
+                    <Input
+                      id="logo_url"
+                      value={newPost.logo_url}
+                      onChange={(e) => setNewPost({ ...newPost, logo_url: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="link">Post Link</Label>
+                    <Input
+                      id="link"
+                      value={newPost.link}
+                      onChange={(e) => setNewPost({ ...newPost, link: e.target.value })}
+                      placeholder="https://..."
                     />
                   </div>
                   <div className="grid gap-2">
@@ -500,12 +526,34 @@ export default function SocialMedia() {
                       {filteredPosts.slice(0, visibleCount).map((post) => (
                         <TableRow key={post._id}>
                           <TableCell className="max-w-md">
-                            <div className="line-clamp-2">{post.message}</div>
-                            {post.url && (
-                              <a href={post.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1">
-                                View post <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
+                            <div className="flex items-start gap-3">
+                              {post.logo_url && (
+                                <img 
+                                  src={post.logo_url} 
+                                  alt={post.pageName} 
+                                  className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                {post.link ? (
+                                  <a 
+                                    href={post.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="line-clamp-2 hover:underline text-foreground"
+                                  >
+                                    {post.message}
+                                  </a>
+                                ) : (
+                                  <div className="line-clamp-2">{post.message}</div>
+                                )}
+                                {post.url && (
+                                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1">
+                                    View post <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>{post.pageName}</TableCell>
                           <TableCell>

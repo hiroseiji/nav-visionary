@@ -617,81 +617,27 @@ export default function PrintMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('headline')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Headline
-                            {sortBy === 'headline' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('byline')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Publication
-                            {sortBy === 'byline' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('section')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Section
-                            {sortBy === 'section' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('country')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Country
-                            {sortBy === 'country' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Headline</TableHead>
+                        <TableHead>Publication</TableHead>
+                        <TableHead>Section</TableHead>
+                        <TableHead>Country</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('publicationDate')}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === 'publicationDate' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'publicationDate' ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('sentiment')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Sentiment
-                            {sortBy === 'sentiment' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Sentiment</TableHead>
                         <TableHead 
                           className="text-right cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('ave')}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            {sortBy === 'ave' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>

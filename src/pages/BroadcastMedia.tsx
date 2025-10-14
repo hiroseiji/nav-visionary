@@ -657,84 +657,30 @@ export default function BroadcastMedia() {
                 </div>
               ) : (
                 <>
-                  <Table>
+                   <Table>
                      <TableHeader>
                       <TableRow>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('station')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Station
-                            {sortBy === 'station' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('mention')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Headline
-                            {sortBy === 'mention' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('stationType')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Type
-                            {sortBy === 'stationType' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('country')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Country
-                            {sortBy === 'country' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Station</TableHead>
+                        <TableHead>Headline</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Country</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('mentionDT')}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === 'mentionDT' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'mentionDT' ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('sentiment')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Sentiment
-                            {sortBy === 'sentiment' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Sentiment</TableHead>
                         <TableHead 
                           className="text-right cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort('ave')}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            {sortBy === 'ave' && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>

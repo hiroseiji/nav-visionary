@@ -571,70 +571,26 @@ export default function SocialMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("message")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Message
-                            {sortBy === "message" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("pageName")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Page
-                            {sortBy === "pageName" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("source")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Platform
-                            {sortBy === "source" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Page Name</TableHead>
+                        <TableHead>Platform</TableHead>
                         <TableHead
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort("createdTime")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === "createdTime" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "createdTime" ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("sentiment")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Sentiment
-                            {sortBy === "sentiment" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Sentiment</TableHead>
                         <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort("rank")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Relevancy
-                            {sortBy === "rank" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "rank" ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
                         <TableHead
@@ -643,9 +599,7 @@ export default function SocialMedia() {
                         >
                           <div className="flex items-center justify-end gap-1">
                             Reach
-                            {sortBy === "reach" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "reach" ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
                         <TableHead
@@ -654,9 +608,7 @@ export default function SocialMedia() {
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            {sortBy === "ave" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "ave" ? 'text-primary' : ''}`} />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>

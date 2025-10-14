@@ -654,91 +654,102 @@ export default function OnlineMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('source')}
+                          onClick={() => handleSort("source")}
                         >
                           <div className="flex items-center gap-1">
                             Source
-                            {sortBy === 'source' && (
+                            {sortBy === "source" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('title')}
+                          onClick={() => handleSort("title")}
                         >
                           <div className="flex items-center gap-1">
                             Headline
-                            {sortBy === 'title' && (
+                            {sortBy === "title" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
                         <TableHead>Summary</TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('country')}
+                          onClick={() => handleSort("country")}
                         >
                           <div className="flex items-center gap-1">
                             Country
-                            {sortBy === 'country' && (
+                            {sortBy === "country" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('publication_date')}
+                          onClick={() => handleSort("publication_date")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === 'publication_date' && (
+                            {sortBy === "publication_date" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('sentiment')}
+                          onClick={() => handleSort("sentiment")}
                         >
                           <div className="flex items-center gap-1">
                             Sentiment
-                            {sortBy === 'sentiment' && (
+                            {sortBy === "sentiment" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('coverage_type')}
+                          onClick={() => handleSort("coverage_type")}
                         >
                           <div className="flex items-center gap-1">
-                            Coverage Type
-                            {sortBy === 'coverage_type' && (
+                            Coverage
+                            {sortBy === "coverage_type" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort("ave")}
+                        >
+                          <div className="flex items-center gap-1">
+                            AVE
+                            {sortBy === "ave" && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('reach')}
+                          onClick={() => handleSort("reach")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Reach
-                            {sortBy === 'reach' && (
+                            {sortBy === "reach" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('rank')}
+                          onClick={() => handleSort("rank")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Relevancy
-                            {sortBy === 'rank' && (
+                            {sortBy === "rank" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
@@ -786,6 +797,9 @@ export default function OnlineMedia() {
                               <Badge variant="outline">
                                 {article.coverage_type}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {article.ave?.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right">
                               {article.reach?.toLocaleString()}

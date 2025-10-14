@@ -55,7 +55,7 @@ import {
   OrganizationData,
 } from "../utils/dashboardUtils";
 import { mapSentimentToLabel } from "@/utils/sentimentUtils";
-import { Button } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 
 interface EditingSource {
   articleId: string;

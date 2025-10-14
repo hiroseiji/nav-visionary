@@ -152,6 +152,13 @@ function ModernDashboard() {
     );
   }, [startDate, endDate, articles]);
 
+  // For posts (social media) - filter by createdTime
+  useEffect(() => {
+    setFilteredPosts(
+      filterByDateRange(facebookPosts, "createdTime", startDate, endDate)
+    );
+  }, [startDate, endDate, facebookPosts]);
+
   // For broadcast
   useEffect(() => {
     setFilteredBroadcastArticles(
@@ -684,6 +691,7 @@ useEffect(() => {
               <ArticlesTable
                 title="Broadcast Articles"
                 subtitle="Latest broadcast media mentions"
+                viewAllLink={`/media/broadcast/${selectedOrg}`}
                 articles={filteredBroadcastArticles.map((article) => ({
                   _id: article._id,
                   title: article.mention || "",
@@ -760,6 +768,7 @@ useEffect(() => {
               <ArticlesTable
                 title="Print Articles"
                 subtitle="Latest print media mentions"
+                viewAllLink={`/media/print/${selectedOrg}`}
                 articles={filteredPrintMediaArticles.map((article) => ({
                   _id: article._id,
                   title: article.headline || "",
@@ -836,6 +845,7 @@ useEffect(() => {
               <ArticlesTable
                 title="Social Media Posts"
                 subtitle="Latest social media mentions"
+                viewAllLink={`/media/social/${selectedOrg}`}
                 showRankInsteadOfCoverage={true}
                 thirdFilterLabel="All Sources"
                 thirdFilterField="source"

@@ -101,8 +101,17 @@ export default function OnlineMedia() {
   const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
-  const [sortField, setSortField] = useState<string>("publication_date");
+  const [sortBy, setSortBy] = useState<string>("publication_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("desc");
+    }
+  };
 
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
@@ -194,14 +203,14 @@ export default function OnlineMedia() {
 
     // Sorting
     filtered.sort((a, b) => {
-      let aVal: string | number = a[sortField as keyof Article] as
+      let aVal: string | number = a[sortBy as keyof Article] as
         | string
         | number;
-      let bVal: string | number = b[sortField as keyof Article] as
+      let bVal: string | number = b[sortBy as keyof Article] as
         | string
         | number;
 
-      if (sortField === "publication_date") {
+      if (sortBy === "publication_date") {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -222,7 +231,7 @@ export default function OnlineMedia() {
     sentimentFilter,
     coverageTypeFilter,
     countryFilter,
-    sortField,
+    sortBy,
     sortOrder,
   ]);
 
@@ -629,31 +638,7 @@ export default function OnlineMedia() {
           {/* Articles Table */}
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Articles ({filteredArticles.length})</CardTitle>
-                <div className="flex gap-2">
-                  <Select value={sortField} onValueChange={setSortField}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="publication_date">Date</SelectItem>
-                      <SelectItem value="ave">AVE</SelectItem>
-                      <SelectItem value="reach">Reach</SelectItem>
-                      <SelectItem value="rank">Rank</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() =>
-                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                    }
-                  >
-                    <ArrowUpDown className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <CardTitle>Articles ({filteredArticles.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -669,15 +654,95 @@ export default function OnlineMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Source</TableHead>
-                        <TableHead>Headline</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('source')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Source
+                            {sortBy === 'source' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('title')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Headline
+                            {sortBy === 'title' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead>Summary</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Sentiment</TableHead>
-                        <TableHead>Coverage Type</TableHead>
-                        <TableHead className="text-right">Reach</TableHead>
-                        <TableHead className="text-right">Relevancy</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('country')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Country
+                            {sortBy === 'country' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('publication_date')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Date
+                            {sortBy === 'publication_date' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('sentiment')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Sentiment
+                            {sortBy === 'sentiment' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('coverage_type')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Coverage Type
+                            {sortBy === 'coverage_type' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-right cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('reach')}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            Reach
+                            {sortBy === 'reach' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-right cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('rank')}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            Relevancy
+                            {sortBy === 'rank' && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>

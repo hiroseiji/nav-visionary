@@ -73,6 +73,8 @@ interface Article {
   _id: string;
   headline: string;
   source: string;
+  title: string;
+  snippet: string;
   country: string;
   publication_date: string;
   ave: number;
@@ -537,9 +539,13 @@ export default function OnlineMedia() {
                     <SelectItem value="positive">Positive</SelectItem>
                     <SelectItem value="neutral">Neutral</SelectItem>
                     <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="mixed">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={coverageTypeFilter} onValueChange={setCoverageTypeFilter}>
+                <Select
+                  value={coverageTypeFilter}
+                  onValueChange={setCoverageTypeFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Coverage Type" />
                   </SelectTrigger>
@@ -665,11 +671,13 @@ export default function OnlineMedia() {
                       <TableRow>
                         <TableHead>Source</TableHead>
                         <TableHead>Headline</TableHead>
+                        <TableHead>Summary</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Sentiment</TableHead>
                         <TableHead>Coverage Type</TableHead>
                         <TableHead className="text-right">Reach</TableHead>
+                        <TableHead className="text-right">Relevancy</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -692,7 +700,8 @@ export default function OnlineMedia() {
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>{article.headline}</TableCell>
+                            <TableCell>{article.title}</TableCell>
+                            <TableCell>{article.snippet}</TableCell>
                             <TableCell>{article.country}</TableCell>
                             <TableCell>
                               {article.publication_date &&
@@ -715,6 +724,9 @@ export default function OnlineMedia() {
                             </TableCell>
                             <TableCell className="text-right">
                               {article.reach?.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {article.rank?.toLocaleString()}
                             </TableCell>
                             <TableCell>
                               <DropdownMenu>

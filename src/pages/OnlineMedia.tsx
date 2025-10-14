@@ -654,104 +654,46 @@ export default function OnlineMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("source")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Source
-                            {sortBy === "source" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("title")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Headline
-                            {sortBy === "title" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Headline</TableHead>
                         <TableHead>Summary</TableHead>
+                        <TableHead>Country</TableHead>
                         <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("country")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Country
-                            {sortBy === "country" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
+                          className="cursor-pointer hover:bg-muted/30"
                           onClick={() => handleSort("publication_date")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === "publication_date" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "publication_date" ? "text-primary" : ""}`} />
                           </div>
                         </TableHead>
+                        <TableHead>Sentiment</TableHead>
+                        <TableHead>Coverage</TableHead>
                         <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("sentiment")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Sentiment
-                            {sortBy === "sentiment" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("coverage_type")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Coverage
-                            {sortBy === "coverage_type" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
+                          className="text-right cursor-pointer hover:bg-muted/30"
                           onClick={() => handleSort("ave")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            {sortBy === "ave" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "ave" ? "text-primary" : ""}`} />
                           </div>
                         </TableHead>
                         <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
+                          className="text-right cursor-pointer hover:bg-muted/30"
                           onClick={() => handleSort("reach")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Reach
-                            {sortBy === "reach" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "reach" ? "text-primary" : ""}`} />
                           </div>
                         </TableHead>
                         <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
+                          className="text-right cursor-pointer hover:bg-muted/30"
                           onClick={() => handleSort("rank")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Relevancy
-                            {sortBy === "rank" && (
-                              <ArrowUpDown className="h-4 w-4" />
-                            )}
+                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "rank" ? "text-primary" : ""}`} />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>

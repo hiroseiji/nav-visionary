@@ -70,6 +70,11 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [sentimentFilter, setSentimentFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
+  const [coverageFilter, setCoverageFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'ave' | 'reach'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const handleEditClick = (article: Article) => {
     setEditingArticle(article);
@@ -111,6 +116,43 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
     );
   };
 
+  // Get unique values for filters
+  const uniqueCountries = Array.from(new Set(articles.map(a => a.country).filter(Boolean)));
+  const uniqueCoverageTypes = Array.from(new Set(articles.map(a => a.coverage_type).filter(Boolean)));
+
+  // Filter articles
+  const filteredArticles = articles.filter(article => {
+    const sentimentLabel = mapSentimentToLabel(article.sentiment).toLowerCase();
+    const matchesSentiment = sentimentFilter === 'all' || sentimentLabel === sentimentFilter;
+    const matchesCountry = countryFilter === 'all' || article.country === countryFilter;
+    const matchesCoverage = coverageFilter === 'all' || article.coverage_type === coverageFilter;
+    return matchesSentiment && matchesCountry && matchesCoverage;
+  });
+
+  // Sort articles
+  const sortedArticles = [...filteredArticles].sort((a, b) => {
+    let comparison = 0;
+    
+    if (sortBy === 'date') {
+      comparison = new Date(a.publication_date).getTime() - new Date(b.publication_date).getTime();
+    } else if (sortBy === 'ave') {
+      comparison = (a.ave || 0) - (b.ave || 0);
+    } else if (sortBy === 'reach') {
+      comparison = (a.reach || 0) - (b.reach || 0);
+    }
+    
+    return sortOrder === 'asc' ? comparison : -comparison;
+  });
+
+  const handleSort = (column: 'date' | 'ave' | 'reach') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
+
   return (
     <>
       <EditArticleDialog
@@ -138,29 +180,52 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4 gap-4">
-            <Select defaultValue="all">
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="All Sentiment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sentiment</SelectItem>
-                <SelectItem value="positive">Positive</SelectItem>
-                <SelectItem value="negative">Negative</SelectItem>
-                <SelectItem value="neutral">Neutral</SelectItem>
-                <SelectItem value="mixed">Mixed</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Sentiment" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Sentiment</SelectItem>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Calendar className="mr-2 h-4 w-4" />
-                Date Range
-              </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Countries" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {uniqueCountries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={coverageFilter} onValueChange={setCoverageFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Coverage" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Coverage</SelectItem>
+                  {uniqueCoverageTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="text-sm text-muted-foreground">
+              Showing {sortedArticles.slice(0, 8).length} of {sortedArticles.length} articles
             </div>
           </div>
 
@@ -171,27 +236,41 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                   <TableHead className="font-medium">Source</TableHead>
                   <TableHead className="font-medium">Title</TableHead>
                   <TableHead className="font-medium">Summary</TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/30 font-medium">
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/30 font-medium"
+                    onClick={() => handleSort('date')}
+                  >
                     <div className="flex items-center space-x-1">
                       <span>Date Published</span>
-                      <ArrowUpDown className="h-4 w-4" />
+                      <ArrowUpDown className={`h-4 w-4 ${sortBy === 'date' ? 'text-primary' : ''}`} />
                     </div>
                   </TableHead>
                   <TableHead className="font-medium">Country</TableHead>
                   <TableHead className="font-medium">Sentiment</TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/30 font-medium">
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/30 font-medium"
+                    onClick={() => handleSort('ave')}
+                  >
                     <div className="flex items-center space-x-1">
                       <span>AVE</span>
-                      <ArrowUpDown className="h-4 w-4" />
+                      <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
                     </div>
                   </TableHead>
                   <TableHead className="font-medium">Coverage</TableHead>
-                  <TableHead className="font-medium">Reach</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/30 font-medium"
+                    onClick={() => handleSort('reach')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Reach</span>
+                      <ArrowUpDown className={`h-4 w-4 ${sortBy === 'reach' ? 'text-primary' : ''}`} />
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[50px] font-medium"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {articles.slice(0, 8).map((article) => (
+                {sortedArticles.slice(0, 8).map((article) => (
                   <TableRow
                     key={article._id}
                     className="hover:bg-muted/30 transition-colors border-b last:border-0"
@@ -286,9 +365,9 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
             </Table>
           </div>
 
-          {articles.length === 0 && (
+          {sortedArticles.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              No articles found for this organization.
+              No articles found matching the selected filters.
             </div>
           )}
         </CardContent>

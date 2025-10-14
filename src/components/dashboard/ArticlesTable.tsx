@@ -48,6 +48,7 @@ interface Article {
   url: string;
   logo_url?: string;
   section?: string;
+  station_type?: string;
 }
 
 interface ArticlesTableProps {
@@ -62,6 +63,9 @@ interface ArticlesTableProps {
   coverageLabel?: string;
   useSectionField?: boolean;
   showRankInsteadOfCoverage?: boolean;
+  hideThirdFilter?: boolean;
+  thirdFilterLabel?: string;
+  thirdFilterField?: 'coverage_type' | 'source' | 'station_type';
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
@@ -76,12 +80,15 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   coverageLabel = "Coverage",
   useSectionField = false,
   showRankInsteadOfCoverage = false,
+  hideThirdFilter = false,
+  thirdFilterLabel = "All Coverage",
+  thirdFilterField = 'coverage_type',
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [sentimentFilter, setSentimentFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
-  const [coverageFilter, setCoverageFilter] = useState<string>('all');
+  const [thirdFilter, setThirdFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'ave' | 'reach' | 'rank'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -127,15 +134,15 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
 
   // Get unique values for filters
   const uniqueCountries = Array.from(new Set(articles.map(a => a.country).filter(Boolean)));
-  const uniqueCoverageTypes = Array.from(new Set(articles.map(a => a.coverage_type).filter(Boolean)));
+  const uniqueThirdFilterValues = Array.from(new Set(articles.map(a => a[thirdFilterField]).filter(Boolean)));
 
   // Filter articles
   const filteredArticles = articles.filter(article => {
     const sentimentLabel = mapSentimentToLabel(article.sentiment).toLowerCase();
     const matchesSentiment = sentimentFilter === 'all' || sentimentLabel === sentimentFilter;
     const matchesCountry = countryFilter === 'all' || article.country === countryFilter;
-    const matchesCoverage = coverageFilter === 'all' || article.coverage_type === coverageFilter;
-    return matchesSentiment && matchesCountry && matchesCoverage;
+    const matchesThirdFilter = thirdFilter === 'all' || article[thirdFilterField] === thirdFilter;
+    return matchesSentiment && matchesCountry && matchesThirdFilter;
   });
 
   // Sort articles
@@ -220,19 +227,21 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                 </SelectContent>
               </Select>
 
-              <Select value={coverageFilter} onValueChange={setCoverageFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="All Coverage" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
-                  <SelectItem value="all">All Coverage</SelectItem>
-                  {uniqueCoverageTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!hideThirdFilter && (
+                <Select value={thirdFilter} onValueChange={setThirdFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder={thirdFilterLabel} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-50">
+                    <SelectItem value="all">{thirdFilterLabel}</SelectItem>
+                    {uniqueThirdFilterValues.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="text-sm text-muted-foreground">

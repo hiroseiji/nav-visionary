@@ -52,6 +52,7 @@ export interface BroadcastArticle {
   url?: string;
   ave?: number;
   logo_url?: string;
+  station_type?: string;
 }
 
 export interface PrintMediaArticle {

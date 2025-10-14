@@ -628,7 +628,6 @@ useEffect(() => {
               <ArticlesTable
                 title="Online Articles"
                 subtitle="Latest online media mentions"
-                showRankInsteadOfCoverage={true}
                 articles={filteredArticles}
                 onDelete={(articleId) => {
                   handleDelete(
@@ -695,6 +694,7 @@ useEffect(() => {
                   url: article.url || "",
                   ave: article.ave || 0,
                   coverage_type: article.stationType || "Broadcast",
+                  station_type: article.stationType || article.station_type || "",
                   rank: 0,
                   reach: 0,
                   snippet: "",
@@ -703,6 +703,8 @@ useEffect(() => {
                 }))}
                 hideReach={true}
                 coverageLabel="Type"
+                thirdFilterLabel="All Station Types"
+                thirdFilterField="station_type"
                 onDelete={(articleId) => {
                   handleDelete(
                     "broadcasts",
@@ -778,6 +780,7 @@ useEffect(() => {
                 hideReach={true}
                 coverageLabel="Section"
                 useSectionField={true}
+                hideThirdFilter={true}
                 onDelete={(articleId) => {
                   handleDelete(
                     "printmedias",
@@ -834,6 +837,8 @@ useEffect(() => {
                 title="Social Media Posts"
                 subtitle="Latest social media mentions"
                 showRankInsteadOfCoverage={true}
+                thirdFilterLabel="All Sources"
+                thirdFilterField="source"
                 articles={filteredPosts.map((post) => ({
                   _id: post._id,
                   title: post.message || "",

@@ -618,6 +618,7 @@ export default function BroadcastMedia() {
                       mode="single"
                       selected={endDate}
                       onSelect={setEndDate}
+                      disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>

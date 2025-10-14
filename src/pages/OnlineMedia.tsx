@@ -722,10 +722,10 @@ export default function OnlineMedia() {
                           </div>
                         </TableHead>
                         <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
+                          className="text-right cursor-pointer hover:bg-muted/50"
                           onClick={() => handleSort("ave")}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-end gap-1">
                             AVE
                             {sortBy === "ave" && (
                               <ArrowUpDown className="h-4 w-4" />
@@ -798,7 +798,7 @@ export default function OnlineMedia() {
                                 {article.coverage_type}
                               </Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                               {article.ave?.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right">

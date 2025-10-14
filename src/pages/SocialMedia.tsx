@@ -547,8 +547,8 @@ export default function SocialMedia() {
                                 ) : (
                                   <div className="line-clamp-2">{post.message}</div>
                                 )}
-                                {post.url && (
-                                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1">
+                                {post.link && (
+                                  <a href={post.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1">
                                     View post <ExternalLink className="h-3 w-3" />
                                   </a>
                                 )}

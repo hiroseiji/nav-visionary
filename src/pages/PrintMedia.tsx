@@ -61,12 +61,13 @@ import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 interface PrintArticle {
   _id: string;
   headline: string;
-  source: string;
+  byline: string;
   section: string;
   country: string;
   publicationDate: string;
   sentiment: string;
   ave: number;
+  url?: string;
 }
 
 export default function PrintMedia() {
@@ -97,7 +98,7 @@ export default function PrintMedia() {
   );
   const [newArticle, setNewArticle] = useState({
     headline: "",
-    source: "",
+    byline: "",
     section: "",
     country: "",
     publicationDate: "",
@@ -140,7 +141,7 @@ export default function PrintMedia() {
       filtered = filtered.filter(
         (article) =>
           article.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.source?.toLowerCase().includes(searchQuery.toLowerCase())
+          article.byline?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -258,7 +259,7 @@ export default function PrintMedia() {
     setEditingArticle(article);
     setNewArticle({
       headline: article.headline,
-      source: article.source,
+      byline: article.byline,
       section: article.section,
       country: article.country,
       publicationDate: article.publicationDate,
@@ -272,7 +273,7 @@ export default function PrintMedia() {
     setEditingArticle(null);
     setNewArticle({
       headline: "",
-      source: "",
+      byline: "",
       section: "",
       country: "",
       publicationDate: "",
@@ -361,14 +362,14 @@ export default function PrintMedia() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="source">Source</Label>
+                      <Label htmlFor="byline">byline</Label>
                       <Input
-                        id="source"
-                        value={newArticle.source}
+                        id="byline"
+                        value={newArticle.byline}
                         onChange={(e) =>
                           setNewArticle({
                             ...newArticle,
-                            source: e.target.value,
+                            byline: e.target.value,
                           })
                         }
                         placeholder="Newspaper name"
@@ -419,6 +420,7 @@ export default function PrintMedia() {
                           <SelectItem value="positive">Positive</SelectItem>
                           <SelectItem value="neutral">Neutral</SelectItem>
                           <SelectItem value="negative">Negative</SelectItem>
+                          <SelectItem value="mixed">Mixed</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -516,6 +518,7 @@ export default function PrintMedia() {
                     <SelectItem value="positive">Positive</SelectItem>
                     <SelectItem value="neutral">Neutral</SelectItem>
                     <SelectItem value="negative">Negative</SelectItem>
+                    <SelectItem value="mixed">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
@@ -638,40 +641,74 @@ export default function PrintMedia() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredArticles.slice(0, visibleCount).map((article) => (
-                        <TableRow key={article._id}>
-                          <TableCell className="font-medium max-w-md">{article.headline}</TableCell>
-                          <TableCell>{article.source}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{article.section}</Badge>
-                          </TableCell>
-                          <TableCell>{article.country}</TableCell>
-                          <TableCell>
-                            {article.publicationDate && !isNaN(new Date(article.publicationDate).getTime())
-                              ? format(new Date(article.publicationDate), "PP")
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>
-                          <TableCell className="text-right">{article.ave?.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(article)}>
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteArticle(article._id)} className="text-destructive">
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredArticles
+                        .slice(0, visibleCount)
+                        .map((article) => (
+                          <TableRow key={article._id}>
+                            <TableCell className="font-medium max-w-md">
+                              {article.url ? (
+                                <a
+                                  href={article.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline text-primary block line-clamp-1"
+                                >
+                                  {article.headline}
+                                </a>
+                              ) : (
+                                <span className="block line-clamp-1">
+                                  {article.headline}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>{article.byline}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{article.section}</Badge>
+                            </TableCell>
+                            <TableCell>{article.country}</TableCell>
+                            <TableCell>
+                              {article.publicationDate &&
+                              !isNaN(
+                                new Date(article.publicationDate).getTime()
+                              )
+                                ? format(
+                                    new Date(article.publicationDate),
+                                    "PP"
+                                  )
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {getSentimentBadge(article.sentiment)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {article.ave?.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => openEditDialog(article)}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteArticle(article._id)
+                                    }
+                                    className="text-destructive"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                   {filteredArticles.length > visibleCount && (

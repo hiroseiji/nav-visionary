@@ -55,6 +55,7 @@ import {
   OrganizationData,
 } from "../utils/dashboardUtils";
 import { mapSentimentToLabel } from "@/utils/sentimentUtils";
+import { Button } from "react-day-picker";
 
 interface EditingSource {
   articleId: string;
@@ -560,66 +561,9 @@ useEffect(() => {
               <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>
 
               <div className="flex items-center justify-between mb-6">
-                <div
-                  className="flex items-center space-x-2 cursor-pointer border rounded px-3 py-2"
-                  onClick={() => setIsCalendarOpen(true)}
-                >
-                  <LuCalendarDays className="h-4 w-4" />
-                  <span>
-                    {startDate && endDate
-                      ? `${startDate.toLocaleDateString("en-US", {
-                          day: "2-digit",
-                          month: "short",
-                        })} - ${endDate.toLocaleDateString("en-US", {
-                          day: "2-digit",
-                          month: "short",
-                        })}`
-                      : "Select Date"}
-                  </span>
-
-                  {/* Clear button */}
-                  {(startDate || endDate) && (
-                    <button
-                      className="ml-2 text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setStartDate(null);
-                        setEndDate(null);
-                        setFilteredArticles(articles);
-                      }}
-                    >
-                      ✕
-                    </button>
-                  )}
-
-                  {isCalendarOpen && (
-                    <div className="absolute z-50 mt-2">
-                      <DatePicker
-                        selected={startDate}
-                        onChange={(dates) => {
-                          const [start, end] = dates as [Date | null, Date | null];
-                          setStartDate(start);
-                          setEndDate(end);
-
-                          if (start && end) {
-                            setIsCalendarOpen(false);
-                          }
-                        }}
-                        startDate={startDate}
-                        endDate={endDate}
-                        selectsRange
-                        inline
-                        showYearDropdown
-                        scrollableYearDropdown
-                        maxDate={new Date()}
-                      />
-                    </div>
-                  )}
-                </div>
-
                 {/* Reload button for super_admin */}
                 {user.role === "super_admin" && (
-                  <button
+                  <Button
                     className={`flex items-center space-x-2 px-4 py-2 rounded border ${
                       scraping 
                         ? "bg-muted text-muted-foreground cursor-not-allowed" 
@@ -651,13 +595,13 @@ useEffect(() => {
                         <span>Reload Articles</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                 )}
               </div>
 
               {/* Online Articles Table */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-4">Online Media</h4>
+                {/* <h4 className="text-lg font-semibold mb-4">Online Media</h4> */}
                 <ArticlesTable
                   articles={filteredArticles}
                   onDelete={(articleId) => {
@@ -707,7 +651,7 @@ useEffect(() => {
 
               {/* Broadcast Media Table */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4>
+                {/* <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4> */}
                 <ArticlesTable
                   title="Broadcast Articles"
                   subtitle="Latest broadcast media mentions"
@@ -774,7 +718,7 @@ useEffect(() => {
 
               {/* Print Media Table */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-4">Print Media</h4>
+                {/* <h4 className="text-lg font-semibold mb-4">Print Media</h4> */}
                 <ArticlesTable
                   title="Print Articles"
                   subtitle="Latest print media mentions"
@@ -841,7 +785,7 @@ useEffect(() => {
 
               {/* Social Media Table */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-4">Social Media</h4>
+                {/* <h4 className="text-lg font-semibold mb-4">Social Media</h4> */}
                 <ArticlesTable
                   title="Social Media Posts"
                   subtitle="Latest social media mentions"
@@ -874,7 +818,7 @@ useEffect(() => {
                   onArticleUpdate={async (postId, updatedData) => {
                     try {
                       const response = await axios.put(
-                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/social/${postId}`,
+                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/posts/${postId}`,
                         updatedData,
                         {
                           headers: {

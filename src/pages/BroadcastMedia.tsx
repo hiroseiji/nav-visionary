@@ -54,6 +54,7 @@ import {
   ArrowUpDown,
   CalendarIcon,
   Radio,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -61,7 +62,7 @@ import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 
 interface BroadcastArticle {
   _id: string;
-  headline: string;
+  mention: string;
   station: string;
   stationType: string;
   country: string;
@@ -69,6 +70,8 @@ interface BroadcastArticle {
   sentiment: string;
   ave: number;
   transcript?: string;
+  logo_url?: string;
+  url?: string;
 }
 
 export default function BroadcastMedia() {
@@ -100,7 +103,7 @@ export default function BroadcastMedia() {
     null
   );
   const [newArticle, setNewArticle] = useState({
-    headline: "",
+    mention: "",
     station: "",
     stationType: "tv",
     country: "",
@@ -108,6 +111,8 @@ export default function BroadcastMedia() {
     sentiment: "neutral",
     ave: 0,
     transcript: "",
+    logo_url:"",
+    url: "",
   });
 
   useEffect(() => {
@@ -144,7 +149,7 @@ export default function BroadcastMedia() {
     if (searchQuery) {
       filtered = filtered.filter(
         (article) =>
-          article.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.mention?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           article.station?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -262,7 +267,7 @@ export default function BroadcastMedia() {
   const openEditDialog = (article: BroadcastArticle) => {
     setEditingArticle(article);
     setNewArticle({
-      headline: article.headline,
+      mention: article.mention,
       station: article.station,
       stationType: article.stationType,
       country: article.country,
@@ -270,6 +275,8 @@ export default function BroadcastMedia() {
       sentiment: article.sentiment,
       ave: article.ave,
       transcript: article.transcript || "",
+      logo_url: article.logo_url || "",
+      url: article.url || "",
     });
     setIsDialogOpen(true);
   };
@@ -277,7 +284,7 @@ export default function BroadcastMedia() {
   const resetForm = () => {
     setEditingArticle(null);
     setNewArticle({
-      headline: "",
+      mention: "",
       station: "",
       stationType: "tv",
       country: "",
@@ -285,6 +292,8 @@ export default function BroadcastMedia() {
       sentiment: "neutral",
       ave: 0,
       transcript: "",
+      logo_url: "",
+      url: "",
     });
   };
 
@@ -308,6 +317,17 @@ export default function BroadcastMedia() {
   const uniqueCountries = Array.from(
     new Set(articles.map((a) => a.country).filter(Boolean))
   );
+
+  const cleanMentionHeadline = (mention: string) => {
+    const summaryMatch = mention.match(
+      /Summary:\s*(.*?)(Entities:|Sentiment:|Insert_or_Interview:|$)/s
+    );
+    if (summaryMatch && summaryMatch[1]) {
+      return summaryMatch[1].trim();
+    }
+    return mention;
+  };
+
 
   return (
     <SidebarLayout>
@@ -350,17 +370,17 @@ export default function BroadcastMedia() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="headline">Headline</Label>
+                    <Label htmlFor="mention">mention</Label>
                     <Input
-                      id="headline"
-                      value={newArticle.headline}
+                      id="mention"
+                      value={newArticle.mention}
                       onChange={(e) =>
                         setNewArticle({
                           ...newArticle,
-                          headline: e.target.value,
+                          mention: e.target.value,
                         })
                       }
-                      placeholder="Story headline"
+                      placeholder="Story mention"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -651,8 +671,8 @@ export default function BroadcastMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Headline</TableHead>
                         <TableHead>Station</TableHead>
+                        <TableHead>Headline</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Date</TableHead>
@@ -662,40 +682,84 @@ export default function BroadcastMedia() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredArticles.slice(0, visibleCount).map((article) => (
-                        <TableRow key={article._id}>
-                          <TableCell className="font-medium max-w-md">{article.headline}</TableCell>
-                          <TableCell>{article.station}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="uppercase">{article.stationType}</Badge>
-                          </TableCell>
-                          <TableCell>{article.country}</TableCell>
-                          <TableCell>
-                            {article.mentionDT && !isNaN(new Date(article.mentionDT).getTime())
-                              ? format(new Date(article.mentionDT), "PP")
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>{getSentimentBadge(article.sentiment)}</TableCell>
-                          <TableCell className="text-right">{article.ave?.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(article)}>
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteArticle(article._id)} className="text-destructive">
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredArticles
+                        .slice(0, visibleCount)
+                        .map((article) => (
+                          <TableRow key={article._id}>
+                            <TableCell className="max-w-md">
+                              <div className="flex items-center gap-3">
+                                {article.logo_url && (
+                                  <img
+                                    src={article.logo_url}
+                                    alt={article.station}
+                                    className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
+                                  />
+                                )}
+                                <span className="font-medium">
+                                  {article.station}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              {article.url ? (
+                                <a
+                                  href={article.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline text-primary block line-clamp-1"
+                                >
+                                  {cleanMentionHeadline(article.mention)}
+                                </a>
+                              ) : (
+                                <span className="line-clamp-1">
+                                  {cleanMentionHeadline(article.mention)}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="uppercase">
+                                {article.stationType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{article.country}</TableCell>
+                            <TableCell>
+                              {article.mentionDT &&
+                              !isNaN(new Date(article.mentionDT).getTime())
+                                ? format(new Date(article.mentionDT), "PP")
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {getSentimentBadge(article.sentiment)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {article.ave?.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => openEditDialog(article)}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleDeleteArticle(article._id)
+                                    }
+                                    className="text-destructive"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                   {filteredArticles.length > visibleCount && (

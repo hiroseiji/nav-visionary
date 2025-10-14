@@ -47,6 +47,7 @@ interface Article {
   reach: number;
   url: string;
   logo_url?: string;
+  section?: string;
 }
 
 interface ArticlesTableProps {
@@ -57,6 +58,9 @@ interface ArticlesTableProps {
   orgId: string;
   title?: string;
   subtitle?: string;
+  hideReach?: boolean;
+  coverageLabel?: string;
+  useSectionField?: boolean;
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
@@ -66,7 +70,10 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   userRole,
   orgId,
   title = "Online Articles",
-  subtitle = "Latest online media mentions"
+  subtitle = "Latest online media mentions",
+  hideReach = false,
+  coverageLabel = "Coverage",
+  useSectionField = false,
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -256,16 +263,18 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                       <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
                     </div>
                   </TableHead>
-                  <TableHead className="font-medium">Coverage</TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/30 font-medium"
-                    onClick={() => handleSort('reach')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Reach</span>
-                      <ArrowUpDown className={`h-4 w-4 ${sortBy === 'reach' ? 'text-primary' : ''}`} />
-                    </div>
-                  </TableHead>
+                  <TableHead className="font-medium">{coverageLabel}</TableHead>
+                  {!hideReach && (
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/30 font-medium"
+                      onClick={() => handleSort('reach')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Reach</span>
+                        <ArrowUpDown className={`h-4 w-4 ${sortBy === 'reach' ? 'text-primary' : ''}`} />
+                      </div>
+                    </TableHead>
+                  )}
                   <TableHead className="w-[50px] font-medium"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -326,11 +335,19 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                       }) || "-"}
                     </TableCell>
                     <TableCell className="text-sm py-4">
-                      {article.coverage_type}
+                      {useSectionField ? (
+                        article.section || "-"
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          {article.coverage_type}
+                        </Badge>
+                      )}
                     </TableCell>
-                    <TableCell className="text-sm py-4">
-                      {article.reach?.toLocaleString() || "-"}
-                    </TableCell>
+                    {!hideReach && (
+                      <TableCell className="text-sm py-4">
+                        {article.reach?.toLocaleString() || "-"}
+                      </TableCell>
+                    )}
                     <TableCell className="py-4">
                       <div className="flex items-center gap-2">
                         <button

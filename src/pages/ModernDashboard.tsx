@@ -698,6 +698,8 @@ useEffect(() => {
                   logo_url: "",
                   matched_keywords: article.matched_keywords,
                 }))}
+                hideReach={true}
+                coverageLabel="Type"
                 onDelete={(articleId) => {
                   handleDelete(
                     "broadcasts",
@@ -763,12 +765,16 @@ useEffect(() => {
                   url: article.url || "",
                   ave: article.ave || 0,
                   coverage_type: "Print",
+                  section: article.section,
                   rank: 0,
                   reach: 0,
                   snippet: "",
                   logo_url: "",
                   matched_keywords: article.matched_keywords,
                 }))}
+                hideReach={true}
+                coverageLabel="Section"
+                useSectionField={true}
                 onDelete={(articleId) => {
                   handleDelete(
                     "printmedias",

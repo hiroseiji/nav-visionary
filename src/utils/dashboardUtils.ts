@@ -63,6 +63,7 @@ export interface PrintMediaArticle {
   country?: string;
   url?: string;
   ave?: number;
+  section?: string;
 }
 
 export interface OrganizationData {

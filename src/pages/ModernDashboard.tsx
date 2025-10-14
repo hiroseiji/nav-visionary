@@ -31,12 +31,12 @@ import {
   fetchOrganizationData,
   fetchBroadcastArticles,
   fetchPrintMediaArticles,
+  fetchSocialPosts,
   fetchArticles,
   handleDelete,
   handleSearchQuery,
   filterByDateRange,
   confirmSentimentUpdate,
-  
   handleSentimentChange,
   confirmCountryUpdate,
   fetchCountries,
@@ -274,6 +274,17 @@ useEffect(() => {
         selectedOrg,
         setPrintMediaArticles,
         setFilteredPrintMediaArticles,
+        setLoading
+      );
+    }
+  }, [selectedOrg]);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      fetchSocialPosts(
+        selectedOrg,
+        setFacebookPosts,
+        setFilteredPosts,
         setLoading
       );
     }
@@ -673,15 +684,19 @@ useEffect(() => {
                 subtitle="Latest broadcast media mentions"
                 articles={filteredBroadcastArticles.map((article) => ({
                   _id: article._id,
-                  mention: article.mention,
-                  station: article.station,
-                  stationType: article.stationType,
+                  title: article.mention || article.title || "",
+                  source: article.station || article.source || "",
                   publication_date: article.mentionDT,
                   sentiment: article.sentiment,
                   country: article.country || "",
                   url: article.url || "",
                   ave: article.ave || 0,
+                  coverage_type: article.stationType || "Broadcast",
+                  rank: 0,
+                  reach: 0,
+                  snippet: "",
                   logo_url: "",
+                  matched_keywords: article.matched_keywords,
                 }))}
                 onDelete={(articleId) => {
                   handleDelete(
@@ -740,14 +755,19 @@ useEffect(() => {
                 subtitle="Latest print media mentions"
                 articles={filteredPrintMediaArticles.map((article) => ({
                   _id: article._id,
-                  headline: article.headline,
-                  publication: article.publication,
-                  byline: article.byline,
+                  title: article.headline || article.title || "",
+                  source: article.publication || article.source || "",
                   publication_date: article.publicationDate,
                   sentiment: article.sentiment,
                   country: article.country || "",
                   url: article.url || "",
                   ave: article.ave || 0,
+                  coverage_type: "Print",
+                  rank: 0,
+                  reach: 0,
+                  snippet: "",
+                  logo_url: "",
+                  matched_keywords: article.matched_keywords,
                 }))}
                 onDelete={(articleId) => {
                   handleDelete(
@@ -806,18 +826,19 @@ useEffect(() => {
                 subtitle="Latest social media mentions"
                 articles={filteredPosts.map((post) => ({
                   _id: post._id,
-                  title: post.message,
+                  title: post.message || "",
                   source: post.source || "Facebook",
                   publication_date: post.createdTime,
                   sentiment: post.sentiment,
                   country: "",
                   url: post.link || "",
                   ave: 0,
-                  message: "",
-                  coverage_type: "",
+                  coverage_type: "Social",
                   rank: 0,
                   reach: 0,
+                  snippet: "",
                   logo_url: post.logo_url || "",
+                  matched_keywords: [],
                 }))}
                 onDelete={(postId) => {
                   handleDelete(

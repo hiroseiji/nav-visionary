@@ -192,6 +192,29 @@ export const fetchPrintMediaArticles = async (
   }
 };
 
+export const fetchSocialPosts = async (
+  orgId: string | string[],
+  setFacebookPosts: (posts: FacebookPost[]) => void,
+  setFilteredPosts: (posts: FacebookPost[]) => void,
+  setLoading: (loading: boolean) => void
+) => {
+  setLoading(true);
+  try {
+    const { data } = await axios.post(
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi`,
+      { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    setFacebookPosts(data);
+    setFilteredPosts((data || []).slice(0, 8));
+  } catch (e) {
+    console.error("Error fetching social posts:", e);
+    toast.error("Failed to load social posts");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 // Filter by date range
 export const filterByDateRange = <T, K extends keyof T>(

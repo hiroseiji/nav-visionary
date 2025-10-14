@@ -78,8 +78,8 @@ interface Article {
   ave: number;
   reach: number;
   sentiment: string;
-  visibility: string;
-  focusOfCoverage: string;
+  coverage_type: string;
+  rank?: number;
   url?: string;
   logo_url?: string;
 }
@@ -95,8 +95,7 @@ export default function OnlineMedia() {
 
   // Filters
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
-  const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
-  const [focusFilter, setFocusFilter] = useState<string>("all");
+  const [coverageTypeFilter, setCoverageTypeFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
@@ -184,10 +183,10 @@ export default function OnlineMedia() {
       );
     }
 
-    // Country filter
-    if (countryFilter !== "all") {
+    // Coverage type filter
+    if (coverageTypeFilter !== "all") {
       filtered = filtered.filter(
-        (article) => article.country === countryFilter
+        (article) => article.coverage_type === coverageTypeFilter
       );
     }
 
@@ -219,6 +218,7 @@ export default function OnlineMedia() {
     startDate,
     endDate,
     sentimentFilter,
+    coverageTypeFilter,
     countryFilter,
     sortField,
     sortOrder,
@@ -320,6 +320,10 @@ export default function OnlineMedia() {
 
   const uniqueCountries = Array.from(
     new Set(articles.map((a) => a.country).filter(Boolean))
+  );
+
+  const uniqueCoverageTypes = Array.from(
+    new Set(articles.map((a) => a.coverage_type).filter(Boolean))
   );
 
   return (
@@ -535,6 +539,19 @@ export default function OnlineMedia() {
                     <SelectItem value="negative">Negative</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={coverageTypeFilter} onValueChange={setCoverageTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Coverage Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Coverage Types</SelectItem>
+                    {uniqueCoverageTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Country" />
@@ -652,8 +669,6 @@ export default function OnlineMedia() {
                         <TableHead>Date</TableHead>
                         <TableHead>Sentiment</TableHead>
                         <TableHead>Coverage Type</TableHead>
-                        <TableHead className="text-right">AVE</TableHead>
-                        <TableHead className="text-right">Relevancy</TableHead>
                         <TableHead className="text-right">Reach</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
@@ -677,7 +692,7 @@ export default function OnlineMedia() {
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>{article.source}</TableCell>
+                            <TableCell>{article.headline}</TableCell>
                             <TableCell>{article.country}</TableCell>
                             <TableCell>
                               {article.publication_date &&
@@ -695,11 +710,8 @@ export default function OnlineMedia() {
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">
-                                {article.visibility}
+                                {article.coverage_type}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {article.ave?.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right">
                               {article.reach?.toLocaleString()}

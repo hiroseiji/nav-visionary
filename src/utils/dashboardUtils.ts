@@ -37,7 +37,7 @@ export interface FacebookPost {
 }
 
 export interface BroadcastArticle {
-  stationType: any;
+  stationType: string;
   _id: string;
   mentionDT: string;
   station?: string;

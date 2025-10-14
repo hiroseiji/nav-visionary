@@ -32,8 +32,12 @@ export interface FacebookPost {
   message: string;
   source?: string;
   sentiment: string;
+  rank: number;
+  ave: number;
+  reach: number;
   link?: string;
   logo_url?: string;
+  country?: string;
 }
 
 export interface BroadcastArticle {
@@ -42,8 +46,6 @@ export interface BroadcastArticle {
   mentionDT: string;
   station?: string;
   mention?: string;
-  title: string;
-  source: string;
   sentiment: string;
   matched_keywords?: string[];
   country?: string;
@@ -56,14 +58,13 @@ export interface PrintMediaArticle {
   publicationDate: string;
   publication?: string;
   headline?: string;
-  title: string;
-  source: string;
   sentiment: string;
   matched_keywords?: string[];
   country?: string;
   url?: string;
   ave?: number;
   section?: string;
+  byline?: string;
 }
 
 export interface OrganizationData {

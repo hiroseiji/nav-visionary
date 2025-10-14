@@ -114,11 +114,10 @@ export default function OnlineMedia() {
     source: "",
     country: "",
     publication_date: "",
-    ave: 0,
     reach: 0,
     sentiment: "neutral",
-    coverage_type: "",
     url: "",
+    snippet: "",
   });
 
   // Fetch articles
@@ -276,14 +275,14 @@ export default function OnlineMedia() {
   const openEditDialog = (article: Article) => {
     setEditingArticle(article);
     setNewArticle({
-      title: article.title,
+      title: article.headline || "",
       source: article.source,
       country: article.country,
       publication_date: article.publication_date,
-      ave: article.ave,
       reach: article.reach,
       sentiment: article.sentiment,
       url: article.url || "",
+      snippet: "",
     });
     setIsDialogOpen(true);
   };
@@ -295,10 +294,10 @@ export default function OnlineMedia() {
       source: "",
       country: "",
       publication_date: "",
-      ave: 0,
       reach: 0,
       sentiment: "neutral",
       url: "",
+      snippet: "",
     });
   };
 
@@ -363,9 +362,23 @@ export default function OnlineMedia() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="headline">Headline</Label>
+                    <Label htmlFor="source">Source</Label>
                     <Input
-                      id="headline"
+                      id="source"
+                      value={newArticle.source}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          source: e.target.value,
+                        })
+                      }
+                      placeholder="Media source"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
                       value={newArticle.title}
                       onChange={(e) =>
                         setNewArticle({
@@ -373,104 +386,8 @@ export default function OnlineMedia() {
                           title: e.target.value,
                         })
                       }
-                      placeholder="Article headline"
+                      placeholder="Article title"
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="source">Source</Label>
-                      <Input
-                        id="source"
-                        value={newArticle.source}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            source: e.target.value,
-                          })
-                        }
-                        placeholder="Media source"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Input
-                        id="country"
-                        value={newArticle.country}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            country: e.target.value,
-                          })
-                        }
-                        placeholder="Country"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="ave">AVE</Label>
-                      <Input
-                        id="ave"
-                        type="number"
-                        value={newArticle.ave}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            ave: Number(e.target.value),
-                          })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="reach">Reach</Label>
-                      <Input
-                        id="reach"
-                        type="number"
-                        value={newArticle.reach}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            reach: Number(e.target.value),
-                          })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select
-                        value={newArticle.sentiment}
-                        onValueChange={(value) =>
-                          setNewArticle({ ...newArticle, sentiment: value })
-                        }
-                      >
-                        <SelectTrigger id="sentiment">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="positive">Positive</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="negative">Negative</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="publication_date">Date</Label>
-                      <Input
-                        id="publication_date"
-                        type="date"
-                        value={newArticle.publication_date}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            publication_date: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="url">URL</Label>
@@ -481,6 +398,88 @@ export default function OnlineMedia() {
                         setNewArticle({ ...newArticle, url: e.target.value })
                       }
                       placeholder="https://..."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="snippet">Snippet</Label>
+                    <Input
+                      id="snippet"
+                      value={newArticle.snippet}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          snippet: e.target.value,
+                        })
+                      }
+                      placeholder="Article snippet"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="publication_date">Date</Label>
+                    <Input
+                      id="publication_date"
+                      type="date"
+                      value={newArticle.publication_date}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          publication_date: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sentiment">Sentiment</Label>
+                    <Select
+                      value={newArticle.sentiment}
+                      onValueChange={(value) =>
+                        setNewArticle({ ...newArticle, sentiment: value })
+                      }
+                    >
+                      <SelectTrigger id="sentiment">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="positive">Positive</SelectItem>
+                        <SelectItem value="neutral">Neutral</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                        <SelectItem value="mixed">Mixed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Select
+                      value={newArticle.country}
+                      onValueChange={(value) =>
+                        setNewArticle({ ...newArticle, country: value })
+                      }
+                    >
+                      <SelectTrigger id="country">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueCountries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="reach">Reach</Label>
+                    <Input
+                      id="reach"
+                      type="number"
+                      value={newArticle.reach}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          reach: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
                     />
                   </div>
                 </div>

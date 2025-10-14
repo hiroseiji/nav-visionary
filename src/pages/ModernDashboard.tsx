@@ -435,15 +435,16 @@ useEffect(() => {
       <SidebarLayout>
         <div className="space-y-6">
           <h2 className="text-3xl font-bold">
-            {organizationData?.organization?.alias || 'Organization'}'s Dashboard
+            {organizationData?.organization?.alias || "Organization"}'s
+            Dashboard
           </h2>
           <TooltipProvider>
             {/* Card Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* First Card - Primary Blue with gradient */}
-              <div 
+              <div
                 className="rounded-2xl p-6 text-primary-foreground"
-                style={{ background: 'var(--gradient-primary)' }}
+                style={{ background: "var(--gradient-primary)" }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base font-medium">Total Mentions</h4>
@@ -464,7 +465,9 @@ useEffect(() => {
                     <div className="rounded-md p-1.5 bg-primary-foreground/10">
                       <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
                     </div>
-                    <span className="text-sm text-primary-foreground/80">Increased from last month</span>
+                    <span className="text-sm text-primary-foreground/80">
+                      Increased from last month
+                    </span>
                   </div>
                 </div>
               </div>
@@ -490,7 +493,9 @@ useEffect(() => {
                     <div className="rounded-md p-1.5 bg-muted">
                       <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Increased from last month</span>
+                    <span className="text-sm text-muted-foreground">
+                      Increased from last month
+                    </span>
                   </div>
                 </div>
               </div>
@@ -516,7 +521,9 @@ useEffect(() => {
                     <div className="rounded-md p-1.5 bg-muted">
                       <Minus className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Same as last month</span>
+                    <span className="text-sm text-muted-foreground">
+                      Same as last month
+                    </span>
                   </div>
                 </div>
               </div>
@@ -537,14 +544,16 @@ useEffect(() => {
                   </Tooltip>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {['Online', 'Broadcast', 'Social', 'Print'].map((type, idx) => (
-                    <span 
-                      key={idx}
-                      className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
-                    >
-                      {type}
-                    </span>
-                  ))}
+                  {["Online", "Broadcast", "Social", "Print"].map(
+                    (type, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
+                      >
+                        {type}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -555,301 +564,310 @@ useEffect(() => {
               lineData={lineData}
               currentYear={currentYear}
             />
-            </TooltipProvider>
+          </TooltipProvider>
 
-            <div className="bg-card rounded-lg border p-6">
-              <h3 className="text-xl font-semibold mb-6 underline">Latest News</h3>
+          <div className="bg-card rounded-lg border p-6">
+            <h3 className="text-xl font-semibold mb-6 underline">
+              Latest News
+            </h3>
 
-              <div className="flex items-center justify-between mb-6">
-                {/* Reload button for super_admin */}
-                {user.role === "super_admin" && (
-                  <Button
-                    className={`flex items-center space-x-2 px-4 py-2 rounded border ${
-                      scraping 
-                        ? "bg-muted text-muted-foreground cursor-not-allowed" 
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    }`}
-                    onClick={() => {
-                      const orgName = organizationData?.organization?.organizationName;
-                      if (!orgName) {
-                        toast.error("Organization name missing, cannot scrape.");
-                        return;
-                      }
+            <div className="flex items-center justify-between mb-6">
+              {/* Reload button for super_admin */}
+              {user.role === "super_admin" && (
+                <Button
+                  className={` ${
+                    scraping
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                  onClick={() => {
+                    const orgName =
+                      organizationData?.organization?.organizationName;
+                    if (!orgName) {
+                      toast.error("Organization name missing, cannot scrape.");
+                      return;
+                    }
 
-                      handleScrape(
-                        orgName,
-                        setScraping,
-                        setArticles,
-                        setFilteredArticles,
-                        setDisplayedArticles,
-                        setTotalArticles
-                      );
-                    }}
-                    disabled={scraping}
-                  >
-                    {scraping ? (
-                      "Scraping..."
-                    ) : (
-                      <>
-                        <TfiReload className="h-4 w-4" />
-                        <span>Reload Articles</span>
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              {/* Online Articles Table */}
-              <div className="mb-8">
-                {/* <h4 className="text-lg font-semibold mb-4">Online Media</h4> */}
-                <ArticlesTable
-                  articles={filteredArticles}
-                  onDelete={(articleId) => {
-                    handleDelete(
-                      'articles',
-                      articleId,
-                      selectedOrg || '',
-                      token || '',
+                    handleScrape(
+                      orgName,
+                      setScraping,
                       setArticles,
-                      setFilteredArticles
+                      setFilteredArticles,
+                      setDisplayedArticles,
+                      setTotalArticles
                     );
                   }}
-                  onArticleUpdate={async (articleId, updatedData) => {
-                    try {
-                      const response = await axios.put(
-                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
-                        updatedData,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                          },
-                        }
-                      );
-                      
-                      if (response.data) {
-                        setArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        setFilteredArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        toast.success('Article updated successfully');
-                      }
-                    } catch (error) {
-                      console.error('Error updating article:', error);
-                      toast.error('Failed to update article');
-                    }
-                  }}
-                  userRole={user.role}
-                  orgId={selectedOrg || ''}
-                />
-              </div>
-
-              {/* Broadcast Media Table */}
-              <div className="mb-8">
-                {/* <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4> */}
-                <ArticlesTable
-                  title="Broadcast Articles"
-                  subtitle="Latest broadcast media mentions"
-                  articles={filteredBroadcastArticles.map(article => ({
-                    _id: article._id,
-                    title: article.title,
-                    source: article.source,
-                    publication_date: article.mentionDT,
-                    sentiment: article.sentiment,
-                    matched_keywords: article.matched_keywords || [],
-                    country: article.country || '',
-                    url: article.url || '',
-                    ave: article.ave || 0,
-                    snippet: '',
-                    coverage_type: '',
-                    rank: 0,
-                    reach: 0,
-                    logo_url: ''
-                  }))}
-                  onDelete={(articleId) => {
-                    handleDelete(
-                      'broadcasts',
-                      articleId,
-                      selectedOrg || '',
-                      token || '',
-                      setBroadcastArticles,
-                      setFilteredBroadcastArticles
-                    );
-                  }}
-                  onArticleUpdate={async (articleId, updatedData) => {
-                    try {
-                      const response = await axios.put(
-                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/broadcast/${articleId}`,
-                        updatedData,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                          },
-                        }
-                      );
-                      
-                      if (response.data) {
-                        setBroadcastArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        setFilteredBroadcastArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        toast.success('Broadcast article updated successfully');
-                      }
-                    } catch (error) {
-                      console.error('Error updating broadcast article:', error);
-                      toast.error('Failed to update broadcast article');
-                    }
-                  }}
-                  userRole={user.role}
-                  orgId={selectedOrg || ''}
-                />
-              </div>
-
-              {/* Print Media Table */}
-              <div className="mb-8">
-                {/* <h4 className="text-lg font-semibold mb-4">Print Media</h4> */}
-                <ArticlesTable
-                  title="Print Articles"
-                  subtitle="Latest print media mentions"
-                  articles={filteredPrintMediaArticles.map(article => ({
-                    _id: article._id,
-                    title: article.title,
-                    source: article.source,
-                    publication_date: article.publicationDate,
-                    sentiment: article.sentiment,
-                    matched_keywords: article.matched_keywords || [],
-                    country: article.country || '',
-                    url: article.url || '',
-                    ave: article.ave || 0,
-                    snippet: '',
-                    coverage_type: '',
-                    rank: 0,
-                    reach: 0,
-                    logo_url: ''
-                  }))}
-                  onDelete={(articleId) => {
-                    handleDelete(
-                      'printmedias',
-                      articleId,
-                      selectedOrg || '',
-                      token || '',
-                      setPrintMediaArticles,
-                      setFilteredPrintMediaArticles
-                    );
-                  }}
-                  onArticleUpdate={async (articleId, updatedData) => {
-                    try {
-                      const response = await axios.put(
-                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/printmedia/${articleId}`,
-                        updatedData,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                          },
-                        }
-                      );
-                      
-                      if (response.data) {
-                        setPrintMediaArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        setFilteredPrintMediaArticles(prev => 
-                          prev.map(article => 
-                            article._id === articleId ? { ...article, ...updatedData } : article
-                          )
-                        );
-                        toast.success('Print article updated successfully');
-                      }
-                    } catch (error) {
-                      console.error('Error updating print article:', error);
-                      toast.error('Failed to update print article');
-                    }
-                  }}
-                  userRole={user.role}
-                  orgId={selectedOrg || ''}
-                />
-              </div>
-
-              {/* Social Media Table */}
-              <div className="mb-8">
-                {/* <h4 className="text-lg font-semibold mb-4">Social Media</h4> */}
-                <ArticlesTable
-                  title="Social Media Posts"
-                  subtitle="Latest social media mentions"
-                  articles={filteredPosts.map(post => ({
-                    _id: post._id,
-                    title: post.message,
-                    source: post.source || 'Facebook',
-                    publication_date: post.createdTime,
-                    sentiment: post.sentiment,
-                    matched_keywords: [],
-                    country: '',
-                    url: post.link || '',
-                    ave: 0,
-                    snippet: '',
-                    coverage_type: '',
-                    rank: 0,
-                    reach: 0,
-                    logo_url: post.logo_url || ''
-                  }))}
-                  onDelete={(postId) => {
-                    handleDelete(
-                      'posts',
-                      postId,
-                      selectedOrg || '',
-                      token || '',
-                      setFacebookPosts,
-                      setFilteredPosts
-                    );
-                  }}
-                  onArticleUpdate={async (postId, updatedData) => {
-                    try {
-                      const response = await axios.put(
-                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/posts/${postId}`,
-                        updatedData,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                          },
-                        }
-                      );
-                      
-                      if (response.data) {
-                        setFacebookPosts(prev => 
-                          prev.map(post => 
-                            post._id === postId ? { ...post, ...updatedData } : post
-                          )
-                        );
-                        setFilteredPosts(prev => 
-                          prev.map(post => 
-                            post._id === postId ? { ...post, ...updatedData } : post
-                          )
-                        );
-                        toast.success('Social post updated successfully');
-                      }
-                    } catch (error) {
-                      console.error('Error updating social post:', error);
-                      toast.error('Failed to update social post');
-                    }
-                  }}
-                  userRole={user.role}
-                  orgId={selectedOrg || ''}
-                />
-              </div>
+                  disabled={scraping}
+                >
+                  {scraping ? (
+                    "Scraping..."
+                  ) : (
+                    <>
+                      <TfiReload className="h-4 w-4" />
+                      <span>Reload Articles</span>
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
+
+            {/* Online Articles Table */}
+            <div className="mb-8">
+              {/* <h4 className="text-lg font-semibold mb-4">Online Media</h4> */}
+              <ArticlesTable
+                articles={filteredArticles}
+                onDelete={(articleId) => {
+                  handleDelete(
+                    "articles",
+                    articleId,
+                    selectedOrg || "",
+                    token || "",
+                    setArticles,
+                    setFilteredArticles
+                  );
+                }}
+                onArticleUpdate={async (articleId, updatedData) => {
+                  try {
+                    const response = await axios.put(
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/articles/${articleId}`,
+                      updatedData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data) {
+                      setArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      setFilteredArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      toast.success("Article updated successfully");
+                    }
+                  } catch (error) {
+                    console.error("Error updating article:", error);
+                    toast.error("Failed to update article");
+                  }
+                }}
+                userRole={user.role}
+                orgId={selectedOrg || ""}
+              />
+            </div>
+
+            {/* Broadcast Media Table */}
+            <div className="mb-8">
+              {/* <h4 className="text-lg font-semibold mb-4">Broadcast Media</h4> */}
+              <ArticlesTable
+                title="Broadcast Articles"
+                subtitle="Latest broadcast media mentions"
+                articles={filteredBroadcastArticles.map((article) => ({
+                  _id: article._id,
+                  mention: article.mention,
+                  station: article.station,
+                  stationType: article.stationType,
+                  publication_date: article.mentionDT,
+                  sentiment: article.sentiment,
+                  country: article.country || "",
+                  url: article.url || "",
+                  ave: article.ave || 0,
+                  logo_url: "",
+                }))}
+                onDelete={(articleId) => {
+                  handleDelete(
+                    "broadcasts",
+                    articleId,
+                    selectedOrg || "",
+                    token || "",
+                    setBroadcastArticles,
+                    setFilteredBroadcastArticles
+                  );
+                }}
+                onArticleUpdate={async (articleId, updatedData) => {
+                  try {
+                    const response = await axios.put(
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/broadcast/${articleId}`,
+                      updatedData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data) {
+                      setBroadcastArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      setFilteredBroadcastArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      toast.success("Broadcast article updated successfully");
+                    }
+                  } catch (error) {
+                    console.error("Error updating broadcast article:", error);
+                    toast.error("Failed to update broadcast article");
+                  }
+                }}
+                userRole={user.role}
+                orgId={selectedOrg || ""}
+              />
+            </div>
+
+            {/* Print Media Table */}
+            <div className="mb-8">
+              {/* <h4 className="text-lg font-semibold mb-4">Print Media</h4> */}
+              <ArticlesTable
+                title="Print Articles"
+                subtitle="Latest print media mentions"
+                articles={filteredPrintMediaArticles.map((article) => ({
+                  _id: article._id,
+                  headline: article.headline,
+                  publication: article.publication,
+                  byline: article.byline,
+                  publication_date: article.publicationDate,
+                  sentiment: article.sentiment,
+                  country: article.country || "",
+                  url: article.url || "",
+                  ave: article.ave || 0,
+                }))}
+                onDelete={(articleId) => {
+                  handleDelete(
+                    "printmedias",
+                    articleId,
+                    selectedOrg || "",
+                    token || "",
+                    setPrintMediaArticles,
+                    setFilteredPrintMediaArticles
+                  );
+                }}
+                onArticleUpdate={async (articleId, updatedData) => {
+                  try {
+                    const response = await axios.put(
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/printmedia/${articleId}`,
+                      updatedData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data) {
+                      setPrintMediaArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      setFilteredPrintMediaArticles((prev) =>
+                        prev.map((article) =>
+                          article._id === articleId
+                            ? { ...article, ...updatedData }
+                            : article
+                        )
+                      );
+                      toast.success("Print article updated successfully");
+                    }
+                  } catch (error) {
+                    console.error("Error updating print article:", error);
+                    toast.error("Failed to update print article");
+                  }
+                }}
+                userRole={user.role}
+                orgId={selectedOrg || ""}
+              />
+            </div>
+
+            {/* Social Media Table */}
+            <div className="mb-8">
+              {/* <h4 className="text-lg font-semibold mb-4">Social Media</h4> */}
+              <ArticlesTable
+                title="Social Media Posts"
+                subtitle="Latest social media mentions"
+                articles={filteredPosts.map((post) => ({
+                  _id: post._id,
+                  title: post.message,
+                  source: post.source || "Facebook",
+                  publication_date: post.createdTime,
+                  sentiment: post.sentiment,
+                  country: "",
+                  url: post.link || "",
+                  ave: 0,
+                  message: "",
+                  coverage_type: "",
+                  rank: 0,
+                  reach: 0,
+                  logo_url: post.logo_url || "",
+                }))}
+                onDelete={(postId) => {
+                  handleDelete(
+                    "posts",
+                    postId,
+                    selectedOrg || "",
+                    token || "",
+                    setFacebookPosts,
+                    setFilteredPosts
+                  );
+                }}
+                onArticleUpdate={async (postId, updatedData) => {
+                  try {
+                    const response = await axios.put(
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/posts/${postId}`,
+                      updatedData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data) {
+                      setFacebookPosts((prev) =>
+                        prev.map((post) =>
+                          post._id === postId
+                            ? { ...post, ...updatedData }
+                            : post
+                        )
+                      );
+                      setFilteredPosts((prev) =>
+                        prev.map((post) =>
+                          post._id === postId
+                            ? { ...post, ...updatedData }
+                            : post
+                        )
+                      );
+                      toast.success("Social post updated successfully");
+                    }
+                  } catch (error) {
+                    console.error("Error updating social post:", error);
+                    toast.error("Failed to update social post");
+                  }
+                }}
+                userRole={user.role}
+                orgId={selectedOrg || ""}
+              />
+            </div>
+          </div>
         </div>
       </SidebarLayout>
     </div>

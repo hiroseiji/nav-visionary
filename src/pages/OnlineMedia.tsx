@@ -2,19 +2,65 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, ThumbsUp, ThumbsDown, Minus, CalendarIcon, ArrowUpDown, Filter } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  CalendarIcon,
+  ArrowUpDown,
+  Filter,
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -35,6 +81,7 @@ interface Article {
   visibility: string;
   focusOfCoverage: string;
   url?: string;
+  logo_url?: string;
 }
 
 export default function OnlineMedia() {
@@ -63,15 +110,14 @@ export default function OnlineMedia() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [newArticle, setNewArticle] = useState({
-    headline: "",
+    title: "",
     source: "",
     country: "",
     publication_date: "",
     ave: 0,
     reach: 0,
     sentiment: "neutral",
-    visibility: "moderate",
-    focusOfCoverage: "",
+    coverage_type: "",
     url: "",
   });
 
@@ -139,20 +185,6 @@ export default function OnlineMedia() {
       );
     }
 
-    // Visibility filter
-    if (visibilityFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => article.visibility === visibilityFilter
-      );
-    }
-
-    // Focus filter
-    if (focusFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => article.focusOfCoverage === focusFilter
-      );
-    }
-
     // Country filter
     if (countryFilter !== "all") {
       filtered = filtered.filter(
@@ -188,8 +220,6 @@ export default function OnlineMedia() {
     startDate,
     endDate,
     sentimentFilter,
-    visibilityFilter,
-    focusFilter,
     countryFilter,
     sortField,
     sortOrder,
@@ -246,15 +276,13 @@ export default function OnlineMedia() {
   const openEditDialog = (article: Article) => {
     setEditingArticle(article);
     setNewArticle({
-      headline: article.headline,
+      title: article.title,
       source: article.source,
       country: article.country,
       publication_date: article.publication_date,
       ave: article.ave,
       reach: article.reach,
       sentiment: article.sentiment,
-      visibility: article.visibility,
-      focusOfCoverage: article.focusOfCoverage,
       url: article.url || "",
     });
     setIsDialogOpen(true);
@@ -263,15 +291,13 @@ export default function OnlineMedia() {
   const resetForm = () => {
     setEditingArticle(null);
     setNewArticle({
-      headline: "",
+      title: "",
       source: "",
       country: "",
       publication_date: "",
       ave: 0,
       reach: 0,
       sentiment: "neutral",
-      visibility: "moderate",
-      focusOfCoverage: "",
       url: "",
     });
   };
@@ -280,12 +306,12 @@ export default function OnlineMedia() {
     const sentimentLabel = mapSentimentToLabel(sentiment);
     const sentimentLower = sentimentLabel.toLowerCase();
     let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
-    
-    if (sentimentLower === 'positive') variant = 'positive';
-    else if (sentimentLower === 'negative') variant = 'negative';
-    else if (sentimentLower === 'mixed') variant = 'mixed';
-    else variant = 'neutral';
-    
+
+    if (sentimentLower === "positive") variant = "positive";
+    else if (sentimentLower === "negative") variant = "negative";
+    else if (sentimentLower === "mixed") variant = "mixed";
+    else variant = "neutral";
+
     return (
       <Badge variant={variant}>
         <span className="capitalize">{sentimentLabel}</span>
@@ -340,11 +366,11 @@ export default function OnlineMedia() {
                     <Label htmlFor="headline">Headline</Label>
                     <Input
                       id="headline"
-                      value={newArticle.headline}
+                      value={newArticle.title}
                       onChange={(e) =>
                         setNewArticle({
                           ...newArticle,
-                          headline: e.target.value,
+                          title: e.target.value,
                         })
                       }
                       placeholder="Article headline"
@@ -432,24 +458,6 @@ export default function OnlineMedia() {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="visibility">Visibility</Label>
-                      <Select
-                        value={newArticle.visibility}
-                        onValueChange={(value) =>
-                          setNewArticle({ ...newArticle, visibility: value })
-                        }
-                      >
-                        <SelectTrigger id="visibility">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
                       <Label htmlFor="publication_date">Date</Label>
                       <Input
                         id="publication_date"
@@ -463,20 +471,6 @@ export default function OnlineMedia() {
                         }
                       />
                     </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="focusOfCoverage">Focus of Coverage</Label>
-                    <Input
-                      id="focusOfCoverage"
-                      value={newArticle.focusOfCoverage}
-                      onChange={(e) =>
-                        setNewArticle({
-                          ...newArticle,
-                          focusOfCoverage: e.target.value,
-                        })
-                      }
-                      placeholder="Main topic or focus"
-                    />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="url">URL</Label>
@@ -540,20 +534,6 @@ export default function OnlineMedia() {
                     <SelectItem value="positive">Positive</SelectItem>
                     <SelectItem value="neutral">Neutral</SelectItem>
                     <SelectItem value="negative">Negative</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={visibilityFilter}
-                  onValueChange={setVisibilityFilter}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Visibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Visibility</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
@@ -638,6 +618,7 @@ export default function OnlineMedia() {
                       <SelectItem value="publication_date">Date</SelectItem>
                       <SelectItem value="ave">AVE</SelectItem>
                       <SelectItem value="reach">Reach</SelectItem>
+                      <SelectItem value="rank">Rank</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button
@@ -666,13 +647,14 @@ export default function OnlineMedia() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Headline</TableHead>
                         <TableHead>Source</TableHead>
+                        <TableHead>Headline</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Sentiment</TableHead>
-                        <TableHead>Visibility</TableHead>
+                        <TableHead>Coverage Type</TableHead>
                         <TableHead className="text-right">AVE</TableHead>
+                        <TableHead className="text-right">Relevancy</TableHead>
                         <TableHead className="text-right">Reach</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
@@ -682,19 +664,19 @@ export default function OnlineMedia() {
                         .slice(0, visibleCount)
                         .map((article) => (
                           <TableRow key={article._id}>
-                            <TableCell className="font-medium max-w-md">
-                              {article.url ? (
-                                <a
-                                  href={article.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="hover:underline text-primary"
-                                >
-                                  {article.headline}
-                                </a>
-                              ) : (
-                                article.headline
-                              )}
+                            <TableCell className="py-4">
+                              <div className="flex items-center space-x-2">
+                                {article.logo_url && (
+                                  <img
+                                    src={article.logo_url}
+                                    alt={`${article.source} logo`}
+                                    className="h-8 w-8 rounded-full object-cover border"
+                                  />
+                                )}
+                                <span className="font-medium text-sm">
+                                  {article.source}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell>{article.source}</TableCell>
                             <TableCell>{article.country}</TableCell>

@@ -51,6 +51,7 @@ export interface BroadcastArticle {
   country?: string;
   url?: string;
   ave?: number;
+  logo_url?: string;
 }
 
 export interface PrintMediaArticle {

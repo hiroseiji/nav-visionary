@@ -61,6 +61,7 @@ interface ArticlesTableProps {
   hideReach?: boolean;
   coverageLabel?: string;
   useSectionField?: boolean;
+  showRankInsteadOfCoverage?: boolean;
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
@@ -74,13 +75,14 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   hideReach = false,
   coverageLabel = "Coverage",
   useSectionField = false,
+  showRankInsteadOfCoverage = false,
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [sentimentFilter, setSentimentFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
   const [coverageFilter, setCoverageFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'ave' | 'reach'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'ave' | 'reach' | 'rank'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const handleEditClick = (article: Article) => {
@@ -146,12 +148,14 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
       comparison = (a.ave || 0) - (b.ave || 0);
     } else if (sortBy === 'reach') {
       comparison = (a.reach || 0) - (b.reach || 0);
+    } else if (sortBy === 'rank') {
+      comparison = (a.rank || 0) - (b.rank || 0);
     }
     
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
-  const handleSort = (column: 'date' | 'ave' | 'reach') => {
+  const handleSort = (column: 'date' | 'ave' | 'reach' | 'rank') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -263,7 +267,19 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                       <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
                     </div>
                   </TableHead>
-                  <TableHead className="font-medium">{coverageLabel}</TableHead>
+                  {showRankInsteadOfCoverage ? (
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/30 font-medium"
+                      onClick={() => handleSort('rank')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Rank</span>
+                        <ArrowUpDown className={`h-4 w-4 ${sortBy === 'rank' ? 'text-primary' : ''}`} />
+                      </div>
+                    </TableHead>
+                  ) : (
+                    <TableHead className="font-medium">{coverageLabel}</TableHead>
+                  )}
                   {!hideReach && (
                     <TableHead 
                       className="cursor-pointer hover:bg-muted/30 font-medium"
@@ -335,7 +351,9 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
                       }) || "-"}
                     </TableCell>
                     <TableCell className="text-sm py-4">
-                      {useSectionField ? (
+                      {showRankInsteadOfCoverage ? (
+                        article.rank || "-"
+                      ) : useSectionField ? (
                         article.section || "-"
                       ) : (
                         <Badge variant="outline" className="text-xs">

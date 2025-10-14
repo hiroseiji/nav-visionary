@@ -626,6 +626,9 @@ useEffect(() => {
             <div className="mb-8">
               {/* <h4 className="text-lg font-semibold mb-4">Online Media</h4> */}
               <ArticlesTable
+                title="Online Articles"
+                subtitle="Latest online media mentions"
+                showRankInsteadOfCoverage={true}
                 articles={filteredArticles}
                 onDelete={(articleId) => {
                   handleDelete(
@@ -695,7 +698,7 @@ useEffect(() => {
                   rank: 0,
                   reach: 0,
                   snippet: "",
-                  logo_url: "",
+                  logo_url: article.logo_url || "",
                   matched_keywords: article.matched_keywords,
                 }))}
                 hideReach={true}
@@ -830,6 +833,7 @@ useEffect(() => {
               <ArticlesTable
                 title="Social Media Posts"
                 subtitle="Latest social media mentions"
+                showRankInsteadOfCoverage={true}
                 articles={filteredPosts.map((post) => ({
                   _id: post._id,
                   title: post.message || "",

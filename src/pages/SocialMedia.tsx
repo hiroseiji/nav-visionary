@@ -27,6 +27,7 @@ interface SocialPost {
   country: string;
   createdTime: string;
   sentiment: string;
+  rank: number;
   reach: number;
   ave: number;
   url?: string;
@@ -268,10 +269,20 @@ export default function SocialMedia() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Social Media</h1>
-              <p className="text-muted-foreground">Monitor social media coverage and engagement</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                Social Media
+              </h1>
+              <p className="text-muted-foreground">
+                Monitor social media coverage and engagement
+              </p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -280,9 +291,13 @@ export default function SocialMedia() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingPost ? "Edit Post" : "Add New Post"}</DialogTitle>
+                  <DialogTitle>
+                    {editingPost ? "Edit Post" : "Add New Post"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editingPost ? "Update the post details below" : "Fill in the details for the new post"}
+                    {editingPost
+                      ? "Update the post details below"
+                      : "Fill in the details for the new post"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -291,7 +306,9 @@ export default function SocialMedia() {
                     <Input
                       id="pageName"
                       value={newPost.pageName}
-                      onChange={(e) => setNewPost({ ...newPost, pageName: e.target.value })}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, pageName: e.target.value })
+                      }
                       placeholder="Page or account name"
                     />
                   </div>
@@ -300,7 +317,9 @@ export default function SocialMedia() {
                     <Input
                       id="logo_url"
                       value={newPost.logo_url}
-                      onChange={(e) => setNewPost({ ...newPost, logo_url: e.target.value })}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, logo_url: e.target.value })
+                      }
                       placeholder="https://..."
                     />
                   </div>
@@ -309,7 +328,9 @@ export default function SocialMedia() {
                     <Input
                       id="link"
                       value={newPost.link}
-                      onChange={(e) => setNewPost({ ...newPost, link: e.target.value })}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, link: e.target.value })
+                      }
                       placeholder="https://..."
                     />
                   </div>
@@ -318,7 +339,9 @@ export default function SocialMedia() {
                     <Textarea
                       id="message"
                       value={newPost.message}
-                      onChange={(e) => setNewPost({ ...newPost, message: e.target.value })}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, message: e.target.value })
+                      }
                       placeholder="Post content..."
                       rows={4}
                     />
@@ -326,7 +349,12 @@ export default function SocialMedia() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="source">Platform</Label>
-                      <Select value={newPost.source} onValueChange={(value) => setNewPost({ ...newPost, source: value })}>
+                      <Select
+                        value={newPost.source}
+                        onValueChange={(value) =>
+                          setNewPost({ ...newPost, source: value })
+                        }
+                      >
                         <SelectTrigger id="source">
                           <SelectValue />
                         </SelectTrigger>
@@ -344,7 +372,9 @@ export default function SocialMedia() {
                       <Input
                         id="country"
                         value={newPost.country}
-                        onChange={(e) => setNewPost({ ...newPost, country: e.target.value })}
+                        onChange={(e) =>
+                          setNewPost({ ...newPost, country: e.target.value })
+                        }
                         placeholder="Country"
                       />
                     </div>
@@ -354,14 +384,21 @@ export default function SocialMedia() {
                     <Input
                       id="group"
                       value={newPost.group}
-                      onChange={(e) => setNewPost({ ...newPost, group: e.target.value })}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, group: e.target.value })
+                      }
                       placeholder="Group name"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select value={newPost.sentiment} onValueChange={(value) => setNewPost({ ...newPost, sentiment: value })}>
+                      <Select
+                        value={newPost.sentiment}
+                        onValueChange={(value) =>
+                          setNewPost({ ...newPost, sentiment: value })
+                        }
+                      >
                         <SelectTrigger id="sentiment">
                           <SelectValue />
                         </SelectTrigger>
@@ -379,7 +416,12 @@ export default function SocialMedia() {
                         id="reach"
                         type="number"
                         value={newPost.reach}
-                        onChange={(e) => setNewPost({ ...newPost, reach: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setNewPost({
+                            ...newPost,
+                            reach: Number(e.target.value),
+                          })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -389,7 +431,12 @@ export default function SocialMedia() {
                         id="ave"
                         type="number"
                         value={newPost.ave}
-                        onChange={(e) => setNewPost({ ...newPost, ave: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setNewPost({
+                            ...newPost,
+                            ave: Number(e.target.value),
+                          })
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -401,7 +448,12 @@ export default function SocialMedia() {
                         id="createdTime"
                         type="date"
                         value={newPost.createdTime}
-                        onChange={(e) => setNewPost({ ...newPost, createdTime: e.target.value })}
+                        onChange={(e) =>
+                          setNewPost({
+                            ...newPost,
+                            createdTime: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="grid gap-2">
@@ -409,17 +461,27 @@ export default function SocialMedia() {
                       <Input
                         id="url"
                         value={newPost.url}
-                        onChange={(e) => setNewPost({ ...newPost, url: e.target.value })}
+                        onChange={(e) =>
+                          setNewPost({ ...newPost, url: e.target.value })
+                        }
                         placeholder="https://..."
                       />
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={editingPost ? handleUpdatePost : handleAddPost}>
+                  <Button
+                    onClick={editingPost ? handleUpdatePost : handleAddPost}
+                  >
                     {editingPost ? "Update" : "Add"} Post
                   </Button>
                 </DialogFooter>
@@ -456,7 +518,10 @@ export default function SocialMedia() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                <Select
+                  value={sentimentFilter}
+                  onValueChange={setSentimentFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Sentiment" />
                   </SelectTrigger>
@@ -494,87 +559,102 @@ export default function SocialMedia() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading posts...</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading posts...
+                </div>
               ) : filteredPosts.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No posts found</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  No posts found
+                </div>
               ) : (
                 <>
                   <Table>
-                     <TableHeader>
+                    <TableHeader>
                       <TableRow>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('message')}
+                          onClick={() => handleSort("message")}
                         >
                           <div className="flex items-center gap-1">
                             Message
-                            {sortBy === 'message' && (
+                            {sortBy === "message" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('pageName')}
+                          onClick={() => handleSort("pageName")}
                         >
                           <div className="flex items-center gap-1">
                             Page
-                            {sortBy === 'pageName' && (
+                            {sortBy === "pageName" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('source')}
+                          onClick={() => handleSort("source")}
                         >
                           <div className="flex items-center gap-1">
                             Platform
-                            {sortBy === 'source' && (
+                            {sortBy === "source" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('createdTime')}
+                          onClick={() => handleSort("createdTime")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === 'createdTime' && (
+                            {sortBy === "createdTime" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('sentiment')}
+                          onClick={() => handleSort("sentiment")}
                         >
                           <div className="flex items-center gap-1">
                             Sentiment
-                            {sortBy === 'sentiment' && (
+                            {sortBy === "sentiment" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('reach')}
+                          onClick={() => handleSort("rank")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            Relevancy
+                            {sortBy === "rank" && (
+                              <ArrowUpDown className="h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="text-right cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort("reach")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Reach
-                            {sortBy === 'reach' && (
+                            {sortBy === "reach" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('ave')}
+                          onClick={() => handleSort("ave")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            {sortBy === 'ave' && (
+                            {sortBy === "ave" && (
                               <ArrowUpDown className="h-4 w-4" />
                             )}
                           </div>
@@ -588,28 +668,36 @@ export default function SocialMedia() {
                           <TableCell className="max-w-md">
                             <div className="flex items-start gap-3">
                               {post.logo_url && (
-                                <img 
-                                  src={post.logo_url} 
-                                  alt={post.pageName} 
+                                <img
+                                  src={post.logo_url}
+                                  alt={post.pageName}
                                   className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
                                 />
                               )}
                               <div className="flex-1 min-w-0">
                                 {post.link ? (
-                                  <a 
-                                    href={post.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
+                                  <a
+                                    href={post.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="line-clamp-2 hover:underline text-primary cursor-pointer"
                                   >
                                     {post.message}
                                   </a>
                                 ) : (
-                                  <div className="line-clamp-2">{post.message}</div>
+                                  <div className="line-clamp-2">
+                                    {post.message}
+                                  </div>
                                 )}
                                 {post.link && (
-                                  <a href={post.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1">
-                                    View post <ExternalLink className="h-3 w-3" />
+                                  <a
+                                    href={post.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                                  >
+                                    View post{" "}
+                                    <ExternalLink className="h-3 w-3" />
                                   </a>
                                 )}
                               </div>
@@ -617,16 +705,28 @@ export default function SocialMedia() {
                           </TableCell>
                           <TableCell>{post.pageName}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">{post.source}</Badge>
+                            <Badge variant="outline" className="capitalize">
+                              {post.source}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            {post.createdTime && !isNaN(new Date(post.createdTime).getTime())
+                            {post.createdTime &&
+                            !isNaN(new Date(post.createdTime).getTime())
                               ? format(new Date(post.createdTime), "PP")
                               : "N/A"}
                           </TableCell>
-                          <TableCell>{getSentimentBadge(post.sentiment)}</TableCell>
-                          <TableCell className="text-right">{post.reach?.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">{post.ave?.toLocaleString()}</TableCell>
+                          <TableCell>
+                            {getSentimentBadge(post.sentiment)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {post.rank?.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {post.reach?.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {post.ave?.toLocaleString()}
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -635,10 +735,15 @@ export default function SocialMedia() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(post)}>
+                                <DropdownMenuItem
+                                  onClick={() => openEditDialog(post)}
+                                >
                                   Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeletePost(post._id)} className="text-destructive">
+                                <DropdownMenuItem
+                                  onClick={() => handleDeletePost(post._id)}
+                                  className="text-destructive"
+                                >
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -650,7 +755,10 @@ export default function SocialMedia() {
                   </Table>
                   {filteredPosts.length > visibleCount && (
                     <div className="mt-4 text-center">
-                      <Button variant="outline" onClick={() => setVisibleCount(visibleCount + 20)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setVisibleCount(visibleCount + 20)}
+                      >
                         Load More
                       </Button>
                     </div>

@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowUpRight, TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
+import { ArrowUpRight, TrendingUp, TrendingDown, Minus, BarChart3, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface User {
@@ -68,6 +69,10 @@ export default function Analytics() {
             <p className="text-muted-foreground mt-2">Comprehensive analytics and insights</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => toast.info("Report creation feature coming soon!")}>
+              <FileText className="h-4 w-4 mr-2" />
+              Create Report
+            </Button>
             <Select value={contentType} onValueChange={setContentType}>
               <SelectTrigger className="w-40">
                 <SelectValue />

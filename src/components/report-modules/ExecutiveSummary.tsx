@@ -1,55 +1,97 @@
-import { Card } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-
 interface ExecutiveSummaryProps {
   data?: {
-    overallSentiment?: string;
-    totalMentions?: number;
-    keyInsights?: string[];
-    topThemes?: string[];
+    summary?: string;
+    positiveIssues?: Array<{ title: string; description: string; impact: number }>;
+    negativeIssues?: Array<{ title: string; description: string; impact: number }>;
   };
 }
 
 export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
-  const sentimentIcon = data?.overallSentiment === "positive" ? TrendingUp : 
-                       data?.overallSentiment === "negative" ? TrendingDown : Minus;
-  const SentimentIcon = sentimentIcon;
+  const defaultSummary = "FNBB received mixed media coverage in Australia, Botswana, Bulgaria, Canada, China, Ethiopia, Finland, France, Germany, India, Ireland, Israel, Kenya, Lithuania, Mauritius, Namibia, Nigeria, Russia, Sierra Leone, Singapore, South Africa, Spain, Sudan, Tanzania, The Netherlands, Togo, Tunisia, Turkey, Uganda, United Kingdom, United States, Zambia, and Zimbabwe during the month of July 2025. The coverage was mostly negative with a sentiment score of -76 out of 100.";
+  
+  const defaultPositiveIssues = [
+    {
+      title: "FNBB App and Online Banking",
+      description: "The FNBB App and Online Banking were mentioned positively in several posts and articles, highlighting their convenience, safety, and fast transfer and payment options.",
+      impact: 15
+    }
+  ];
+  
+  const defaultNegativeIssues = [
+    {
+      title: "FNBB Maintenance",
+      description: "A post inquired about the maintenance schedule for an FNBB branch in Botswana.",
+      impact: -5
+    },
+    {
+      title: "FNBB Botswana Premier League",
+      description: "An article mentioned FNBB's sponsorship of the Botswana Premier League, but did not provide any positive or negative sentiment.",
+      impact: 0
+    },
+    {
+      title: "FNBB in Parliament",
+      description: "An article mentioned FNBB in a parliamentary debate in Botswana, but did not provide any positive or negative sentiment.",
+      impact: 0
+    }
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground mb-2">Overall Sentiment</p>
-          <div className="flex items-center gap-2">
-            <SentimentIcon className="h-6 w-6 text-primary" />
-            <p className="text-2xl font-bold capitalize">{data?.overallSentiment || "Neutral"}</p>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground mb-2">Total Mentions</p>
-          <p className="text-2xl font-bold">{data?.totalMentions?.toLocaleString() || "0"}</p>
-        </Card>
+    <div className="space-y-6 bg-[#2a2a2a] p-8 rounded-lg text-white">
+      {/* Summary Text */}
+      <p className="text-base leading-relaxed">
+        {data?.summary || defaultSummary}
+      </p>
 
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground mb-2">Top Themes</p>
-          <p className="text-2xl font-bold">{data?.topThemes?.length || "0"}</p>
-        </Card>
+      {/* Positive Issues */}
+      <div className="border-2 border-green-500 rounded-lg p-6 bg-[#2a2a2a]">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-xl font-semibold">Positive Issues</h3>
+          <span className="text-sm text-gray-400">Sentiment impact*</span>
+        </div>
+        <div className="space-y-4">
+          {(data?.positiveIssues || defaultPositiveIssues).map((issue, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="mb-1">
+                  <span className="font-bold">{idx + 1} {issue.title}</span>
+                  <span className="font-normal"> : {issue.description}</span>
+                </p>
+              </div>
+              <span className="text-green-500 font-bold whitespace-nowrap">
+                +{issue.impact}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Key Insights</h3>
-        <ul className="space-y-2">
-          {data?.keyInsights?.map((insight, idx) => (
-            <li key={idx} className="flex items-start gap-2">
-              <span className="text-primary mt-1">•</span>
-              <span>{insight}</span>
-            </li>
-          )) || (
-            <li className="text-muted-foreground italic">No insights available</li>
-          )}
-        </ul>
-      </Card>
+      {/* Negative Issues */}
+      <div className="border-2 border-red-500 rounded-lg p-6 bg-[#2a2a2a]">
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="text-xl font-semibold">Negative Issues</h3>
+          <span className="text-sm text-gray-400">Sentiment impact*</span>
+        </div>
+        <div className="space-y-4">
+          {(data?.negativeIssues || defaultNegativeIssues).map((issue, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="mb-1">
+                  <span className="font-bold">{idx + 1} {issue.title}</span>
+                  <span className="font-normal"> : {issue.description}</span>
+                </p>
+              </div>
+              <span className={`font-bold whitespace-nowrap ${issue.impact < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                {issue.impact}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer Note */}
+      <p className="text-xs text-gray-400 italic text-center">
+        *Sentiment is measured on a scale of -100 to 100, with 0 representing neutral. **Impact refers to the total effect that a particular issue has on FNBB's sentiment.
+      </p>
     </div>
   );
 }

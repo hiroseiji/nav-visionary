@@ -126,10 +126,26 @@ export default function ReportResults() {
   const mediaTypes = Object.keys(modulesData);
   
   // Create pages array: [cover, contents, ...module pages]
-  const pages = ['cover', 'contents', ...mediaTypes.flatMap(mediaType => {
+  // Collect all modules and ensure Executive Summary is first
+  const allModulePages: Array<{ mediaType: string; module: string }> = [];
+  const executiveSummaryPages: Array<{ mediaType: string; module: string }> = [];
+  const otherModulePages: Array<{ mediaType: string; module: string }> = [];
+  
+  mediaTypes.forEach(mediaType => {
     const modules = Object.keys(modulesData[mediaType] || {});
-    return modules.map(module => ({ mediaType, module }));
-  })];
+    modules.forEach(module => {
+      const page = { mediaType, module };
+      if (module === 'executiveSummary') {
+        executiveSummaryPages.push(page);
+      } else {
+        otherModulePages.push(page);
+      }
+    });
+  });
+  
+  // Executive Summary first, then other modules
+  const orderedModules = [...executiveSummaryPages, ...otherModulePages];
+  const pages = ['cover', 'contents', ...orderedModules];
   
   const totalPages = pages.length;
   const currentPageData = pages[currentPage - 1];
@@ -228,6 +244,13 @@ export default function ReportResults() {
         }
       });
     });
+    
+    // Ensure Executive Summary is first
+    const sortedModules = allUniqueModules.sort((a, b) => {
+      if (a === 'executiveSummary') return -1;
+      if (b === 'executiveSummary') return 1;
+      return 0;
+    });
 
     return (
       <Card className="min-h-[85vh]">
@@ -285,7 +308,7 @@ export default function ReportResults() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-6">Contents</h3>
                 <ol className="space-y-3">
-                  {allUniqueModules.map((module, idx) => (
+                  {sortedModules.map((module, idx) => (
                     <li key={idx} className="flex justify-between items-center py-2 hover:bg-accent/50 px-2 rounded transition-colors">
                       <span className="font-medium">
                         {idx + 1}. {moduleLabels[module] || module}

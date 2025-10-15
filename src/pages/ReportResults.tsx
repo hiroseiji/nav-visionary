@@ -215,13 +215,18 @@ export default function ReportResults() {
   );
 
   const renderContentsPage = () => {
-    const allModules = mediaTypes.flatMap((mediaType, idx) => {
+    // Collect all unique modules across all media types
+    const allUniqueModules: string[] = [];
+    const moduleSet = new Set<string>();
+    
+    mediaTypes.forEach(mediaType => {
       const modules = Object.keys(modulesData[mediaType] || {});
-      return modules.map(module => ({
-        mediaType,
-        module,
-        pageNumber: idx + 3 + modules.indexOf(module)
-      }));
+      modules.forEach(module => {
+        if (!moduleSet.has(module)) {
+          moduleSet.add(module);
+          allUniqueModules.push(module);
+        }
+      });
     });
 
     return (
@@ -280,12 +285,12 @@ export default function ReportResults() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-6">Contents</h3>
                 <ol className="space-y-3">
-                  {allModules.map((item, idx) => (
+                  {allUniqueModules.map((module, idx) => (
                     <li key={idx} className="flex justify-between items-center py-2 hover:bg-accent/50 px-2 rounded transition-colors">
                       <span className="font-medium">
-                        {idx + 1}. {mediaTypeLabels[item.mediaType]}: {moduleLabels[item.module] || item.module}
+                        {idx + 1}. {moduleLabels[module] || module}
                       </span>
-                      <span className="text-sm text-muted-foreground">{item.pageNumber}</span>
+                      <span className="text-sm text-muted-foreground">{idx + 3}</span>
                     </li>
                   ))}
                 </ol>

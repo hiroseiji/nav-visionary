@@ -249,7 +249,7 @@ export function CreateReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto px-8">
         <DialogHeader>
           <DialogTitle>Create Report</DialogTitle>
           <DialogDescription>

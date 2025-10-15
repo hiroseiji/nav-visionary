@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ChevronLeft, FileText } from "lucide-react";
 import socialLightLogo from "/socialDark.png";
+import reportsBg from "@/assets/reportsBg.png";
 
 interface Report {
   _id: string;
@@ -120,13 +121,11 @@ export default function ReportResults() {
             color: "white",
           }}
         >
-          {/* Decorative Pattern Overlay */}
-          <div 
-            className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 Q 25 30 50 50 T 100 50' stroke='white' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/svg%3E")`,
-              backgroundSize: "400px 400px",
-            }}
+          {/* Background Pattern Overlay */}
+          <img 
+            src={reportsBg}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
           />
 
           {/* Header with Logo */}

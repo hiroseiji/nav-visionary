@@ -26,6 +26,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Analytics from "./pages/Analytics";
 import Competitors from "./pages/Competitors";
 import Reports from "./pages/Reports";
+import ReportResults from "./pages/ReportResults";
 import Alerts from "./pages/Alerts";
 import BroadcastMedia from "./pages/BroadcastMedia";
 import OnlineMedia from "./pages/OnlineMedia";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/analytics/:orgId" element={<Analytics />} />
             <Route path="/competitors/:orgId" element={<Competitors />} />
             <Route path="/reports/:orgId" element={<Reports />} />
+            <Route path="/reports/:orgId/:reportId" element={<ReportResults />} />
             <Route path="/alerts/:orgId" element={<Alerts />} />
             <Route path="/media/broadcast/:orgId" element={<BroadcastMedia />} />
             <Route path="/media/online/:orgId" element={<OnlineMedia />} />

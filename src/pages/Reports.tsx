@@ -216,7 +216,14 @@ export default function Reports() {
                             {format(new Date(report.createdAt || report.created_at || ""), "MMM dd, yyyy")}
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                const orgId = user?.role === "super_admin" ? selectedOrg : user?.organizationId;
+                                navigate(`/reports/${orgId}/${report._id}`);
+                              }}
+                            >
                               <FileText className="h-4 w-4 mr-2" />
                               View
                             </Button>

@@ -8,6 +8,14 @@ import { toast } from "sonner";
 import { ChevronLeft, FileText } from "lucide-react";
 import socialLightLogo from "/socialDark.png";
 import reportsBg from "@/assets/reportsBg.png";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Report {
   _id: string;
@@ -35,6 +43,8 @@ export default function ReportResults() {
   const [reportData, setReportData] = useState<Report | null>(null);
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const modulesPerPage = 6;
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -104,6 +114,18 @@ export default function ReportResults() {
   const gradientTop = organizationData?.gradientTop || "#3175b6";
   const gradientBottom = organizationData?.gradientBottom || "#2e3e8a";
   const organizationName = organizationData?.alias || organizationData?.organizationName || "Organization";
+
+  // Pagination logic for modules
+  const modules = typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
+    ? Object.keys(reportData.modules)
+    : Array.isArray(reportData.modules)
+    ? reportData.modules
+    : [];
+  
+  const totalPages = Math.ceil(modules.length / modulesPerPage);
+  const startIndex = (currentPage - 1) * modulesPerPage;
+  const endIndex = startIndex + modulesPerPage;
+  const currentModules = modules.slice(startIndex, endIndex);
 
   return (
     <SidebarLayout>
@@ -187,17 +209,44 @@ export default function ReportResults() {
             <div>
               <h3 className="font-semibold mb-3 text-lg">Modules</h3>
               <div className="flex flex-wrap gap-2">
-                {(typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
-                  ? Object.keys(reportData.modules)
-                  : Array.isArray(reportData.modules)
-                  ? reportData.modules
-                  : []
-                ).map((module, i) => (
+                {currentModules.map((module, i) => (
                   <span key={i} className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium">
                     {module}
                   </span>
                 ))}
               </div>
+              
+              {totalPages > 1 && (
+                <Pagination className="mt-4">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </div>
 
             <div>

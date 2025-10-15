@@ -22,17 +22,22 @@ interface User {
 
 interface Article {
   _id: string;
-  title: string;
+  title?: string;
+  headline?: string;
+  mention?: string;
   source?: string;
   station?: string;
   publication?: string;
+  company?: string;
+  keyword?: string;
+  company_logo_url?: string;
   sentiment: string;
   publication_date?: string;
   publicationDate?: string;
   mentionDT?: string;
   country?: string;
   ave: number;
-  reach: number;
+  reach?: number;
 }
 
 export default function Competitors() {
@@ -98,7 +103,10 @@ export default function Competitors() {
 
   const renderArticleTable = (articles: Article[], type: string) => {
     const filtered = articles
-      .filter(a => searchQuery ? a.title?.toLowerCase().includes(searchQuery.toLowerCase()) : true)
+      .filter(a => {
+        const headline = type === "broadcast" ? a.mention : type === "print" ? a.headline : a.title;
+        return searchQuery ? headline?.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+      })
       .filter(a => sentimentFilter === "all" ? true : a.sentiment === sentimentFilter)
       .slice(0, visibleArticles);
 
@@ -108,10 +116,11 @@ export default function Competitors() {
           <Table>
             <TableHeader>
               <TableRow className="border-b bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-medium">Competitor</TableHead>
                 <TableHead className="font-medium">Headline</TableHead>
                 <TableHead className="font-medium">Source</TableHead>
                 <TableHead className="font-medium">Sentiment</TableHead>
-                <TableHead className="font-medium">Reach</TableHead>
+                {type === "online" && <TableHead className="font-medium">Reach</TableHead>}
                 <TableHead className="font-medium">AVE</TableHead>
                 <TableHead className="font-medium">Date</TableHead>
                 {type === "online" && (
@@ -124,87 +133,112 @@ export default function Competitors() {
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={type === "online" ? 6 : 5}
+                    colSpan={type === "online" ? 9 : 7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No articles found
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((article) => (
-                  <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
-                    <TableCell className="font-medium py-4 text-sm">{article.title}</TableCell>
-                    <TableCell className="py-4 text-sm">
-                      {type === "broadcast" ? article.station : type === "print" ? article.publication : article.source}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {getSentimentBadge(article.sentiment)}
-                    </TableCell>
-                    <TableCell className="py-4 text-sm">
-                      {new Date(
-                        type === "broadcast" ? article.mentionDT || "" : 
-                        type === "print" ? article.publicationDate || "" : 
-                        article.publication_date || ""
-                      ).toLocaleDateString()}
-                    </TableCell>
-                    {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setEditingArticle(article._id)}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                          title="Edit article"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        {user?.role === "super_admin" && (
+                filtered.map((article) => {
+                  const competitor = type === "online" ? article.company : article.keyword;
+                  const headline = type === "broadcast" ? article.mention : type === "print" ? article.headline : article.title;
+                  
+                  return (
+                    <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-2">
+                          {article.company_logo_url && (
+                            <img 
+                              src={article.company_logo_url} 
+                              alt={competitor || "Company logo"} 
+                              className="h-8 w-8 object-contain rounded"
+                            />
+                          )}
+                          <span className="text-sm font-medium">{competitor || "N/A"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium py-4 text-sm">{headline}</TableCell>
+                      <TableCell className="py-4 text-sm">
+                        {type === "broadcast" ? article.station : type === "print" ? article.publication : article.source}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {getSentimentBadge(article.sentiment)}
+                      </TableCell>
+                      {type === "online" && (
+                        <TableCell className="py-4 text-sm">
+                          {article.reach?.toLocaleString() || "N/A"}
+                        </TableCell>
+                      )}
+                      <TableCell className="py-4 text-sm">
+                        {article.ave?.toLocaleString() || "N/A"}
+                      </TableCell>
+                      <TableCell className="py-4 text-sm">
+                        {new Date(
+                          type === "broadcast" ? article.mentionDT || "" : 
+                          type === "print" ? article.publicationDate || "" : 
+                          article.publication_date || ""
+                        ).toLocaleDateString()}
+                      </TableCell>
+                      {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={async () => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to delete this article?"
-                                )
-                              ) {
-                                try {
-                                  await axios.delete(
-                                    `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
-                                  );
-                                  toast.success("Article deleted successfully");
-                                  // Refresh data
-                                  const [onlineRes, printRes, broadcastRes] =
-                                    await Promise.all([
-                                      axios.get(
-                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`
-                                      ),
-                                      axios.get(
-                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/printMedia`
-                                      ),
-                                      axios.get(
-                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`
-                                      ),
-                                    ]);
-                                  setOnlineArticles(onlineRes.data);
-                                  setPrintArticles(printRes.data);
-                                  setBroadcastArticles(broadcastRes.data);
-                                } catch (err) {
-                                  console.error(
-                                    "Failed to delete article:",
-                                    err
-                                  );
-                                  toast.error("Failed to delete article");
-                                }
-                              }
-                            }}
-                            className="text-muted-foreground hover:text-destructive transition-colors"
-                            title="Delete article"
+                            onClick={() => setEditingArticle(article._id)}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            title="Edit article"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                          {user?.role === "super_admin" && (
+                            <button
+                              onClick={async () => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this article?"
+                                  )
+                                ) {
+                                  try {
+                                    await axios.delete(
+                                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
+                                    );
+                                    toast.success("Article deleted successfully");
+                                    // Refresh data
+                                    const [onlineRes, printRes, broadcastRes] =
+                                      await Promise.all([
+                                        axios.get(
+                                          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`
+                                        ),
+                                        axios.get(
+                                          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/printMedia`
+                                        ),
+                                        axios.get(
+                                          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`
+                                        ),
+                                      ]);
+                                    setOnlineArticles(onlineRes.data);
+                                    setPrintArticles(printRes.data);
+                                    setBroadcastArticles(broadcastRes.data);
+                                  } catch (err) {
+                                    console.error(
+                                      "Failed to delete article:",
+                                      err
+                                    );
+                                    toast.error("Failed to delete article");
+                                  }
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                              title="Delete article"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

@@ -152,7 +152,7 @@ export default function Competitors() {
                             <img 
                               src={article.company_logo_url} 
                               alt={competitor || "Company logo"} 
-                              className="h-8 w-8 object-contain rounded"
+                              className="h-8 w-8 object-contain rounded-full border-2 border-muted"
                             />
                           )}
                           <span className="text-sm font-medium">{competitor || "N/A"}</span>

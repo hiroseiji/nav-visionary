@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Search, ThumbsUp, ThumbsDown, Minus, Plus, Pencil, Trash2 } from "lucide-react";
 import { mapSentimentToLabel } from "@/utils/sentimentUtils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface User {
   role: string;
@@ -88,6 +89,16 @@ export default function Competitors() {
     fetchCompetitorData();
   }, [user, orgId, navigate]);
 
+  const cleanMentionHeadline = (mention: string) => {
+    const summaryMatch = mention.match(
+      /Summary:\s*(.*?)(Entities:|Sentiment:|Insert_or_Interview:|$)/s
+    );
+    if (summaryMatch && summaryMatch[1]) {
+      return summaryMatch[1].trim();
+    }
+    return mention;
+  };
+
   const getSentimentIcon = (sentiment: string) => {
     if (sentiment === "positive") return <ThumbsUp className="h-4 w-4 text-green-500" />;
     if (sentiment === "negative") return <ThumbsDown className="h-4 w-4 text-red-500" />;
@@ -142,7 +153,9 @@ export default function Competitors() {
               ) : (
                 filtered.map((article) => {
                   const competitor = type === "online" ? article.company : article.keyword;
-                  const headline = type === "broadcast" ? article.mention : type === "print" ? article.headline : article.title;
+                  const rawHeadline = type === "broadcast" ? article.mention : type === "print" ? article.headline : article.title;
+                  const headline = type === "broadcast" && rawHeadline ? cleanMentionHeadline(rawHeadline) : rawHeadline;
+                  const truncatedHeadline = headline && headline.length > 100 ? headline.substring(0, 100) + "..." : headline;
                   
                   return (
                     <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
@@ -158,7 +171,22 @@ export default function Competitors() {
                           <span className="text-sm font-medium">{competitor || "N/A"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium py-4 text-sm">{headline}</TableCell>
+                      <TableCell className="font-medium py-4 text-sm">
+                        {type === "broadcast" && headline && headline.length > 100 ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">{truncatedHeadline}</span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-md">
+                                <p>{headline}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          headline
+                        )}
+                      </TableCell>
                       <TableCell className="py-4 text-sm">
                         {type === "broadcast" ? article.station : type === "print" ? article.publication : article.source}
                       </TableCell>

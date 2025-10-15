@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { CalendarIcon, Tv, Newspaper, Share2, Radio } from "lucide-react";
+import { CalendarIcon, Tv, Newspaper, Share2, Radio, LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +56,7 @@ export function CreateReportDialog({
   const [reportId, setReportId] = useState<string | null>(null);
 
   const allMediaTypes = ["posts", "articles", "broadcast", "printmedia"];
-  const mediaTypeConfig: Record<string, { label: string; icon: any; color: string }> = {
+  const mediaTypeConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
     posts: { label: "Social Media", icon: Share2, color: "text-blue-600" },
     articles: { label: "Online Media", icon: Newspaper, color: "text-purple-600" },
     broadcast: { label: "Broadcast Media", icon: Tv, color: "text-orange-600" },

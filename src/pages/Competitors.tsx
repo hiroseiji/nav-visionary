@@ -23,9 +23,13 @@ interface User {
 interface Article {
   _id: string;
   title: string;
-  source: string;
+  source?: string;
+  station?: string;
+  publication?: string;
   sentiment: string;
-  publication_date: string;
+  publication_date?: string;
+  publicationDate?: string;
+  mentionDT?: string;
   country?: string;
 }
 
@@ -121,11 +125,19 @@ export default function Competitors() {
                 filtered.map((article) => (
                   <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
                     <TableCell className="font-medium py-4 text-sm">{article.title}</TableCell>
-                    <TableCell className="py-4 text-sm">{article.source}</TableCell>
+                    <TableCell className="py-4 text-sm">
+                      {type === "broadcast" ? article.station : type === "print" ? article.publication : article.source}
+                    </TableCell>
                     <TableCell className="py-4">
                       {getSentimentBadge(article.sentiment)}
                     </TableCell>
-                    <TableCell className="py-4 text-sm">{new Date(article.publication_date).toLocaleDateString()}</TableCell>
+                    <TableCell className="py-4 text-sm">
+                      {new Date(
+                        type === "broadcast" ? article.mentionDT || "" : 
+                        type === "print" ? article.publicationDate || "" : 
+                        article.publication_date || ""
+                      ).toLocaleDateString()}
+                    </TableCell>
                     {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
                     <TableCell className="py-4">
                       <div className="flex items-center gap-2">

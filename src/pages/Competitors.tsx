@@ -31,6 +31,8 @@ interface Article {
   publicationDate?: string;
   mentionDT?: string;
   country?: string;
+  ave: number;
+  reach: number;
 }
 
 export default function Competitors() {
@@ -106,18 +108,25 @@ export default function Competitors() {
           <Table>
             <TableHeader>
               <TableRow className="border-b bg-muted/50 hover:bg-muted/50">
-                <TableHead className="font-medium">Title</TableHead>
+                <TableHead className="font-medium">Headline</TableHead>
                 <TableHead className="font-medium">Source</TableHead>
                 <TableHead className="font-medium">Sentiment</TableHead>
+                <TableHead className="font-medium">Reach</TableHead>
+                <TableHead className="font-medium">AVE</TableHead>
                 <TableHead className="font-medium">Date</TableHead>
-                {type === "online" && <TableHead className="font-medium">Country</TableHead>}
+                {type === "online" && (
+                  <TableHead className="font-medium">Country</TableHead>
+                )}
                 <TableHead className="font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={type === "online" ? 6 : 5} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={type === "online" ? 6 : 5}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No articles found
                   </TableCell>
                 </TableRow>
@@ -148,27 +157,41 @@ export default function Competitors() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        {user?.role === 'super_admin' && (
+                        {user?.role === "super_admin" && (
                           <button
                             onClick={async () => {
-                              if (confirm('Are you sure you want to delete this article?')) {
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this article?"
+                                )
+                              ) {
                                 try {
                                   await axios.delete(
                                     `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
                                   );
-                                  toast.success('Article deleted successfully');
+                                  toast.success("Article deleted successfully");
                                   // Refresh data
-                                  const [onlineRes, printRes, broadcastRes] = await Promise.all([
-                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`),
-                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/printMedia`),
-                                    axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`),
-                                  ]);
+                                  const [onlineRes, printRes, broadcastRes] =
+                                    await Promise.all([
+                                      axios.get(
+                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`
+                                      ),
+                                      axios.get(
+                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/printMedia`
+                                      ),
+                                      axios.get(
+                                        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`
+                                      ),
+                                    ]);
                                   setOnlineArticles(onlineRes.data);
                                   setPrintArticles(printRes.data);
                                   setBroadcastArticles(broadcastRes.data);
                                 } catch (err) {
-                                  console.error('Failed to delete article:', err);
-                                  toast.error('Failed to delete article');
+                                  console.error(
+                                    "Failed to delete article:",
+                                    err
+                                  );
+                                  toast.error("Failed to delete article");
                                 }
                               }
                             }}
@@ -188,16 +211,28 @@ export default function Competitors() {
         </div>
         {filtered.length > 0 && (
           <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">Showing {filtered.length} of {articles.length} articles</p>
+            <p className="text-sm text-muted-foreground">
+              Showing {filtered.length} of {articles.length} articles
+            </p>
             <div className="flex gap-2">
               {visibleArticles > 20 && (
-                <Button variant="outline" size="sm" onClick={() => setVisibleArticles(prev => Math.max(prev - 20, 20))}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setVisibleArticles((prev) => Math.max(prev - 20, 20))
+                  }
+                >
                   <Minus className="h-4 w-4 mr-2" />
                   Show Less
                 </Button>
               )}
               {visibleArticles < articles.length && (
-                <Button variant="outline" size="sm" onClick={() => setVisibleArticles(prev => prev + 20)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVisibleArticles((prev) => prev + 20)}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Show More
                 </Button>

@@ -398,17 +398,55 @@ export default function ReportResults() {
           </Button>
           
           <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            {/* Always show first page */}
+            <Button
+              variant={currentPage === 1 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              className="w-10 h-10"
+            >
+              1
+            </Button>
+
+            {/* Show ellipsis if current page is far from start */}
+            {currentPage > 3 && (
+              <span className="px-2 text-muted-foreground">...</span>
+            )}
+
+            {/* Show pages around current page */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(page => {
+                // Show pages within 1 of current page, but not first or last
+                return page !== 1 && page !== totalPages && Math.abs(page - currentPage) <= 1;
+              })
+              .map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className="w-10 h-10"
+                >
+                  {page}
+                </Button>
+              ))}
+
+            {/* Show ellipsis if current page is far from end */}
+            {currentPage < totalPages - 2 && (
+              <span className="px-2 text-muted-foreground">...</span>
+            )}
+
+            {/* Always show last page if there's more than 1 page */}
+            {totalPages > 1 && (
               <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
+                variant={currentPage === totalPages ? "default" : "outline"}
                 size="sm"
-                onClick={() => setCurrentPage(page)}
+                onClick={() => setCurrentPage(totalPages)}
                 className="w-10 h-10"
               >
-                {page}
+                {totalPages}
               </Button>
-            ))}
+            )}
           </div>
           
           <Button

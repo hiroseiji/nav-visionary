@@ -597,7 +597,6 @@ export default function OnlineMedia() {
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
-                      disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>
@@ -617,7 +616,6 @@ export default function OnlineMedia() {
                       mode="single"
                       selected={endDate}
                       onSelect={setEndDate}
-                      disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>

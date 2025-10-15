@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowUpRight, TrendingUp, TrendingDown, Minus, BarChart3, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CreateReportDialog } from "@/components/CreateReportDialog";
 
 interface User {
   role: string;
@@ -24,10 +25,12 @@ export default function Analytics() {
   const [granularity, setGranularity] = useState("month");
   const [totalArticles, setTotalArticles] = useState(0);
   const [monthlyMentions, setMonthlyMentions] = useState(0);
+  const [showCreateReport, setShowCreateReport] = useState(false);
   const navigate = useNavigate();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
   const selectedOrg = localStorage.getItem("selectedOrg");
+  const orgId = user?.role === "super_admin" ? selectedOrg : user?.organizationId;
 
   useEffect(() => {
     if (!user) {
@@ -69,7 +72,7 @@ export default function Analytics() {
             <p className="text-muted-foreground mt-2">Comprehensive analytics and insights</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => toast.info("Report creation feature coming soon!")}>
+            <Button onClick={() => setShowCreateReport(true)}>
               <FileText className="h-4 w-4 mr-2" />
               Create Report
             </Button>
@@ -275,6 +278,19 @@ export default function Analytics() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {user && orgId && (
+          <CreateReportDialog
+            open={showCreateReport}
+            onOpenChange={setShowCreateReport}
+            organizationId={orgId}
+            organizationName="Organization"
+            user={{
+              firstName: user.firstName || "",
+              lastName: user.lastName || ""
+            }}
+          />
+        )}
       </div>
     </SidebarLayout>
   );

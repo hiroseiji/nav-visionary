@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,9 +38,9 @@ export default function Competitors() {
   const [sentimentFilter, setSentimentFilter] = useState("all");
   const [editingArticle, setEditingArticle] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { orgId } = useParams();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
-  const selectedOrg = localStorage.getItem("selectedOrg");
 
   useEffect(() => {
     if (!user) {
@@ -48,9 +48,13 @@ export default function Competitors() {
       return;
     }
 
+    if (!orgId) {
+      navigate("/login");
+      return;
+    }
+
     const fetchCompetitorData = async () => {
       try {
-        const orgId = user.role === "super_admin" ? selectedOrg : user.organizationId;
         
         const [onlineRes, printRes, broadcastRes] = await Promise.all([
           axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles`),
@@ -70,7 +74,7 @@ export default function Competitors() {
     };
 
     fetchCompetitorData();
-  }, [user, selectedOrg, navigate]);
+  }, [user, orgId, navigate]);
 
   const getSentimentIcon = (sentiment: string) => {
     if (sentiment === "positive") return <ThumbsUp className="h-4 w-4 text-green-500" />;
@@ -141,7 +145,6 @@ export default function Competitors() {
                             onClick={async () => {
                               if (confirm('Are you sure you want to delete this article?')) {
                                 try {
-                                  const orgId = user.role === "super_admin" ? selectedOrg : user.organizationId;
                                   await axios.delete(
                                     `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
                                   );

@@ -21,8 +21,8 @@ function Calendar({
       fromYear={1990}
       toYear={new Date().getFullYear()}
       classNames={{
-        dropdown: "px-2 py-1 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring",
-        caption_dropdowns: "flex gap-2 justify-center",
+        dropdown: "px-3 py-1.5 rounded-md border border-input bg-popover text-popover-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
+        caption_dropdowns: "flex gap-3 justify-center items-center",
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",

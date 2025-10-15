@@ -560,6 +560,7 @@ export default function PrintMedia() {
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
+                      disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>

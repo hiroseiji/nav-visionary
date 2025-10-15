@@ -5,13 +5,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { CalendarIcon, Plus, X } from "lucide-react";
+import { CalendarIcon, Tv, Newspaper, Share2, Radio } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -20,9 +20,8 @@ interface Module {
   mediaTypes: string[];
 }
 
-interface MediaSelection {
-  mediaType: string;
-  selectedModules: string[];
+interface MediaModules {
+  [mediaType: string]: string[];
 }
 
 interface CreateReportDialogProps {
@@ -48,9 +47,7 @@ export function CreateReportDialog({
   const [endDate, setEndDate] = useState<Date>();
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [reportType, setReportType] = useState<"full" | "custom">("custom");
-  const [mediaSelections, setMediaSelections] = useState<MediaSelection[]>([
-    { mediaType: "posts", selectedModules: [] }
-  ]);
+  const [selectedMediaModules, setSelectedMediaModules] = useState<MediaModules>({});
   const [availableModules, setAvailableModules] = useState<Record<string, Module>>({});
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,11 +56,11 @@ export function CreateReportDialog({
   const [reportId, setReportId] = useState<string | null>(null);
 
   const allMediaTypes = ["posts", "articles", "broadcast", "printmedia"];
-  const mediaTypeLabels: Record<string, string> = {
-    posts: "Social Media",
-    articles: "Online Media",
-    broadcast: "Broadcast Media",
-    printmedia: "Print Media"
+  const mediaTypeConfig: Record<string, { label: string; icon: any; color: string }> = {
+    posts: { label: "Social Media", icon: Share2, color: "text-blue-600" },
+    articles: { label: "Online Media", icon: Newspaper, color: "text-purple-600" },
+    broadcast: { label: "Broadcast Media", icon: Tv, color: "text-orange-600" },
+    printmedia: { label: "Print Media", icon: Radio, color: "text-green-600" }
   };
 
   // Fetch available modules and countries
@@ -127,31 +124,32 @@ export function CreateReportDialog({
     };
   }, [polling, reportId, navigate, organizationId, onOpenChange]);
 
-  const handleMediaTypeChange = (index: number, newType: string) => {
-    const updated = [...mediaSelections];
-    updated[index] = { mediaType: newType, selectedModules: [] };
-    setMediaSelections(updated);
+  const handleModuleToggle = (mediaType: string, moduleKey: string) => {
+    setSelectedMediaModules(prev => {
+      const current = prev[mediaType] || [];
+      const updated = current.includes(moduleKey)
+        ? current.filter(m => m !== moduleKey)
+        : [...current, moduleKey];
+      
+      if (updated.length === 0) {
+        const { [mediaType]: _, ...rest } = prev;
+        return rest;
+      }
+      
+      return { ...prev, [mediaType]: updated };
+    });
   };
 
-  const handleModuleToggle = (index: number, moduleKey: string) => {
-    const updated = [...mediaSelections];
-    const selected = updated[index].selectedModules;
-    
-    if (selected.includes(moduleKey)) {
-      updated[index].selectedModules = selected.filter(m => m !== moduleKey);
-    } else {
-      updated[index].selectedModules = [...selected, moduleKey];
-    }
-    
-    setMediaSelections(updated);
+  const handleSelectAllModules = (mediaType: string) => {
+    const allModules = getModulesForMediaType(mediaType).map(m => m.key);
+    setSelectedMediaModules(prev => ({ ...prev, [mediaType]: allModules }));
   };
 
-  const handleAddMediaSelection = () => {
-    setMediaSelections([...mediaSelections, { mediaType: "posts", selectedModules: [] }]);
-  };
-
-  const handleRemoveMediaSelection = (index: number) => {
-    setMediaSelections(mediaSelections.filter((_, i) => i !== index));
+  const handleDeselectAllModules = (mediaType: string) => {
+    setSelectedMediaModules(prev => {
+      const { [mediaType]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const toggleCountry = (country: string) => {
@@ -188,24 +186,33 @@ export function CreateReportDialog({
     try {
       const modulesPerMediaType: Record<string, Record<string, boolean | { granularity: string }>> = {};
 
-      for (const entry of mediaSelections) {
-        const { mediaType, selectedModules } = entry;
-        if (!mediaType) continue;
+      if (reportType === "full") {
+        // Include all modules for all media types
+        allMediaTypes.forEach(mediaType => {
+          const moduleObject: Record<string, boolean | { granularity: string }> = {};
+          const allModules = Object.entries(availableModules)
+            .filter(([_, mod]) => mod.mediaTypes.includes(mediaType))
+            .map(([key]) => key);
 
-        const moduleObject: Record<string, boolean | { granularity: string }> = {};
-        const modulesToInclude = reportType === "full"
-          ? Object.entries(availableModules)
-              .filter(([_, mod]) => mod.mediaTypes.includes(mediaType))
-              .map(([key]) => key)
-          : selectedModules;
+          allModules.forEach((mod) => {
+            moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+          });
 
-        modulesToInclude.forEach((mod) => {
-          moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+          if (allModules.length > 0) {
+            modulesPerMediaType[mediaType] = moduleObject;
+          }
         });
-
-        if (modulesToInclude.length > 0) {
-          modulesPerMediaType[mediaType] = moduleObject;
-        }
+      } else {
+        // Use selected modules
+        Object.entries(selectedMediaModules).forEach(([mediaType, modules]) => {
+          if (modules.length > 0) {
+            const moduleObject: Record<string, boolean | { granularity: string }> = {};
+            modules.forEach((mod) => {
+              moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+            });
+            modulesPerMediaType[mediaType] = moduleObject;
+          }
+        });
       }
 
       const response = await axios.post(
@@ -342,19 +349,15 @@ export function CreateReportDialog({
           {/* Report Type */}
           <div className="space-y-3">
             <Label>Report Type</Label>
-            <RadioGroup value={reportType} onValueChange={(value) => {
-              setReportType(value as "full" | "custom");
-              if (value === "full") {
-                setMediaSelections(allMediaTypes.map(type => ({
-                  mediaType: type,
-                  selectedModules: Object.entries(availableModules)
-                    .filter(([_, mod]) => mod.mediaTypes.includes(type))
-                    .map(([key]) => key)
-                })));
-              } else {
-                setMediaSelections([{ mediaType: "posts", selectedModules: [] }]);
-              }
-            }}>
+            <RadioGroup 
+              value={reportType} 
+              onValueChange={(value) => {
+                setReportType(value as "full" | "custom");
+                if (value === "custom") {
+                  setSelectedMediaModules({});
+                }
+              }}
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="full" id="full" />
                 <Label htmlFor="full" className="font-normal cursor-pointer">
@@ -370,70 +373,76 @@ export function CreateReportDialog({
             </RadioGroup>
           </div>
 
-          {/* Media Selections (Custom Only) */}
+          {/* Media Type & Module Selection (Custom Only) */}
           {reportType === "custom" && (
-            <div className="space-y-4">
-              {mediaSelections.map((selection, index) => (
-                <div key={index} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Media Type</Label>
-                    {mediaSelections.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveMediaSelection(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+            <div className="space-y-3">
+              <Label>Select Media Types & Modules</Label>
+              <Accordion type="multiple" className="w-full">
+                {allMediaTypes.map((mediaType) => {
+                  const config = mediaTypeConfig[mediaType];
+                  const Icon = config.icon;
+                  const modules = getModulesForMediaType(mediaType);
+                  const selectedCount = selectedMediaModules[mediaType]?.length || 0;
+                  const allSelected = selectedCount === modules.length;
 
-                  <Select
-                    value={selection.mediaType}
-                    onValueChange={(value) => handleMediaTypeChange(index, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allMediaTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {mediaTypeLabels[type]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <div className="space-y-2">
-                    <Label>Modules</Label>
-                    <div className="border rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-                      {getModulesForMediaType(selection.mediaType).map(({ key, label }) => (
-                        <div key={key} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`${index}-${key}`}
-                            checked={selection.selectedModules.includes(key)}
-                            onCheckedChange={() => handleModuleToggle(index, key)}
-                          />
-                          <label htmlFor={`${index}-${key}`} className="text-sm cursor-pointer">
-                            {label}
-                          </label>
+                  return (
+                    <AccordionItem key={mediaType} value={mediaType} className="border rounded-lg px-4 mb-2">
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-3 flex-1">
+                          <Icon className={cn("h-5 w-5", config.color)} />
+                          <span className="font-medium">{config.label}</span>
+                          {selectedCount > 0 && (
+                            <span className="ml-auto mr-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                              {selectedCount} selected
+                            </span>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddMediaSelection}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Another Media Type
-              </Button>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSelectAllModules(mediaType)}
+                              disabled={allSelected}
+                            >
+                              Select All
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeselectAllModules(mediaType)}
+                              disabled={selectedCount === 0}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {modules.map(({ key, label }) => (
+                              <div key={key} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${mediaType}-${key}`}
+                                  checked={selectedMediaModules[mediaType]?.includes(key) || false}
+                                  onCheckedChange={() => handleModuleToggle(mediaType, key)}
+                                />
+                                <label 
+                                  htmlFor={`${mediaType}-${key}`} 
+                                  className="text-sm cursor-pointer leading-tight"
+                                >
+                                  {label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
             </div>
           )}
 

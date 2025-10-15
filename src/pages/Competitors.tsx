@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Search, ThumbsUp, ThumbsDown, Minus, Plus, Pencil, Trash2 } from "lucide-react";
+import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 
 interface User {
   role: string;
@@ -82,16 +83,11 @@ export default function Competitors() {
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
-  const getSentimentBadge = (sentiment: string) => {
-    const sentimentLower = sentiment.toLowerCase();
-    let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
+  const getSentimentBadge = (sentiment: string | number) => {
+    const normalizedSentiment = mapSentimentToLabel(sentiment);
+    const variant = normalizedSentiment as "positive" | "negative" | "neutral" | "mixed";
     
-    if (sentimentLower === 'positive') variant = 'positive';
-    else if (sentimentLower === 'negative') variant = 'negative';
-    else if (sentimentLower === 'mixed') variant = 'mixed';
-    else variant = 'neutral';
-    
-    return <Badge variant={variant} className="capitalize">{sentiment}</Badge>;
+    return <Badge variant={variant} className="capitalize">{normalizedSentiment}</Badge>;
   };
 
   const renderArticleTable = (articles: Article[], type: string) => {

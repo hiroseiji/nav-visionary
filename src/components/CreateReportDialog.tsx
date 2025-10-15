@@ -264,7 +264,7 @@ export function CreateReportDialog({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date Range */}
           <div className="space-y-3">
             <Label>Date Range</Label>
@@ -446,7 +446,7 @@ export function CreateReportDialog({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-2 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

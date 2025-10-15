@@ -2,20 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronLeft, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, BarChart3, Globe, Megaphone, Calendar, MessageSquare } from "lucide-react";
 import socialLightLogo from "/socialDark.png";
 import reportsBg from "@/assets/reportsBg.png";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 interface Report {
   _id: string;
@@ -44,7 +36,6 @@ export default function ReportResults() {
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const modulesPerPage = 6;
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -115,158 +106,270 @@ export default function ReportResults() {
   const gradientBottom = organizationData?.gradientBottom || "#2e3e8a";
   const organizationName = organizationData?.alias || organizationData?.organizationName || "Organization";
 
-  // Pagination logic for modules
-  const modules = typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
-    ? Object.keys(reportData.modules)
-    : Array.isArray(reportData.modules)
+  // Extract modules and media types
+  const modulesData = typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
     ? reportData.modules
-    : [];
+    : {};
   
-  const totalPages = Math.ceil(modules.length / modulesPerPage);
-  const startIndex = (currentPage - 1) * modulesPerPage;
-  const endIndex = startIndex + modulesPerPage;
-  const currentModules = modules.slice(startIndex, endIndex);
+  const mediaTypes = Object.keys(modulesData);
+  
+  // Create pages array: [cover, contents, ...module pages]
+  const pages = ['cover', 'contents', ...mediaTypes.flatMap(mediaType => {
+    const modules = Object.keys(modulesData[mediaType] || {});
+    return modules.map(module => ({ mediaType, module }));
+  })];
+  
+  const totalPages = pages.length;
+  const currentPageData = pages[currentPage - 1];
+
+  const moduleLabels: Record<string, string> = {
+    executiveSummary: "Executive Summary",
+    mediaSummary: "Media Summary",
+    sentimentTrend: "Sentiment Trend",
+    reputationalRisks: "Reputational Risks",
+    reputationalOpportunities: "Reputational Opportunities",
+    issueImpact: "Issue Impact",
+    topSources: "Top Sources",
+    volumeAndSentiment: "Volume and Sentiment",
+    wordCloud: "Word Cloud",
+    kpiPerformance: "KPI Performance",
+    topJournalists: "Top Journalists",
+    sectorialCompetitor: "Sectorial Competitor",
+    sectorialStakeholder: "Sectorial Stakeholder",
+    sectorRanking: "Sector Ranking",
+    esgAnalysis: "ESG Analysis"
+  };
+
+  const mediaTypeLabels: Record<string, string> = {
+    posts: "Social Media",
+    articles: "Online Media",
+    broadcast: "Broadcast Media",
+    printmedia: "Print Media"
+  };
+
+  const renderCoverPage = () => (
+    <div 
+      className="relative overflow-hidden rounded-3xl min-h-[85vh] flex flex-col"
+      style={{
+        background: `linear-gradient(180deg, ${gradientTop} 0%, ${gradientBottom} 100%)`,
+        color: "white",
+      }}
+    >
+      <img 
+        src={reportsBg}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+      />
+      <div className="relative z-10 pt-16 pb-8 flex justify-center">
+        <img 
+          src={socialLightLogo} 
+          alt="Social Light" 
+          className="h-16 w-auto"
+        />
+      </div>
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-8 -mt-20">
+        <h1 className="text-6xl font-extrabold mb-6 tracking-tight">
+          Media Insights Report
+        </h1>
+        <p className="text-2xl font-semibold opacity-90">
+          Prepared for {organizationName}
+        </p>
+      </div>
+      <div className="relative z-10 p-8 flex items-end justify-between">
+        <div className="space-y-1">
+          <p className="text-lg font-semibold opacity-95">
+            {new Date(reportData.createdAt || reportData.created_at || "").toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric"
+            })}
+          </p>
+        </div>
+        {organizationData?.logoUrl && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            <img 
+              src={organizationData.logoUrl} 
+              alt={organizationName}
+              className="h-20 w-20 object-contain"
+            />
+          </div>
+        )}
+      </div>
+      <div className="relative z-10 bg-black/20 py-3 px-8 flex items-center justify-between text-sm">
+        <span className="opacity-80">© Social Light Botswana | {new Date().getFullYear()}</span>
+        <span className="opacity-80">Unauthorized Reproduction is Prohibited</span>
+      </div>
+    </div>
+  );
+
+  const renderContentsPage = () => {
+    const allModules = mediaTypes.flatMap((mediaType, idx) => {
+      const modules = Object.keys(modulesData[mediaType] || {});
+      return modules.map(module => ({
+        mediaType,
+        module,
+        pageNumber: idx + 3 + modules.indexOf(module)
+      }));
+    });
+
+    return (
+      <Card className="min-h-[85vh]">
+        <CardContent className="p-8">
+          <h2 className="text-3xl font-bold mb-8 text-foreground">Report Data & Contents</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Left Column - Report Data */}
+            <Card className="border-2">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center justify-between py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="h-6 w-6 text-primary" />
+                    <span className="font-semibold">Volume</span>
+                  </div>
+                  <span className="text-lg font-bold">-</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Globe className="h-6 w-6 text-primary" />
+                    <span className="font-semibold">Regions</span>
+                  </div>
+                  <span className="text-lg font-bold">{Array.isArray(reportData.scope) ? reportData.scope.join(", ") : "Global"}</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Megaphone className="h-6 w-6 text-primary" />
+                    <span className="font-semibold">Reach</span>
+                  </div>
+                  <span className="text-lg font-bold">-</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="h-6 w-6 text-primary" />
+                    <span className="font-semibold">Language</span>
+                  </div>
+                  <span className="text-lg font-bold">English</span>
+                </div>
+                
+                <div className="flex items-center justify-between py-4">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-6 w-6 text-primary" />
+                    <span className="font-semibold">Time Period</span>
+                  </div>
+                  <span className="text-lg font-bold">-</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right Column - Contents */}
+            <Card className="border-2">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-6">Contents</h3>
+                <ol className="space-y-3">
+                  {allModules.map((item, idx) => (
+                    <li key={idx} className="flex justify-between items-center py-2 hover:bg-accent/50 px-2 rounded transition-colors">
+                      <span className="font-medium">
+                        {idx + 1}. {mediaTypeLabels[item.mediaType]}: {moduleLabels[item.module] || item.module}
+                      </span>
+                      <span className="text-sm text-muted-foreground">{item.pageNumber}</span>
+                    </li>
+                  ))}
+                </ol>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-xs text-muted-foreground italic mt-4">
+            *Volume refers to mentions across selected sources, regions and time period.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderModulePage = (mediaType: string, moduleName: string) => {
+    const displayMediaType = mediaTypeLabels[mediaType] || mediaType;
+    const displayModule = moduleLabels[moduleName] || moduleName;
+
+    return (
+      <Card className="min-h-[85vh]">
+        <CardContent className="p-8">
+          <div className="mb-8">
+            <p className="text-sm text-muted-foreground mb-2">{displayMediaType}</p>
+            <h2 className="text-4xl font-bold text-foreground">{displayModule}</h2>
+          </div>
+
+          <div className="bg-muted/30 rounded-lg p-8 min-h-[400px] flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <FileText className="h-16 w-16 mx-auto text-muted-foreground" />
+              <p className="text-lg text-muted-foreground">
+                Module content will be displayed here
+              </p>
+              <p className="text-sm text-muted-foreground">
+                This section would show {displayModule} data for {displayMediaType}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <SidebarLayout>
       <div className="container mx-auto p-6 space-y-6">
-        <Button variant="ghost" onClick={() => navigate(`/reports/${orgId}`)}>
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Reports
-        </Button>
-
-        {/* Cover Page */}
-        <div 
-          className="relative overflow-hidden rounded-3xl min-h-[90vh] flex flex-col"
-          style={{
-            background: `linear-gradient(180deg, ${gradientTop} 0%, ${gradientBottom} 100%)`,
-            color: "white",
-          }}
-        >
-          {/* Background Pattern Overlay */}
-          <img 
-            src={reportsBg}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
-          />
-
-          {/* Header with Logo */}
-          <div className="relative z-10 pt-16 pb-8 flex justify-center">
-            <img 
-              src={socialLightLogo} 
-              alt="Social Light" 
-              className="h-16 w-auto"
-            />
-          </div>
-
-          {/* Main Content */}
-          <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-8 -mt-20">
-            <h1 className="text-6xl font-extrabold mb-6 tracking-tight">
-              Media Insights Report
-            </h1>
-            <p className="text-2xl font-semibold opacity-90">
-              Prepared for {organizationName}
-            </p>
-          </div>
-
-          {/* Footer Section */}
-          <div className="relative z-10 p-8 flex items-end justify-between">
-            <div className="space-y-1">
-              <p className="text-lg font-semibold opacity-95">
-                {new Date(reportData.createdAt || reportData.created_at || "").toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric"
-                })}
-              </p>
-            </div>
-
-            {/* Organization Logo */}
-            {organizationData?.logoUrl && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <img 
-                  src={organizationData.logoUrl} 
-                  alt={organizationName}
-                  className="h-20 w-20 object-contain"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="relative z-10 bg-black/20 py-3 px-8 flex items-center justify-between text-sm">
-            <span className="opacity-80">© Social Light Botswana | {new Date().getFullYear()}</span>
-            <span className="opacity-80">Unauthorized Reproduction is Prohibited</span>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => navigate(`/reports/${orgId}`)}>
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Reports
+          </Button>
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Page {currentPage} of {totalPages}</span>
           </div>
         </div>
 
-        {/* Report Details Section */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Report Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-3 text-lg">Modules</h3>
-              <div className="flex flex-wrap gap-2">
-                {currentModules.map((module, i) => (
-                  <span key={i} className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium">
-                    {module}
-                  </span>
-                ))}
-              </div>
-              
-              {totalPages > 1 && (
-                <Pagination className="mt-4">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              )}
-            </div>
+        {/* Render Current Page */}
+        {currentPageData === 'cover' && renderCoverPage()}
+        {currentPageData === 'contents' && renderContentsPage()}
+        {typeof currentPageData === 'object' && renderModulePage(currentPageData.mediaType, currentPageData.module)}
 
-            <div>
-              <h3 className="font-semibold mb-3 text-lg">Scope</h3>
-              <div className="flex flex-wrap gap-2">
-                {(Array.isArray(reportData.scope) ? reportData.scope : []).map((country, i) => (
-                  <span key={i} className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium">
-                    {country}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Report visualizations and detailed analytics will be displayed here. This is a placeholder for the full report viewing functionality.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Navigation Controls */}
+        <div className="flex items-center justify-between pt-4">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="w-10 h-10"
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
       </div>
     </SidebarLayout>
   );

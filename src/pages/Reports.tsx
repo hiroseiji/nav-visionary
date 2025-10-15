@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Search, FileText, Plus, Minus, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Report {
   _id: string;
@@ -192,7 +193,24 @@ export default function Reports() {
                               ))}
                             </div>
                           </TableCell>
-                          <TableCell>{formatScope(report.scope)}</TableCell>
+                          <TableCell>
+                            {Array.isArray(report.scope) && report.scope.length > 4 ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="cursor-help">
+                                      {report.scope.slice(0, 4).join(", ")}...
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-md">
+                                    <p>{formatScope(report.scope)}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              formatScope(report.scope)
+                            )}
+                          </TableCell>
                           <TableCell>{report.createdBy || "N/A"}</TableCell>
                           <TableCell>
                             {format(new Date(report.createdAt || report.created_at || ""), "MMM dd, yyyy")}

@@ -1,58 +1,99 @@
 import { Card } from "@/components/ui/card";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Cell, Label } from "recharts";
 
 interface KPIPerformanceProps {
   data?: Array<{
-    metric: string;
-    value: number;
-    target: number;
-    trend: "up" | "down";
-    unit: string;
+    name: string;
+    visibility: number;
+    sentiment: number;
   }>;
 }
 
 export function KPIPerformance({ data }: KPIPerformanceProps) {
   const kpis = data || [
-    { metric: "Share of Voice", value: 42, target: 40, trend: "up" as const, unit: "%" },
-    { metric: "Sentiment Score", value: 73, target: 70, trend: "up" as const, unit: "/100" },
-    { metric: "Response Rate", value: 85, target: 90, trend: "down" as const, unit: "%" },
-    { metric: "Engagement Rate", value: 6.2, target: 5.5, trend: "up" as const, unit: "%" },
+    { name: "Brand Awareness", visibility: 0.02, sentiment: 45 },
+    { name: "Customer Satisfaction", visibility: -0.01, sentiment: 65 },
+    { name: "Product Quality", visibility: 0.04, sentiment: -20 },
+    { name: "Innovation", visibility: -0.03, sentiment: -45 },
+    { name: "Market Position", visibility: 0.01, sentiment: 30 },
   ];
 
+  const getQuadrantColor = (visibility: number, sentiment: number) => {
+    if (sentiment >= 0 && visibility >= 0) return "#22c55e"; // green - top right
+    if (sentiment >= 0 && visibility < 0) return "#eab308"; // yellow - top left
+    if (sentiment < 0 && visibility < 0) return "#ef4444"; // red - bottom left
+    return "#f97316"; // orange - bottom right
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {kpis.map((kpi, idx) => (
-        <Card key={idx} className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">{kpi.metric}</h4>
-              {kpi.trend === "up" ? (
-                <ArrowUp className="h-5 w-5 text-green-500" />
-              ) : (
-                <ArrowDown className="h-5 w-5 text-red-500" />
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">{kpi.value}</span>
-                <span className="text-muted-foreground">{kpi.unit}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Target:</span>
-                <span className="font-medium">{kpi.target}{kpi.unit}</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    kpi.value >= kpi.target ? "bg-green-500" : "bg-orange-500"
-                  }`}
-                  style={{ width: `${Math.min((kpi.value / kpi.target) * 100, 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
+    <Card className="p-6">
+      <h3 className="text-lg font-semibold mb-6">KPI Visibility vs Sentiment</h3>
+      <ResponsiveContainer width="100%" height={500}>
+        <ScatterChart margin={{ top: 40, right: 120, bottom: 40, left: 60 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis 
+            type="number" 
+            dataKey="visibility" 
+            domain={[-0.06, 0.06]}
+            ticks={[-0.06, -0.03, 0, 0.03, 0.06]}
+            stroke="#6b7280"
+          >
+            <Label value="Visibility* (mentions)" offset={-20} position="insideBottom" style={{ fill: '#6b7280' }} />
+          </XAxis>
+          <YAxis 
+            type="number" 
+            dataKey="sentiment" 
+            domain={[-100, 100]}
+            ticks={[-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100]}
+            stroke="#6b7280"
+          >
+            <Label value="Sentiment* (-100 to 100)" angle={-90} position="insideLeft" style={{ fill: '#6b7280', textAnchor: 'middle' }} />
+          </YAxis>
+          
+          <ReferenceLine x={0} stroke="#9ca3af" strokeDasharray="5 5" strokeWidth={2} />
+          <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="5 5" strokeWidth={2} />
+          
+          {/* Quadrant Labels */}
+          <text x="15%" y="15%" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="600">
+            Above-average Sentiment
+          </text>
+          <text x="15%" y="18%" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="600">
+            Below-average Visibility
+          </text>
+          
+          <text x="85%" y="15%" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="600">
+            Above-average Sentiment
+          </text>
+          <text x="85%" y="18%" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="600">
+            Above-average Visibility
+          </text>
+          
+          <text x="15%" y="90%" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="600">
+            Below-average Sentiment
+          </text>
+          <text x="15%" y="93%" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="600">
+            Below-average Visibility
+          </text>
+          
+          <text x="85%" y="90%" textAnchor="middle" fill="#ef4444" fontSize="12" fontWeight="600">
+            Below-average Sentiment
+          </text>
+          <text x="85%" y="93%" textAnchor="middle" fill="#22c55e" fontSize="12" fontWeight="600">
+            Above-average Visibility
+          </text>
+          
+          {/* Center point label */}
+          <text x="50%" y="50%" textAnchor="start" dx={10} fill="#6b7280" fontSize="13" fontWeight="500">
+            KPI Average: 0
+          </text>
+          
+          <Scatter data={kpis} fill="#8b5cf6">
+            {kpis.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getQuadrantColor(entry.visibility, entry.sentiment)} />
+            ))}
+          </Scatter>
+        </ScatterChart>
+      </ResponsiveContainer>
+    </Card>
   );
 }

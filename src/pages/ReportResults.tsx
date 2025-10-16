@@ -43,36 +43,53 @@ export default function ReportResults() {
 
   const gradientTop = organizationData?.gradientTop || "#3175b6";
   const gradientBottom = organizationData?.gradientBottom || "#2e3e8a";
-  const organizationName = organizationData?.alias || organizationData?.organizationName || "Organization";
+  const organizationName =
+    organizationData?.alias ||
+    organizationData?.organizationName ||
+    "Organization";
 
   // Extract modules and media types
-  const modulesData = typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
-    ? reportData.modules
-    : {};
-  
+  const modulesData =
+    typeof reportData.modules === "object" && !Array.isArray(reportData.modules)
+      ? reportData.modules
+      : {};
+
   const mediaTypes = Object.keys(modulesData);
-  
+
   // Create pages array: [cover, contents, ...module pages]
   const allModulePages: Array<{ mediaType: string; module: string }> = [];
-  const executiveSummaryPages: Array<{ mediaType: string; module: string }> = [];
+  const executiveSummaryPages: Array<{ mediaType: string; module: string }> =
+    [];
   const otherModulePages: Array<{ mediaType: string; module: string }> = [];
-  
-  mediaTypes.forEach(mediaType => {
+
+  mediaTypes.forEach((mediaType) => {
     const modules = Object.keys(modulesData[mediaType] || {});
-    modules.forEach(module => {
+    modules.forEach((module) => {
       const page = { mediaType, module };
-      if (module === 'executiveSummary') {
+      if (module === "executiveSummary") {
         executiveSummaryPages.push(page);
       } else {
         otherModulePages.push(page);
       }
     });
   });
-  
-  // Executive Summary first, then other modules
-  const orderedModules = [...executiveSummaryPages, ...otherModulePages];
-  const pages = ['cover', 'contents', ...orderedModules];
-  
+
+  // Build ordered module pages: Executive Summary first, then others
+  const orderedModules: Array<{ mediaType: string; module: string }> = [
+    ...executiveSummaryPages,
+    ...otherModulePages,
+  ];
+
+  // Final pages list: [1: cover, 2: contents, ...module pages]
+  const pages = ["cover", "contents", ...orderedModules];
+
+  // Map each module page to its *actual* page number for Contents navigation
+  const MODULE_START_PAGE = 3; // cover=1, contents=2
+  const pageIndexByKey = new Map<string, number>();
+  orderedModules.forEach((p, i) => {
+    pageIndexByKey.set(`${p.mediaType}:${p.module}`, MODULE_START_PAGE + i);
+  });
+
   const totalPages = pages.length;
   const currentPageData = pages[currentPage - 1];
 
@@ -84,9 +101,11 @@ export default function ReportResults() {
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Reports
           </Button>
-          
+
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Page {currentPage} of {totalPages}</span>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
           </div>
         </div>
 
@@ -118,13 +137,13 @@ export default function ReportResults() {
         <div className="flex items-center justify-between pt-4">
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Previous
           </Button>
-          
+
           <div className="flex items-center gap-2">
             {/* Always show first page */}
             <Button
@@ -143,9 +162,13 @@ export default function ReportResults() {
 
             {/* Show pages around current page */}
             {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(page => {
+              .filter((page) => {
                 // Show pages within 1 of current page, but not first or last
-                return page !== 1 && page !== totalPages && Math.abs(page - currentPage) <= 1;
+                return (
+                  page !== 1 &&
+                  page !== totalPages &&
+                  Math.abs(page - currentPage) <= 1
+                );
               })
               .map((page) => (
                 <Button
@@ -176,10 +199,12 @@ export default function ReportResults() {
               </Button>
             )}
           </div>
-          
+
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            }
             disabled={currentPage === totalPages}
           >
             Next

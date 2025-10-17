@@ -122,9 +122,13 @@ export const ReportModulePage = ({
   const displayMediaType = mediaTypeLabels[mediaType] || mediaType;
   const displayModule = moduleLabels[moduleName] || moduleName;
 
+  // --- Extract data from formData if it exists ---
+  const formData = (reportData as any)?.formData;
+  const dataSource = formData || reportData;
+
   // --- Typed shortcuts ---
-  const r = reportData as ReportWithMedia;
-  const bucketUnknown = reportData as unknown as { [key: string]: unknown };
+  const r = dataSource as ReportWithMedia;
+  const bucketUnknown = dataSource as unknown as { [key: string]: unknown };
   const bucket = bucketUnknown[mediaType];
 
   const mediaBucket: MediaBucket | undefined =
@@ -139,6 +143,8 @@ export const ReportModulePage = ({
   console.log("📊 SentimentTrend Debug:", {
     moduleName,
     mediaType,
+    hasFormData: !!formData,
+    formDataKeys: formData ? Object.keys(formData) : [],
     hasSentimentTrendInRoot: !!r.sentimentTrend,
     hasMediaBucket: !!mediaBucket,
     reportDataKeys: Object.keys(reportData),

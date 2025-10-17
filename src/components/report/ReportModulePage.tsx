@@ -135,6 +135,17 @@ export const ReportModulePage = ({
   // --- Sentiment Trend Fix (JS-style fallback logic) ---
   const isSentimentTrend = moduleName === "sentimentTrend";
 
+  // Debug: Log what we have
+  console.log("📊 SentimentTrend Debug:", {
+    moduleName,
+    mediaType,
+    hasSentimentTrendInRoot: !!r.sentimentTrend,
+    hasMediaBucket: !!mediaBucket,
+    reportDataKeys: Object.keys(reportData),
+    mediaBucketKeys: mediaBucket ? Object.keys(mediaBucket) : [],
+    sentimentTrendLength: r.sentimentTrend?.length,
+  });
+
   // Use the same data pattern as your JS version
   const seriesRaw: SentimentLike[] = isSentimentTrend
     ? r.sentimentTrend ?? []
@@ -159,12 +170,12 @@ export const ReportModulePage = ({
     summary: String(a.summary ?? ""),
   }));
 
-  // --- Conditional Rendering ---
-  if (moduleName === "sentimentTrend") {
-    return (
-      <SentimentTrend data={sentimentData} annotations={sentimentAnnotations} />
-    );
-  }
+  // --- Debug output ---
+  console.log("📈 Sentiment Data:", {
+    sentimentDataLength: sentimentData.length,
+    annotationsLength: sentimentAnnotations.length,
+    firstDataPoint: sentimentData[0],
+  });
 
   const renderModuleComponent = () => {
     switch (moduleName) {

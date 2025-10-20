@@ -118,9 +118,7 @@ export const ReportModulePage = ({
           />
         );
       case "reputationalRisks":
-        const risksData = (mediaBucket as any)?.reputationalRisks ?? (r as any).reputationalRisks;
-        console.log("📍 Reputational Risks Data:", { risksData, hasMediaBucket: !!mediaBucket, mediaType });
-        return <ReputationalRisks data={risksData} />;
+        return <ReputationalRisks />;
       case "reputationalOpportunities":
         return <ReputationalOpportunities />;
       case "issueImpact":

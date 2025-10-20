@@ -154,11 +154,15 @@ export const ReportModulePage = ({
 
   // Use the same data pattern as your JS version
   const seriesRaw: SentimentLike[] = isSentimentTrend
-    ? r.sentimentTrend ?? []
+    ? ((mediaBucket?.sentimentTrend as SentimentLike[]) ??
+       (r.sentimentTrend as unknown as SentimentLike[]) ??
+       [])
     : (mediaBucket?.[moduleName] as SentimentLike[]) ?? [];
 
   const annotationsRaw: SentimentAnnotation[] = isSentimentTrend
-    ? r.sentimentTrendAnnotations ?? []
+    ? ((mediaBucket?.sentimentTrendAnnotations as SentimentAnnotation[]) ??
+       (r.sentimentTrendAnnotations as SentimentAnnotation[]) ??
+       [])
     : (mediaBucket?.[`${moduleName}Annotations`] as SentimentAnnotation[]) ??
       [];
 

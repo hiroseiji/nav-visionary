@@ -15,43 +15,15 @@ import {
   Label,
 } from "recharts";
 
-export interface SentimentPoint {
-  date: string;
-  sentiment: number;
-  rolling: number;
-  industryTrend?: number;
-  positive: number;
-  negative: number;
-  neutral: number;
-  mixed?: number;
-}
+import { SentimentPoint, SentimentAnnotation } from "../../types/sentimentTrend";
+import { getLineColor, getSpikeColor } from "../../utils/sentimentTrendUtils";
 
-export interface SentimentAnnotation {
-  date: string;
-  type: string;
-  category: string;
-  summary: string;
-}
+type DotProps = { cx?: number; cy?: number; payload: SentimentPoint };
 
 interface SentimentTrendProps {
   data: SentimentPoint[];
   annotations?: SentimentAnnotation[];
 }
-
-function getSpikeColor(type: string): string {
-  const t = (type || "").toLowerCase();
-  if (t.includes("negative")) return "#ef4444";
-  if (t.includes("mixed")) return "#5d98ff";
-  if (t.includes("neutral")) return "#9ca3af";
-  return "#10b981";
-}
-function getLineColor(sentiment: number): string {
-  if (sentiment > 0) return "#10b981";
-  if (sentiment < 0) return "#ef4444";
-  return "#9ca3af";
-}
-
-type DotProps = { cx?: number; cy?: number; payload: SentimentPoint };
 
 export function SentimentTrend({
   data,
@@ -70,8 +42,7 @@ export function SentimentTrend({
     [data]
   );
 
-  const isEmpty = !data || data.length === 0;
-  if (isEmpty) return null;
+  if (!data || data.length === 0) return null;
 
   return (
     <div className="space-y-6">

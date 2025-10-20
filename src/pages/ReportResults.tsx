@@ -9,7 +9,22 @@ import { ReportContentsPage } from "@/components/report/ReportContentsPage";
 import { ReportModulePage } from "@/components/report/ReportModulePage";
 
 /* ---------- Local types ---------- */
-type ModulePage = { mediaType: string; module: string };
+type MediaKey = "articles" | "printmedia" | "broadcast" | "posts";
+type ModuleName =
+  | "executiveSummary"
+  | "mediaSummary"
+  | "sentimentTrend"
+  | "topSources"
+  | "topJournalists"
+  | "volumeAndSentiment"
+  | "wordCloud"
+  | "kpiPerformance"
+  | "sectorRanking"
+  | "issueImpact"
+  | "reputationalRisks"
+  | "reputationalOpportunities";
+
+type ModulePage = { mediaType: MediaKey; module: ModuleName };
 type Page = "cover" | "contents" | ModulePage;
 
 type ModulesByMedia = Record<string, Record<string, boolean>>; // mediaType -> { module: enabled }
@@ -83,7 +98,7 @@ export default function ReportResults() {
       const mods = modulesData[mediaType] || {};
       for (const [module, enabled] of Object.entries(mods)) {
         if (!enabled) continue;
-        all.push({ mediaType, module });
+        all.push({ mediaType: mediaType as MediaKey, module: module as ModuleName });
       }
     }
 

@@ -54,7 +54,7 @@ export default function Reports() {
         const res = await axios.get(
           `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/generated-reports/${orgId}`
         );
-        setReports(res.data);
+        setReports(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Failed to fetch reports:", err);
         toast.error("Failed to load generated reports.");
@@ -66,7 +66,8 @@ export default function Reports() {
     fetchReports();
   }, [user, selectedOrg, navigate]);
 
-  const displayedReports = (searchQuery ? filteredReports : reports)
+  const reportsToDisplay = searchQuery ? filteredReports : reports;
+  const displayedReports = (Array.isArray(reportsToDisplay) ? reportsToDisplay : [])
     .sort((a, b) => {
       const da = new Date(a.createdAt ?? a.created_at ?? 0);
       const db = new Date(b.createdAt ?? b.created_at ?? 0);

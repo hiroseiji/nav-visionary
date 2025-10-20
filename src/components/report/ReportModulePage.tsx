@@ -104,6 +104,19 @@ export const ReportModulePage = ({
   // (Your existing console debug can remain if you like)
   // console.log(" Sentiment Data:", { sentimentDataLength: sentimentData.length, ... });
 
+  // Extract module-specific data
+  const moduleDataRaw = isSentimentTrend
+    ? null // already handled above
+    : (mediaBucket?.[moduleName as keyof MediaBucket] as unknown) ??
+      (r[moduleName as keyof ReportWithMedia] as unknown);
+
+  // Normalize to array if needed
+  const moduleData = Array.isArray(moduleDataRaw)
+    ? moduleDataRaw
+    : moduleDataRaw
+    ? [moduleDataRaw]
+    : [];
+
   const renderModuleComponent = () => {
     switch (moduleName) {
       case "executiveSummary":
@@ -118,9 +131,9 @@ export const ReportModulePage = ({
           />
         );
       case "reputationalRisks":
-        return <ReputationalRisks />;
+        return <ReputationalRisks data={moduleData} />;
       case "reputationalOpportunities":
-        return <ReputationalOpportunities />;
+        return <ReputationalOpportunities data={moduleData} />;
       case "issueImpact":
         return <IssueImpact />;
       case "topSources":

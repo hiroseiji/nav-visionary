@@ -123,8 +123,11 @@ export const ReportModulePage = ({
   const displayModule = moduleLabels[moduleName] || moduleName;
 
   // --- Extract data from formData if it exists ---
-  const formData = (reportData as any)?.formData;
-  const dataSource = formData || reportData;
+  const formDataUnknown = (reportData as { formData?: unknown }).formData;
+  const formData = isObject(formDataUnknown)
+    ? (formDataUnknown as Record<string, unknown>)
+    : undefined;
+  const dataSource = formData ?? reportData;
 
   // --- Typed shortcuts ---
   const r = dataSource as ReportWithMedia;

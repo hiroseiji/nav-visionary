@@ -249,7 +249,13 @@ export default function Reports() {
                                   user?.role === "super_admin"
                                     ? selectedOrg
                                     : user?.organizationId;
-                                navigate(`/reports/${orgId}/${report._id}`);
+                                
+                                if (!orgId) {
+                                  toast.error("Organization ID not found");
+                                  return;
+                                }
+                                
+                                navigate(`/report/${orgId}/${report._id}`);
                               }}
                             >
                               <FileText className="h-4 w-4 mr-2" />

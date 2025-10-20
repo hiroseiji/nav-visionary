@@ -44,7 +44,6 @@ export interface Organization {
   gradientBottom?: string;
 }
 
-
 export interface Report {
   _id: string;
   title: string;
@@ -69,15 +68,6 @@ export interface Report {
   formData?: Partial<Report> & Record<string, unknown>;
 }
 
-export interface Organization {
-  _id: string;
-  organizationName: string;
-  alias?: string;
-  logoUrl?: string;
-  gradientTop?: string;
-  gradientBottom?: string;
-}
-
 const API_BASE = "https://sociallightbw-backend-34f7586fa57c.herokuapp.com";
 
 export const useReportData = (
@@ -90,61 +80,55 @@ export const useReportData = (
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!reportId) return;
+  if (!reportId) return;
 
-    const fetchReport = async () => {
-      setLoading(true);
-      try {
-        // Use the JSON endpoint (NOT /view/:id) and bypass cache during dev
-        const reportUrl = `${API_BASE}/reports/generated-reports/${reportId}?format=json&t=${Date.now()}`;
-        const res = await axios.get<Report>(reportUrl, {
+  const fetchReport = async () => {
+    setLoading(true);
+    try {
+      const reportUrl = `${API_BASE}/reports/generated-reports/view/${reportId}?t=${Date.now()}`;
+      const res = await axios.get<Report>(reportUrl, {
+        headers: {
+          Accept: "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
+        validateStatus: (s) => s >= 200 && s < 300, // treat 304 as failure
+      });
+
+      const report = res.data;
+      setReportData(report);
+
+      const orgIdToFetch = report.organizationId || orgId;
+      if (orgIdToFetch) {
+        const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
+        const orgRes = await axios.get<Organization>(orgUrl, {
           headers: {
             Accept: "application/json",
             "Cache-Control": "no-cache",
             Pragma: "no-cache",
           },
-          // Make 304s unlikely while testing:
-          validateStatus: (s) => s >= 200 && s < 300, // treat 304 as failure
+          validateStatus: (s) => s >= 200 && s < 300,
         });
-
-        const report = res.data;
-        setReportData(report);
-
-        // org lookup (prefer report.organizationId)
-        const orgIdToFetch = report.organizationId || orgId;
-        if (orgIdToFetch) {
-          const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
-          const orgRes = await axios.get<Organization>(orgUrl, {
-            headers: {
-              Accept: "application/json",
-              "Cache-Control": "no-cache",
-              Pragma: "no-cache",
-            },
-            validateStatus: (s) => s >= 200 && s < 300,
-          });
-          setOrganizationData(orgRes.data);
-        } else {
-          setOrganizationData(null);
-        }
-      } catch (err: unknown) {               
-        if (isAxiosError(err)) {           
-          console.error(
-            "Failed to fetch report/org:",
-            err.response?.status,
-            err.message
-          );
-        } else {
-          console.error("Failed to fetch report/org:", err);
-        }
-        toast.error("Failed to load report");
-        navigate(`/reports/${orgId || ""}`);
-      } finally {
-        setLoading(false);
+        setOrganizationData(orgRes.data);
+      } else {
+        setOrganizationData(null);
       }
-    };
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        console.error("Failed to fetch report/org:", err.response?.status, err.message);
+      } else {
+        console.error("Failed to fetch report/org:", err);
+      }
+      toast.error("Failed to load report");
+      navigate(`/reports/${orgId || ""}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchReport();
-  }, [reportId, orgId, navigate]);
+  fetchReport();
+}, [reportId, orgId, navigate]);
+
 
   return { reportData, organizationData, loading };
 };

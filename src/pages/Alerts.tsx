@@ -162,11 +162,15 @@ export default function Alerts() {
 
   return (
     <SidebarLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Alerts Management</h1>
-            <p className="text-muted-foreground mt-2">Configure and manage email alerts</p>
+            <h1 className="text-4xl font-bold tracking-tight">
+              Alerts Management
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Configure and manage email alerts
+            </p>
           </div>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
@@ -178,7 +182,9 @@ export default function Alerts() {
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Create New Alert</DialogTitle>
-                <DialogDescription>Set up a new email alert for your organization</DialogDescription>
+                <DialogDescription>
+                  Set up a new email alert for your organization
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
@@ -224,7 +230,9 @@ export default function Alerts() {
                       max={schedule === "weekly" ? "7" : "31"}
                       value={delivery}
                       onChange={(e) => setDelivery(e.target.value)}
-                      placeholder={schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"}
+                      placeholder={
+                        schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"
+                      }
                       required
                     />
                   </div>
@@ -241,16 +249,22 @@ export default function Alerts() {
                     placeholder="email1@example.com, email2@example.com"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">Separate multiple emails with commas</p>
+                  <p className="text-xs text-muted-foreground">
+                    Separate multiple emails with commas
+                  </p>
                   {emailError && (
                     <p className="text-xs text-destructive">{emailError}</p>
                   )}
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => {
-                    setIsModalOpen(false);
-                    resetForm();
-                  }}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit">Create Alert</Button>
@@ -264,8 +278,12 @@ export default function Alerts() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Bell className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">No alerts configured</h3>
-              <p className="text-muted-foreground mb-4">Create your first alert to get started</p>
+              <h3 className="text-xl font-semibold mb-2">
+                No alerts configured
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Create your first alert to get started
+              </p>
               <Button onClick={() => setIsModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Alert
@@ -276,7 +294,9 @@ export default function Alerts() {
           <Card>
             <CardHeader>
               <CardTitle>Active Alerts</CardTitle>
-              <CardDescription>Manage your configured email alerts</CardDescription>
+              <CardDescription>
+                Manage your configured email alerts
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
@@ -294,7 +314,9 @@ export default function Alerts() {
                   <TableBody>
                     {alerts.map((alert) => (
                       <TableRow key={alert._id}>
-                        <TableCell className="font-medium">{alert.alertName}</TableCell>
+                        <TableCell className="font-medium">
+                          {alert.alertName}
+                        </TableCell>
                         <TableCell>{alert.subject}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -309,7 +331,9 @@ export default function Alerts() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={alert.isActive ? "default" : "secondary"}>
+                          <Badge
+                            variant={alert.isActive ? "default" : "secondary"}
+                          >
                             {alert.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
@@ -318,8 +342,8 @@ export default function Alerts() {
                             <Button variant="ghost" size="sm">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(alert._id)}
                             >

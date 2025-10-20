@@ -65,11 +65,13 @@ export default function Analytics() {
 
   return (
     <SidebarLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Analytics</h1>
-            <p className="text-muted-foreground mt-2">Comprehensive analytics and insights</p>
+            <p className="text-muted-foreground mt-2">
+              Comprehensive analytics and insights
+            </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setShowCreateReport(true)}>
@@ -104,9 +106,9 @@ export default function Analytics() {
         <TooltipProvider>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* First Card - Primary Blue with gradient */}
-            <div 
+            <div
               className="rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-foreground"
-              style={{ background: 'var(--gradient-primary)' }}
+              style={{ background: "var(--gradient-primary)" }}
             >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-base font-medium">Total Mentions</h4>
@@ -122,12 +124,16 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-6xl font-bold">{totalArticles.toLocaleString()}</p>
+                <p className="text-6xl font-bold">
+                  {totalArticles.toLocaleString()}
+                </p>
                 <div className="flex items-center gap-2">
                   <div className="rounded-md p-1.5 bg-primary-foreground/10">
                     <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
                   </div>
-                  <span className="text-sm text-primary-foreground/80">Increased from last month</span>
+                  <span className="text-sm text-primary-foreground/80">
+                    Increased from last month
+                  </span>
                 </div>
               </div>
             </div>
@@ -148,12 +154,16 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-6xl font-bold">{monthlyMentions.toLocaleString()}</p>
+                <p className="text-6xl font-bold">
+                  {monthlyMentions.toLocaleString()}
+                </p>
                 <div className="flex items-center gap-2">
                   <div className="rounded-md p-1.5 bg-muted">
                     <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
-                  <span className="text-sm text-muted-foreground">Increased from last month</span>
+                  <span className="text-sm text-muted-foreground">
+                    Increased from last month
+                  </span>
                 </div>
               </div>
             </div>
@@ -172,18 +182,18 @@ export default function Analytics() {
                     <p>Active media channels being monitored</p>
                   </TooltipContent>
                 </Tooltip>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {["Online", "Broadcast", "Social", "Print"].map((type, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
+                  >
+                    {type}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 pt-2">
-              {['Online', 'Broadcast', 'Social', 'Print'].map((type, idx) => (
-                <span 
-                  key={idx}
-                  className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
-                >
-                  {type}
-                </span>
-              ))}
-            </div>
-          </div>
 
             {/* Fourth Card - White */}
             <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
@@ -206,7 +216,9 @@ export default function Analytics() {
                   <div className="rounded-md p-1.5 bg-muted">
                     <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
-                  <span className="text-sm text-muted-foreground">Decreased from last month</span>
+                  <span className="text-sm text-muted-foreground">
+                    Decreased from last month
+                  </span>
                 </div>
               </div>
             </div>
@@ -225,7 +237,9 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle>Mentions Over Time</CardTitle>
-                <CardDescription>Tracking your brand mentions across all channels</CardDescription>
+                <CardDescription>
+                  Tracking your brand mentions across all channels
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-80 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -240,7 +254,9 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle>Top Keywords</CardTitle>
-                <CardDescription>Most mentioned keywords in your content</CardDescription>
+                <CardDescription>
+                  Most mentioned keywords in your content
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-80 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -254,7 +270,9 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle>Source Distribution</CardTitle>
-                <CardDescription>Where your mentions are coming from</CardDescription>
+                <CardDescription>
+                  Where your mentions are coming from
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-80 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -268,7 +286,9 @@ export default function Analytics() {
             <Card>
               <CardHeader>
                 <CardTitle>Geographic Coverage</CardTitle>
-                <CardDescription>Map of your brand's geographic reach</CardDescription>
+                <CardDescription>
+                  Map of your brand's geographic reach
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-80 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -287,7 +307,7 @@ export default function Analytics() {
             organizationName="Organization"
             user={{
               firstName: user.firstName || "",
-              lastName: user.lastName || ""
+              lastName: user.lastName || "",
             }}
           />
         )}

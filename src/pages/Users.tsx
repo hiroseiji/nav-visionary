@@ -184,15 +184,15 @@ const Users = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
-                <UsersIcon className="h-8 w-8" />
                 User Management
               </h1>
-              <p className="text-muted-foreground">Manage platform users and their roles</p>
+              <p className="text-muted-foreground">
+                Manage platform users and their roles
+              </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -203,9 +203,13 @@ const Users = () => {
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>{editUser ? "Edit User" : "Add New User"}</DialogTitle>
+                  <DialogTitle>
+                    {editUser ? "Edit User" : "Add New User"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editUser ? "Modify user details" : "Fill in the details to add a new user"}
+                    {editUser
+                      ? "Modify user details"
+                      : "Fill in the details to add a new user"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -258,7 +262,10 @@ const Users = () => {
                   {userRole === "org_admin" && (
                     <div className="space-y-2">
                       <Label htmlFor="organization">Organization</Label>
-                      <Select value={selectedOrg} onValueChange={setSelectedOrg}>
+                      <Select
+                        value={selectedOrg}
+                        onValueChange={setSelectedOrg}
+                      >
                         <SelectTrigger id="organization">
                           <SelectValue placeholder="Select Organization" />
                         </SelectTrigger>
@@ -283,7 +290,6 @@ const Users = () => {
           <Card>
             <CardHeader>
               <CardTitle>All Users</CardTitle>
-              <CardDescription>View and manage all platform users</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -310,7 +316,13 @@ const Users = () => {
                           </TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
-                            <Badge variant={user.role === "super_admin" ? "default" : "secondary"}>
+                            <Badge
+                              variant={
+                                user.role === "super_admin"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
                               {roleDisplayMap[user.role] || user.role}
                             </Badge>
                           </TableCell>
@@ -329,7 +341,12 @@ const Users = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setDeleteDialog({ open: true, userId: user._id })}
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  userId: user._id,
+                                })
+                              }
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -338,7 +355,10 @@ const Users = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={5}
+                          className="text-center text-muted-foreground"
+                        >
                           No users found
                         </TableCell>
                       </TableRow>
@@ -348,15 +368,19 @@ const Users = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+        {/* </div> */}
       </div>
 
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, userId: null })}>
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, userId: null })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user.
+              This action cannot be undone. This will permanently delete the
+              user.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

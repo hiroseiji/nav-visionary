@@ -262,25 +262,40 @@ const Organizations = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Building2 className="h-8 w-8" />
-                {view === "list" ? "Organizations" : editMode ? "Edit Organization" : "Add Organization"}
+                {view === "list"
+                  ? "Organizations"
+                  : editMode
+                  ? "Edit Organization"
+                  : "Add Organization"}
               </h1>
               <p className="text-muted-foreground">
-                {view === "list" ? "Manage all organizations" : "Fill in organization details"}
+                {view === "list"
+                  ? "Manage all organizations"
+                  : "Fill in organization details"}
               </p>
             </div>
             {view === "list" ? (
-              <Button onClick={() => { resetForm(); setView("form"); }}>
+              <Button
+                onClick={() => {
+                  resetForm();
+                  setView("form");
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Organization
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => { setView("list"); resetForm(); }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setView("list");
+                  resetForm();
+                }}
+              >
                 Back to List
               </Button>
             )}
@@ -288,10 +303,7 @@ const Organizations = () => {
 
           {view === "list" ? (
             <Card>
-              <CardHeader>
-                <CardTitle>All Organizations</CardTitle>
-                <CardDescription>View and manage all organizations</CardDescription>
-              </CardHeader>
+              
               <CardContent>
                 {loading ? (
                   <div className="flex justify-center py-8">
@@ -313,12 +325,20 @@ const Organizations = () => {
                       {organizations.length > 0 ? (
                         organizations.map((org) => (
                           <TableRow key={org._id}>
-                            <TableCell className="font-medium">{org.organizationName}</TableCell>
+                            <TableCell className="font-medium">
+                              {org.organizationName}
+                            </TableCell>
                             <TableCell>{org.email}</TableCell>
                             <TableCell>{org.industry}</TableCell>
                             <TableCell>{org.country}</TableCell>
                             <TableCell>
-                              <Badge variant={org.status === "active" ? "default" : "secondary"}>
+                              <Badge
+                                variant={
+                                  org.status === "active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
                                 {org.status || "Active"}
                               </Badge>
                             </TableCell>
@@ -333,7 +353,12 @@ const Organizations = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setDeleteDialog({ open: true, orgId: org._id || null })}
+                                onClick={() =>
+                                  setDeleteDialog({
+                                    open: true,
+                                    orgId: org._id || null,
+                                  })
+                                }
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -342,7 +367,10 @@ const Organizations = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          <TableCell
+                            colSpan={6}
+                            className="text-center text-muted-foreground"
+                          >
                             No organizations found
                           </TableCell>
                         </TableRow>
@@ -365,16 +393,22 @@ const Organizations = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle>Basic Information</CardTitle>
-                      <CardDescription>Core organization details</CardDescription>
+                      <CardDescription>
+                        Core organization details
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="organizationName">Organization Name *</Label>
+                          <Label htmlFor="organizationName">
+                            Organization Name *
+                          </Label>
                           <Input
                             id="organizationName"
                             value={formData.organizationName}
-                            onChange={(e) => handleChange("organizationName", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("organizationName", e.target.value)
+                            }
                             required
                           />
                         </div>
@@ -382,7 +416,9 @@ const Organizations = () => {
                           <Label htmlFor="industry">Industry *</Label>
                           <Select
                             value={formData.industry}
-                            onValueChange={(value) => handleChange("industry", value)}
+                            onValueChange={(value) =>
+                              handleChange("industry", value)
+                            }
                           >
                             <SelectTrigger id="industry">
                               <SelectValue placeholder="Select Industry" />
@@ -401,7 +437,9 @@ const Organizations = () => {
                           <Input
                             id="address"
                             value={formData.address}
-                            onChange={(e) => handleChange("address", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("address", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -409,7 +447,9 @@ const Organizations = () => {
                           <Input
                             id="country"
                             value={formData.country}
-                            onChange={(e) => handleChange("country", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("country", e.target.value)
+                            }
                             required
                           />
                         </div>
@@ -422,7 +462,9 @@ const Organizations = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle>Contact Information</CardTitle>
-                      <CardDescription>Contact details and social media</CardDescription>
+                      <CardDescription>
+                        Contact details and social media
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -432,7 +474,9 @@ const Organizations = () => {
                             id="email"
                             type="email"
                             value={formData.email}
-                            onChange={(e) => handleChange("email", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("email", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -440,7 +484,9 @@ const Organizations = () => {
                           <Input
                             id="phoneNumber"
                             value={formData.phoneNumber}
-                            onChange={(e) => handleChange("phoneNumber", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("phoneNumber", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -448,7 +494,9 @@ const Organizations = () => {
                           <Input
                             id="website"
                             value={formData.website}
-                            onChange={(e) => handleChange("website", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("website", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -456,7 +504,9 @@ const Organizations = () => {
                           <Input
                             id="facebookUrl"
                             value={formData.facebookUrl}
-                            onChange={(e) => handleChange("facebookUrl", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("facebookUrl", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -464,7 +514,9 @@ const Organizations = () => {
                           <Input
                             id="linkedinUrl"
                             value={formData.linkedinUrl}
-                            onChange={(e) => handleChange("linkedinUrl", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("linkedinUrl", e.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -472,7 +524,9 @@ const Organizations = () => {
                           <Input
                             id="xHandle"
                             value={formData.xHandle}
-                            onChange={(e) => handleChange("xHandle", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("xHandle", e.target.value)
+                            }
                             placeholder="@username"
                           />
                         </div>
@@ -485,20 +539,32 @@ const Organizations = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle>Monitoring Configuration</CardTitle>
-                      <CardDescription>Set up keywords and competitors</CardDescription>
+                      <CardDescription>
+                        Set up keywords and competitors
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="space-y-2">
                         <Label>Monitoring Types</Label>
                         <div className="grid grid-cols-2 gap-4">
                           {monitoringTypes.map((type) => (
-                            <div key={type.value} className="flex items-center space-x-2">
+                            <div
+                              key={type.value}
+                              className="flex items-center space-x-2"
+                            >
                               <Checkbox
                                 id={type.value}
-                                checked={formData.monitoringType.includes(type.value)}
-                                onCheckedChange={() => handleMonitoringTypeToggle(type.value)}
+                                checked={formData.monitoringType.includes(
+                                  type.value
+                                )}
+                                onCheckedChange={() =>
+                                  handleMonitoringTypeToggle(type.value)
+                                }
                               />
-                              <Label htmlFor={type.value} className="cursor-pointer">
+                              <Label
+                                htmlFor={type.value}
+                                className="cursor-pointer"
+                              >
                                 {type.label}
                               </Label>
                             </div>
@@ -513,7 +579,10 @@ const Organizations = () => {
                             id="keywords"
                             value={keywordInput}
                             onChange={(e) => setKeywordInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddKeyword())}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" &&
+                              (e.preventDefault(), handleAddKeyword())
+                            }
                             placeholder="Add a keyword and press Enter"
                           />
                           <Button type="button" onClick={handleAddKeyword}>
@@ -543,7 +612,10 @@ const Organizations = () => {
                             id="competitors"
                             value={competitorInput}
                             onChange={(e) => setCompetitorInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCompetitor())}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" &&
+                              (e.preventDefault(), handleAddCompetitor())
+                            }
                             placeholder="Add a competitor and press Enter"
                           />
                           <Button type="button" onClick={handleAddCompetitor}>
@@ -556,7 +628,9 @@ const Organizations = () => {
                               {competitor}
                               <button
                                 type="button"
-                                onClick={() => handleRemoveCompetitor(competitor)}
+                                onClick={() =>
+                                  handleRemoveCompetitor(competitor)
+                                }
                                 className="ml-2"
                               >
                                 <X className="h-3 w-3" />
@@ -571,7 +645,14 @@ const Organizations = () => {
               </Tabs>
 
               <div className="flex justify-end gap-2 mt-6">
-                <Button type="button" variant="outline" onClick={() => { setView("list"); resetForm(); }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setView("list");
+                    resetForm();
+                  }}
+                >
                   Cancel
                 </Button>
                 <Button type="submit">
@@ -580,15 +661,19 @@ const Organizations = () => {
               </div>
             </form>
           )}
-        </div>
+        {/* </div> */}
       </div>
 
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}>
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the organization.
+              This action cannot be undone. This will permanently delete the
+              organization.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -451,7 +451,7 @@ useEffect(() => {
       </CountryModal>
 
       <SidebarLayout>
-        <div className="space-y-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           <h2 className="text-3xl font-bold">
             {organizationData?.organization?.alias || "Organization"}'s
             Dashboard
@@ -702,7 +702,8 @@ useEffect(() => {
                   url: article.url || "",
                   ave: article.ave || 0,
                   coverage_type: article.stationType || "Broadcast",
-                  station_type: article.stationType || article.station_type || "",
+                  station_type:
+                    article.stationType || article.station_type || "",
                   rank: 0,
                   reach: 0,
                   snippet: "",

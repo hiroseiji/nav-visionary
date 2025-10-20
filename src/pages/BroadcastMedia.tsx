@@ -340,13 +340,11 @@ export default function BroadcastMedia() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Radio className="h-8 w-8" />
                 Broadcast Media
               </h1>
               <p className="text-muted-foreground">
@@ -657,30 +655,38 @@ export default function BroadcastMedia() {
                 </div>
               ) : (
                 <>
-                   <Table>
-                     <TableHeader>
+                  <Table>
+                    <TableHeader>
                       <TableRow>
                         <TableHead>Station</TableHead>
                         <TableHead>Headline</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Country</TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('mentionDT')}
+                          onClick={() => handleSort("mentionDT")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'mentionDT' ? 'text-primary' : ''}`} />
+                            <ArrowUpDown
+                              className={`h-4 w-4 ${
+                                sortBy === "mentionDT" ? "text-primary" : ""
+                              }`}
+                            />
                           </div>
                         </TableHead>
                         <TableHead>Sentiment</TableHead>
-                        <TableHead 
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('ave')}
+                          onClick={() => handleSort("ave")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
+                            <ArrowUpDown
+                              className={`h-4 w-4 ${
+                                sortBy === "ave" ? "text-primary" : ""
+                              }`}
+                            />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>
@@ -782,7 +788,6 @@ export default function BroadcastMedia() {
             </CardContent>
           </Card>
         </div>
-      </div>
     </SidebarLayout>
   );
 }

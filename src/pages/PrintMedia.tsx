@@ -317,13 +317,11 @@ export default function PrintMedia() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Newspaper className="h-8 w-8" />
                 Print Media
               </h1>
               <p className="text-muted-foreground">
@@ -621,23 +619,33 @@ export default function PrintMedia() {
                         <TableHead>Publication</TableHead>
                         <TableHead>Section</TableHead>
                         <TableHead>Country</TableHead>
-                        <TableHead 
+                        <TableHead
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('publicationDate')}
+                          onClick={() => handleSort("publicationDate")}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'publicationDate' ? 'text-primary' : ''}`} />
+                            <ArrowUpDown
+                              className={`h-4 w-4 ${
+                                sortBy === "publicationDate"
+                                  ? "text-primary"
+                                  : ""
+                              }`}
+                            />
                           </div>
                         </TableHead>
                         <TableHead>Sentiment</TableHead>
-                        <TableHead 
+                        <TableHead
                           className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort('ave')}
+                          onClick={() => handleSort("ave")}
                         >
                           <div className="flex items-center justify-end gap-1">
                             AVE
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === 'ave' ? 'text-primary' : ''}`} />
+                            <ArrowUpDown
+                              className={`h-4 w-4 ${
+                                sortBy === "ave" ? "text-primary" : ""
+                              }`}
+                            />
                           </div>
                         </TableHead>
                         <TableHead></TableHead>
@@ -729,7 +737,6 @@ export default function PrintMedia() {
             </CardContent>
           </Card>
         </div>
-      </div>
     </SidebarLayout>
   );
 }

@@ -173,18 +173,24 @@ export default function MediaSources() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Paperclip className="h-8 w-8" />
                 Media Sources
               </h1>
-              <p className="text-muted-foreground">Manage your media sources and contacts</p>
+              <p className="text-muted-foreground">
+                Manage your media sources and contacts
+              </p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
@@ -193,9 +199,15 @@ export default function MediaSources() {
               </DialogTrigger>
               <DialogContent className="max-w-xl">
                 <DialogHeader>
-                  <DialogTitle>{editingSource ? "Edit Media Source" : "Add New Media Source"}</DialogTitle>
+                  <DialogTitle>
+                    {editingSource
+                      ? "Edit Media Source"
+                      : "Add New Media Source"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editingSource ? "Update the media source details" : "Add a new media source to your database"}
+                    {editingSource
+                      ? "Update the media source details"
+                      : "Add a new media source to your database"}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -204,14 +216,21 @@ export default function MediaSources() {
                     <Input
                       id="name"
                       value={newSource.name}
-                      onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
+                      onChange={(e) =>
+                        setNewSource({ ...newSource, name: e.target.value })
+                      }
                       placeholder="Media source name"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="type">Type</Label>
-                      <Select value={newSource.type} onValueChange={(value) => setNewSource({ ...newSource, type: value })}>
+                      <Select
+                        value={newSource.type}
+                        onValueChange={(value) =>
+                          setNewSource({ ...newSource, type: value })
+                        }
+                      >
                         <SelectTrigger id="type">
                           <SelectValue />
                         </SelectTrigger>
@@ -228,7 +247,12 @@ export default function MediaSources() {
                       <Input
                         id="country"
                         value={newSource.country}
-                        onChange={(e) => setNewSource({ ...newSource, country: e.target.value })}
+                        onChange={(e) =>
+                          setNewSource({
+                            ...newSource,
+                            country: e.target.value,
+                          })
+                        }
                         placeholder="Country"
                       />
                     </div>
@@ -239,7 +263,9 @@ export default function MediaSources() {
                       <Input
                         id="domain"
                         value={newSource.domain}
-                        onChange={(e) => setNewSource({ ...newSource, domain: e.target.value })}
+                        onChange={(e) =>
+                          setNewSource({ ...newSource, domain: e.target.value })
+                        }
                         placeholder="example.com"
                       />
                     </div>
@@ -248,7 +274,9 @@ export default function MediaSources() {
                       <Input
                         id="handle"
                         value={newSource.handle}
-                        onChange={(e) => setNewSource({ ...newSource, handle: e.target.value })}
+                        onChange={(e) =>
+                          setNewSource({ ...newSource, handle: e.target.value })
+                        }
                         placeholder="@handle"
                       />
                     </div>
@@ -259,16 +287,31 @@ export default function MediaSources() {
                       id="reach"
                       type="number"
                       value={newSource.reach}
-                      onChange={(e) => setNewSource({ ...newSource, reach: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setNewSource({
+                          ...newSource,
+                          reach: Number(e.target.value),
+                        })
+                      }
                       placeholder="0"
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={editingSource ? handleUpdateSource : handleAddSource}>
+                  <Button
+                    onClick={
+                      editingSource ? handleUpdateSource : handleAddSource
+                    }
+                  >
                     {editingSource ? "Update" : "Add"} Source
                   </Button>
                 </DialogFooter>
@@ -316,9 +359,13 @@ export default function MediaSources() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading sources...</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading sources...
+                </div>
               ) : filteredSources.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No media sources found</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  No media sources found
+                </div>
               ) : (
                 <>
                   <Table>
@@ -335,13 +382,17 @@ export default function MediaSources() {
                     <TableBody>
                       {filteredSources.slice(0, visibleCount).map((source) => (
                         <TableRow key={source._id}>
-                          <TableCell className="font-medium">{source.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {source.name}
+                          </TableCell>
                           <TableCell>{getTypeBadge(source.type)}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {source.domain || source.handle || "-"}
                           </TableCell>
                           <TableCell>{source.country}</TableCell>
-                          <TableCell className="text-right">{source.reach?.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">
+                            {source.reach?.toLocaleString()}
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -350,10 +401,15 @@ export default function MediaSources() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditDialog(source)}>
+                                <DropdownMenuItem
+                                  onClick={() => openEditDialog(source)}
+                                >
                                   Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteSource(source._id)} className="text-destructive">
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteSource(source._id)}
+                                  className="text-destructive"
+                                >
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -365,7 +421,10 @@ export default function MediaSources() {
                   </Table>
                   {filteredSources.length > visibleCount && (
                     <div className="mt-4 text-center">
-                      <Button variant="outline" onClick={() => setVisibleCount(visibleCount + 20)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setVisibleCount(visibleCount + 20)}
+                      >
                         Load More
                       </Button>
                     </div>
@@ -375,7 +434,6 @@ export default function MediaSources() {
             </CardContent>
           </Card>
         </div>
-      </div>
     </SidebarLayout>
   );
 }

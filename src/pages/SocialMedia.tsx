@@ -264,463 +264,475 @@ export default function SocialMedia() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Social Media
-              </h1>
-              <p className="text-muted-foreground">
-                Monitor social media coverage and engagement
-              </p>
-            </div>
-            <Dialog
-              open={isDialogOpen}
-              onOpenChange={(open) => {
-                setIsDialogOpen(open);
-                if (!open) resetForm();
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Post
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingPost ? "Edit Post" : "Add New Post"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingPost
-                      ? "Update the post details below"
-                      : "Fill in the details for the new post"}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="pageName">Page Name</Label>
-                    <Input
-                      id="pageName"
-                      value={newPost.pageName}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, pageName: e.target.value })
-                      }
-                      placeholder="Page or account name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="logo_url">Logo URL</Label>
-                    <Input
-                      id="logo_url"
-                      value={newPost.logo_url}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, logo_url: e.target.value })
-                      }
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="link">Post Link</Label>
-                    <Input
-                      id="link"
-                      value={newPost.link}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, link: e.target.value })
-                      }
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      value={newPost.message}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, message: e.target.value })
-                      }
-                      placeholder="Post content..."
-                      rows={4}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="source">Platform</Label>
-                      <Select
-                        value={newPost.source}
-                        onValueChange={(value) =>
-                          setNewPost({ ...newPost, source: value })
-                        }
-                      >
-                        <SelectTrigger id="source">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="facebook">Facebook</SelectItem>
-                          <SelectItem value="twitter">Twitter</SelectItem>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="linkedin">LinkedIn</SelectItem>
-                          <SelectItem value="tiktok">TikTok</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Input
-                        id="country"
-                        value={newPost.country}
-                        onChange={(e) =>
-                          setNewPost({ ...newPost, country: e.target.value })
-                        }
-                        placeholder="Country"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="group">Group</Label>
-                    <Input
-                      id="group"
-                      value={newPost.group}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, group: e.target.value })
-                      }
-                      placeholder="Group name"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select
-                        value={newPost.sentiment}
-                        onValueChange={(value) =>
-                          setNewPost({ ...newPost, sentiment: value })
-                        }
-                      >
-                        <SelectTrigger id="sentiment">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="positive">Positive</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="negative">Negative</SelectItem>
-                          <SelectItem value="mixed">Mixed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="reach">Reach</Label>
-                      <Input
-                        id="reach"
-                        type="number"
-                        value={newPost.reach}
-                        onChange={(e) =>
-                          setNewPost({
-                            ...newPost,
-                            reach: Number(e.target.value),
-                          })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="ave">AVE</Label>
-                      <Input
-                        id="ave"
-                        type="number"
-                        value={newPost.ave}
-                        onChange={(e) =>
-                          setNewPost({
-                            ...newPost,
-                            ave: Number(e.target.value),
-                          })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="createdTime">Date Published</Label>
-                      <Input
-                        id="createdTime"
-                        type="date"
-                        value={newPost.createdTime}
-                        onChange={(e) =>
-                          setNewPost({
-                            ...newPost,
-                            createdTime: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="url">URL</Label>
-                      <Input
-                        id="url"
-                        value={newPost.url}
-                        onChange={(e) =>
-                          setNewPost({ ...newPost, url: e.target.value })
-                        }
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={editingPost ? handleUpdatePost : handleAddPost}
-                  >
-                    {editingPost ? "Update" : "Add"} Post
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Social Media</h1>
+            <p className="text-muted-foreground">
+              Monitor social media coverage and engagement
+            </p>
           </div>
-
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Filters & Search</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingPost ? "Edit Post" : "Add New Post"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingPost
+                    ? "Update the post details below"
+                    : "Fill in the details for the new post"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="pageName">Page Name</Label>
                   <Input
-                    placeholder="Search posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
+                    id="pageName"
+                    value={newPost.pageName}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, pageName: e.target.value })
+                    }
+                    placeholder="Page or account name"
                   />
                 </div>
-                <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Platforms</SelectItem>
-                    {uniqueSources.map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {source}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={sentimentFilter}
-                  onValueChange={setSentimentFilter}
+                <div className="grid gap-2">
+                  <Label htmlFor="logo_url">Logo URL</Label>
+                  <Input
+                    id="logo_url"
+                    value={newPost.logo_url}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, logo_url: e.target.value })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="link">Post Link</Label>
+                  <Input
+                    id="link"
+                    value={newPost.link}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, link: e.target.value })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={newPost.message}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, message: e.target.value })
+                    }
+                    placeholder="Post content..."
+                    rows={4}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="source">Platform</Label>
+                    <Select
+                      value={newPost.source}
+                      onValueChange={(value) =>
+                        setNewPost({ ...newPost, source: value })
+                      }
+                    >
+                      <SelectTrigger id="source">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="facebook">Facebook</SelectItem>
+                        <SelectItem value="twitter">Twitter</SelectItem>
+                        <SelectItem value="instagram">Instagram</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                        <SelectItem value="tiktok">TikTok</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={newPost.country}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, country: e.target.value })
+                      }
+                      placeholder="Country"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="group">Group</Label>
+                  <Input
+                    id="group"
+                    value={newPost.group}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, group: e.target.value })
+                    }
+                    placeholder="Group name"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="sentiment">Sentiment</Label>
+                    <Select
+                      value={newPost.sentiment}
+                      onValueChange={(value) =>
+                        setNewPost({ ...newPost, sentiment: value })
+                      }
+                    >
+                      <SelectTrigger id="sentiment">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="positive">Positive</SelectItem>
+                        <SelectItem value="neutral">Neutral</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                        <SelectItem value="mixed">Mixed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="reach">Reach</Label>
+                    <Input
+                      id="reach"
+                      type="number"
+                      value={newPost.reach}
+                      onChange={(e) =>
+                        setNewPost({
+                          ...newPost,
+                          reach: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="ave">AVE</Label>
+                    <Input
+                      id="ave"
+                      type="number"
+                      value={newPost.ave}
+                      onChange={(e) =>
+                        setNewPost({
+                          ...newPost,
+                          ave: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="createdTime">Date Published</Label>
+                    <Input
+                      id="createdTime"
+                      type="date"
+                      value={newPost.createdTime}
+                      onChange={(e) =>
+                        setNewPost({
+                          ...newPost,
+                          createdTime: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      value={newPost.url}
+                      onChange={(e) =>
+                        setNewPost({ ...newPost, url: e.target.value })
+                      }
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    resetForm();
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sentiment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sentiments</SelectItem>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                    <SelectItem value="negative">Negative</SelectItem>
-                    <SelectItem value="mixed">Mixed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={groupFilter} onValueChange={setGroupFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Groups</SelectItem>
-                    {uniqueGroups.map((group) => (
-                      <SelectItem key={group} value={group}>
-                        {group}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Posts Table */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Posts ({filteredPosts.length})</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading posts...
-                </div>
-              ) : filteredPosts.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No posts found
-                </div>
-              ) : (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Message</TableHead>
-                        <TableHead>Page Name</TableHead>
-                        <TableHead>Platform</TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("createdTime")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Date
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "createdTime" ? 'text-primary' : ''}`} />
-                          </div>
-                        </TableHead>
-                        <TableHead>Sentiment</TableHead>
-                        <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("rank")}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            Relevancy
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "rank" ? 'text-primary' : ''}`} />
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("reach")}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            Reach
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "reach" ? 'text-primary' : ''}`} />
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("ave")}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            AVE
-                            <ArrowUpDown className={`h-4 w-4 ${sortBy === "ave" ? 'text-primary' : ''}`} />
-                          </div>
-                        </TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPosts.slice(0, visibleCount).map((post) => (
-                        <TableRow key={post._id}>
-                          <TableCell className="max-w-md">
-                            <div className="flex items-start gap-3">
-                              {post.logo_url && (
-                                <img
-                                  src={post.logo_url}
-                                  alt={post.pageName}
-                                  className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
-                                />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                {post.link ? (
-                                  <a
-                                    href={post.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="line-clamp-2 hover:underline text-primary cursor-pointer"
-                                  >
-                                    {post.message}
-                                  </a>
-                                ) : (
-                                  <div className="line-clamp-2">
-                                    {post.message}
-                                  </div>
-                                )}
-                                {post.link && (
-                                  <a
-                                    href={post.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                                  >
-                                    View post{" "}
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{post.pageName}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {post.source}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {post.createdTime &&
-                            !isNaN(new Date(post.createdTime).getTime())
-                              ? format(new Date(post.createdTime), "PP")
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {getSentimentBadge(post.sentiment)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {post.rank?.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {post.reach?.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {post.ave?.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() => openEditDialog(post)}
-                                >
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeletePost(post._id)}
-                                  className="text-destructive"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  {filteredPosts.length > visibleCount && (
-                    <div className="mt-4 text-center">
-                      <Button
-                        variant="outline"
-                        onClick={() => setVisibleCount(visibleCount + 20)}
-                      >
-                        Load More
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={editingPost ? handleUpdatePost : handleAddPost}
+                >
+                  {editingPost ? "Update" : "Add"} Post
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Filters & Search</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Platforms</SelectItem>
+                  {uniqueSources.map((source) => (
+                    <SelectItem key={source} value={source}>
+                      {source}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={sentimentFilter}
+                onValueChange={setSentimentFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sentiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sentiments</SelectItem>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={groupFilter} onValueChange={setGroupFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Groups</SelectItem>
+                  {uniqueGroups.map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Posts Table */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Posts ({filteredPosts.length})</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading posts...
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No posts found
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Message</TableHead>
+                      <TableHead>Page Name</TableHead>
+                      <TableHead>Platform</TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("createdTime")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Date
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "createdTime" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead>Sentiment</TableHead>
+                      <TableHead
+                        className="text-right cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("rank")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Relevancy
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "rank" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-right cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("reach")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Reach
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "reach" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-right cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("ave")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          AVE
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "ave" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosts.slice(0, visibleCount).map((post) => (
+                      <TableRow key={post._id}>
+                        <TableCell className="max-w-md">
+                          <div className="flex items-start gap-3">
+                            {post.logo_url && (
+                              <img
+                                src={post.logo_url}
+                                alt={post.pageName}
+                                className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              {post.link ? (
+                                <a
+                                  href={post.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="line-clamp-2 hover:underline text-primary cursor-pointer"
+                                >
+                                  {post.message}
+                                </a>
+                              ) : (
+                                <div className="line-clamp-2">
+                                  {post.message}
+                                </div>
+                              )}
+                              {post.link && (
+                                <a
+                                  href={post.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                                >
+                                  View post <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{post.pageName}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {post.source}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {post.createdTime &&
+                          !isNaN(new Date(post.createdTime).getTime())
+                            ? format(new Date(post.createdTime), "PP")
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {getSentimentBadge(post.sentiment)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {post.rank?.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {post.reach?.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {post.ave?.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => openEditDialog(post)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeletePost(post._id)}
+                                className="text-destructive"
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredPosts.length > visibleCount && (
+                  <div className="mt-4 text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setVisibleCount(visibleCount + 20)}
+                    >
+                      Load More
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
+      {/* </div> */}
     </SidebarLayout>
   );
 }

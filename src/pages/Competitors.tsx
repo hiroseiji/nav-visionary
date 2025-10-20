@@ -318,10 +318,14 @@ export default function Competitors() {
 
   return (
     <SidebarLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Competitor Analysis</h1>
-          <p className="text-muted-foreground mt-2">Monitor and analyze competitor media presence</p>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Competitor Analysis
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Monitor and analyze competitor media presence
+          </p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">
@@ -349,16 +353,24 @@ export default function Competitors() {
 
         <Tabs defaultValue="online" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="online">Online ({onlineArticles.length})</TabsTrigger>
-            <TabsTrigger value="broadcast">Broadcast ({broadcastArticles.length})</TabsTrigger>
-            <TabsTrigger value="print">Print ({printArticles.length})</TabsTrigger>
+            <TabsTrigger value="online">
+              Online ({onlineArticles.length})
+            </TabsTrigger>
+            <TabsTrigger value="broadcast">
+              Broadcast ({broadcastArticles.length})
+            </TabsTrigger>
+            <TabsTrigger value="print">
+              Print ({printArticles.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="online">
             <Card>
               <CardHeader>
                 <CardTitle>Online Media Coverage</CardTitle>
-                <CardDescription>Competitor mentions in online news sources</CardDescription>
+                <CardDescription>
+                  Competitor mentions in online news sources
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {renderArticleTable(onlineArticles, "online")}
@@ -370,7 +382,9 @@ export default function Competitors() {
             <Card>
               <CardHeader>
                 <CardTitle>Broadcast Media Coverage</CardTitle>
-                <CardDescription>Competitor mentions in TV and radio</CardDescription>
+                <CardDescription>
+                  Competitor mentions in TV and radio
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {renderArticleTable(broadcastArticles, "broadcast")}
@@ -382,7 +396,9 @@ export default function Competitors() {
             <Card>
               <CardHeader>
                 <CardTitle>Print Media Coverage</CardTitle>
-                <CardDescription>Competitor mentions in newspapers and magazines</CardDescription>
+                <CardDescription>
+                  Competitor mentions in newspapers and magazines
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {renderArticleTable(printArticles, "print")}

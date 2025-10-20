@@ -121,10 +121,14 @@ export default function Reports() {
 
   return (
     <SidebarLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Generated Reports</h1>
-          <p className="text-muted-foreground mt-2">View and manage all generated reports</p>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Generated Reports
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            View and manage all generated reports
+          </p>
         </div>
 
         <Card>
@@ -132,7 +136,9 @@ export default function Reports() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <CardTitle>Reports List</CardTitle>
-                <CardDescription>All generated reports for your organization</CardDescription>
+                <CardDescription>
+                  All generated reports for your organization
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 md:w-80">
@@ -147,7 +153,11 @@ export default function Reports() {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setDateSortOrder(dateSortOrder === "ascending" ? "descending" : "ascending")}
+                  onClick={() =>
+                    setDateSortOrder(
+                      dateSortOrder === "ascending" ? "descending" : "ascending"
+                    )
+                  }
                 >
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
@@ -160,7 +170,9 @@ export default function Reports() {
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No reports found</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "Try adjusting your search" : "Generate your first report to see it here"}
+                  {searchQuery
+                    ? "Try adjusting your search"
+                    : "Generate your first report to see it here"}
                 </p>
               </div>
             ) : (
@@ -185,16 +197,24 @@ export default function Reports() {
                             if (el) rowRefs.current[report._id] = el;
                           }}
                         >
-                          <TableCell className="font-medium">{report.title || "Untitled"}</TableCell>
+                          <TableCell className="font-medium">
+                            {report.title || "Untitled"}
+                          </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {formatModules(report.modules).split(", ").slice(0, 3).map((mod, i) => (
-                                <Badge key={i} variant="secondary">{mod}</Badge>
-                              ))}
+                              {formatModules(report.modules)
+                                .split(", ")
+                                .slice(0, 3)
+                                .map((mod, i) => (
+                                  <Badge key={i} variant="secondary">
+                                    {mod}
+                                  </Badge>
+                                ))}
                             </div>
                           </TableCell>
                           <TableCell>
-                            {Array.isArray(report.scope) && report.scope.length > 4 ? (
+                            {Array.isArray(report.scope) &&
+                            report.scope.length > 4 ? (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -213,14 +233,22 @@ export default function Reports() {
                           </TableCell>
                           <TableCell>{report.createdBy || "N/A"}</TableCell>
                           <TableCell>
-                            {format(new Date(report.createdAt || report.created_at || ""), "MMM dd, yyyy")}
+                            {format(
+                              new Date(
+                                report.createdAt || report.created_at || ""
+                              ),
+                              "MMM dd, yyyy"
+                            )}
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => {
-                                const orgId = user?.role === "super_admin" ? selectedOrg : user?.organizationId;
+                                const orgId =
+                                  user?.role === "super_admin"
+                                    ? selectedOrg
+                                    : user?.organizationId;
                                 navigate(`/reports/${orgId}/${report._id}`);
                               }}
                             >
@@ -236,24 +264,35 @@ export default function Reports() {
 
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing {displayedReports.length} of {searchQuery ? filteredReports.length : reports.length} reports
+                    Showing {displayedReports.length} of{" "}
+                    {searchQuery ? filteredReports.length : reports.length}{" "}
+                    reports
                   </p>
                   <div className="flex gap-2">
                     {visibleReports > 20 && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setVisibleReports((prev) => Math.max(prev - 20, 20))}
+                        onClick={() =>
+                          setVisibleReports((prev) => Math.max(prev - 20, 20))
+                        }
                       >
                         <Minus className="h-4 w-4 mr-2" />
                         Show Less
                       </Button>
                     )}
-                    {visibleReports < (searchQuery ? filteredReports.length : reports.length) && (
+                    {visibleReports <
+                      (searchQuery
+                        ? filteredReports.length
+                        : reports.length) && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setVisibleReports((prev) => Math.min(prev + 20, reports.length))}
+                        onClick={() =>
+                          setVisibleReports((prev) =>
+                            Math.min(prev + 20, reports.length)
+                          )
+                        }
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Show More

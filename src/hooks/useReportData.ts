@@ -32,40 +32,39 @@ export const useReportData = (orgId: string | undefined, reportId: string | unde
   useEffect(() => {
     const fetchReport = async () => {
       try {
+        // Use direct endpoint to fetch specific report
         const res = await axios.get(
-          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/generated-reports/${orgId}`
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/generated-reports/view/${reportId}`
         );
-        const report = res.data.find((r: Report) => r._id === reportId);
-        if (report) {
-          setReportData(report);
-          
-          // Fetch organization data
-          if (report.organizationId || orgId) {
-            try {
-              const orgRes = await axios.get(
-                `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${report.organizationId || orgId}`
-              );
-              setOrganizationData(orgRes.data);
-            } catch (orgErr) {
-              console.error("Failed to fetch organization:", orgErr);
-            }
+        const report = res.data;
+        
+        setReportData(report);
+        
+        // Fetch organization data
+        const orgIdToFetch = report.organizationId || orgId;
+        if (orgIdToFetch) {
+          try {
+            const orgRes = await axios.get(
+              `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgIdToFetch}`
+            );
+            setOrganizationData(orgRes.data);
+          } catch (orgErr) {
+            console.error("Failed to fetch organization:", orgErr);
           }
-        } else {
-          toast.error("Report not found");
-          navigate(`/reports/${orgId}`);
         }
       } catch (err) {
         console.error("Failed to fetch report:", err);
         toast.error("Failed to load report");
+        navigate(`/reports/${orgId || ''}`);
       } finally {
         setLoading(false);
       }
     };
 
-    if (orgId && reportId) {
+    if (reportId) {
       fetchReport();
     }
-  }, [orgId, reportId, navigate]);
+  }, [reportId, orgId, navigate]);
 
   return { reportData, organizationData, loading };
 };

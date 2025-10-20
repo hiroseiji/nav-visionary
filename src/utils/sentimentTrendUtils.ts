@@ -1,5 +1,5 @@
 // components/report-modules/sentimentTrend.utils.ts
-import { SentimentAnnotation, SentimentLike, SentimentPoint } from "../types/sentimentTrend";
+import { SentimentAnnotation, SentimentLike, SentimentPoint } from "../types/sentiment";
 
 /** Color for spike markers / cards */
 export function getSpikeColor(type: string): string {

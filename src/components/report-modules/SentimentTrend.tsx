@@ -15,7 +15,7 @@ import {
   Label,
 } from "recharts";
 
-import { SentimentPoint, SentimentAnnotation } from "../../types/sentimentTrend";
+import { SentimentPoint, SentimentAnnotation } from "../../types/sentiment";
 import { getLineColor, getSpikeColor } from "../../utils/sentimentTrendUtils";
 
 type DotProps = { cx?: number; cy?: number; payload: SentimentPoint };

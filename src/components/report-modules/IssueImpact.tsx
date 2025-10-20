@@ -2,64 +2,36 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Refere
 
 interface IssueImpactProps {
   data?: Array<{
-    title: string;
-    description: string;
-    impactScore: number;
-    avgSentiment: number;
+    title?: string;
+    issue?: string;
+    description?: string;
+    summary?: string;
+    impactScore?: number;
+    impact?: number;
+    avgSentiment?: number;
+    sentiment?: number;
+    averageSentiment?: number;
   }>;
 }
 
 export function IssueImpact({ data }: IssueImpactProps) {
-  const issues = data || [
-    {
-      title: "Enterprise Support",
-      description: "Debswana's CEEP is said to have proven effective in increasing production capacity.",
-      impactScore: 20,
-      avgSentiment: 80,
-    },
-    {
-      title: "Economic Development",
-      description: "Debswana's CEEP is praised for providing opportunities to SMMEs.",
-      impactScore: 12,
-      avgSentiment: 70,
-    },
-    {
-      title: "Diversity & Inclusion",
-      description: "Debswana acknowledges local fellows of the WomEng Southern Africa Fellowship programme, offering the chance to meet Dudu Thebe, corporate affairs manager at Debswana.",
-      impactScore: 8,
-      avgSentiment: 60,
-    },
-    {
-      title: "Corporate Partnerships",
-      description: "",
-      impactScore: 5,
-      avgSentiment: 50,
-    },
-    {
-      title: "Community",
-      description: "Debswana hosts a cycling event in Jwaneng to raise money to fund the science faculty at the local Morama CJSS Secondary School.",
-      impactScore: 3,
-      avgSentiment: 40,
-    },
-    {
-      title: "Strategy",
-      description: "",
-      impactScore: 2,
-      avgSentiment: 30,
-    },
-    {
-      title: "Entrepreneurs",
-      description: "",
-      impactScore: 1,
-      avgSentiment: 20,
-    },
-    {
-      title: "Financial Results",
-      description: "Continued discussion regarding Debswana's 2024 H1 diamond sales decreasing by 49.2%, compared to the same period in 2023.",
-      impactScore: -2,
-      avgSentiment: -50,
-    },
-  ];
+  const issues = (data || []).map(item => ({
+    title: item.title || item.issue || "Unknown Issue",
+    description: item.description || item.summary || "",
+    impactScore: item.impactScore !== undefined ? item.impactScore :
+                 item.impact !== undefined ? item.impact : 0,
+    avgSentiment: item.avgSentiment !== undefined ? item.avgSentiment :
+                  item.sentiment !== undefined ? item.sentiment :
+                  item.averageSentiment !== undefined ? item.averageSentiment * 100 : 0
+  }));
+
+  if (issues.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No issue impact data available
+      </div>
+    );
+  }
 
   // Calculate signed impact based on sentiment
   const chartData = issues.map(issue => {

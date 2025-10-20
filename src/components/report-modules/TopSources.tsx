@@ -3,19 +3,29 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface TopSourcesProps {
   data?: Array<{
-    source: string;
-    mentions: number;
+    source?: string;
+    name?: string;
+    mentions?: number;
+    volume?: number;
+    count?: number;
   }>;
 }
 
 export function TopSources({ data }: TopSourcesProps) {
-  const chartData = data || [
-    { source: "Twitter/X", mentions: 1250 },
-    { source: "Facebook", mentions: 980 },
-    { source: "Instagram", mentions: 750 },
-    { source: "News Sites", mentions: 650 },
-    { source: "LinkedIn", mentions: 420 },
-  ];
+  const chartData = (data || [])
+    .map(item => ({
+      source: item.source || item.name || "Unknown",
+      mentions: item.mentions || item.volume || item.count || 0
+    }))
+    .slice(0, 10); // Top 10 sources
+
+  if (chartData.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No source data available
+      </div>
+    );
+  }
 
   return (
     <Card className="p-6">

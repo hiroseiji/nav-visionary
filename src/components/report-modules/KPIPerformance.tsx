@@ -3,20 +3,35 @@ import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ReferenceLine, Resp
 
 interface KPIPerformanceProps {
   data?: Array<{
-    name: string;
-    visibility: number;
-    sentiment: number;
+    name?: string;
+    kpi?: string;
+    visibility?: number;
+    volume?: number;
+    x?: number;
+    sentiment?: number;
+    averageSentiment?: number;
+    y?: number;
   }>;
 }
 
 export function KPIPerformance({ data }: KPIPerformanceProps) {
-  const kpis = data || [
-    { name: "Brand Awareness", visibility: 0.02, sentiment: 45 },
-    { name: "Customer Satisfaction", visibility: -0.01, sentiment: 65 },
-    { name: "Product Quality", visibility: 0.04, sentiment: -20 },
-    { name: "Innovation", visibility: -0.03, sentiment: -45 },
-    { name: "Market Position", visibility: 0.01, sentiment: 30 },
-  ];
+  const kpis = (data || []).map(item => ({
+    name: item.name || item.kpi || "Unknown KPI",
+    visibility: item.visibility !== undefined ? item.visibility : 
+                item.x !== undefined ? item.x : 
+                item.volume !== undefined ? item.volume / 10000 : 0,
+    sentiment: item.sentiment !== undefined ? item.sentiment :
+               item.y !== undefined ? item.y * 100 :
+               item.averageSentiment !== undefined ? item.averageSentiment * 100 : 0
+  }));
+
+  if (kpis.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No KPI performance data available
+      </div>
+    );
+  }
 
   const getQuadrantColor = (visibility: number, sentiment: number) => {
     if (sentiment >= 0 && visibility >= 0) return "#22c55e"; // green - top right

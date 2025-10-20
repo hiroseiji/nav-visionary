@@ -31,8 +31,19 @@ import {
 interface MediaBucket {
   sentimentTrend?: SentimentPoint[];
   sentimentTrendAnnotations?: SentimentAnnotation[];
+  mediaSummary?: unknown;
+  topSources?: unknown;
+  topJournalists?: unknown;
+  volumeAndSentiment?: unknown;
+  wordCloud?: unknown;
+  kpiPerformance?: unknown;
+  sectorRanking?: unknown;
+  issueImpact?: unknown;
+  reputationalRisks?: unknown;
+  reputationalOpportunities?: unknown;
 }
 interface ReportWithMedia extends Report {
+  executiveSummary?: unknown;
   articles?: MediaBucket;
   printmedia?: MediaBucket;
   broadcast?: MediaBucket;
@@ -120,9 +131,8 @@ export const ReportModulePage = ({
   const renderModuleComponent = () => {
     switch (moduleName) {
       case "executiveSummary":
-        return <ExecutiveSummary />;
-      case "mediaSummary":
-        return <MediaSummary />;
+        return <ExecutiveSummary data={(reportData as unknown as ReportWithMedia).executiveSummary} />;
+      
       case "sentimentTrend":
         return (
           <SentimentTrend
@@ -130,24 +140,45 @@ export const ReportModulePage = ({
             annotations={sentimentAnnotations}
           />
         );
-      case "reputationalRisks":
-        return <ReputationalRisks data={moduleData} />;
-      case "reputationalOpportunities":
-        return <ReputationalOpportunities data={moduleData} />;
-      case "issueImpact":
-        return <IssueImpact />;
+      
+      case "mediaSummary":
+        const summary = mediaBucket?.mediaSummary as any;
+        return <MediaSummary data={summary} />;
+      
       case "topSources":
-        return <TopSources />;
-      case "volumeAndSentiment":
-        return <VolumeAndSentiment />;
-      case "wordCloud":
-        return <WordCloud />;
-      case "kpiPerformance":
-        return <KPIPerformance />;
+        const sources = (mediaBucket?.topSources || moduleData) as any;
+        return <TopSources data={sources} />;
+      
       case "topJournalists":
-        return <TopJournalists />;
+        const journalists = (mediaBucket?.topJournalists || moduleData) as any;
+        return <TopJournalists data={journalists} />;
+      
+      case "volumeAndSentiment":
+        const volumeData = (mediaBucket?.volumeAndSentiment || moduleData) as any;
+        return <VolumeAndSentiment data={volumeData} />;
+      
+      case "wordCloud":
+        const words = (mediaBucket?.wordCloud || moduleData) as any;
+        return <WordCloud data={words} />;
+      
+      case "kpiPerformance":
+        const kpiData = (mediaBucket?.kpiPerformance || moduleData) as any;
+        return <KPIPerformance data={kpiData} />;
+      
       case "sectorRanking":
-        return <SectorRanking />;
+        const rankings = (mediaBucket?.sectorRanking || moduleData) as any;
+        return <SectorRanking data={rankings} />;
+      
+      case "issueImpact":
+        const issueData = mediaBucket?.issueImpact as any;
+        return <IssueImpact data={issueData} />;
+      
+      case "reputationalRisks":
+        return <ReputationalRisks data={moduleData as any} />;
+      
+      case "reputationalOpportunities":
+        return <ReputationalOpportunities data={moduleData as any} />;
+
       default:
         return (
           <div className="bg-muted/30 rounded-lg p-8 min-h-[400px] flex items-center justify-center">

@@ -4,21 +4,34 @@ import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 
 interface SectorRankingProps {
   data?: Array<{
-    rank: number;
-    company: string;
-    score: number;
-    change: number;
+    rank?: number;
+    company?: string;
+    name?: string;
+    score?: number;
+    averageSentiment?: number;
+    scorePct?: number;
+    change?: number;
+    volume?: number;
   }>;
 }
 
 export function SectorRanking({ data }: SectorRankingProps) {
-  const rankings = data || [
-    { rank: 1, company: "Market Leader Inc.", score: 92, change: 2 },
-    { rank: 2, company: "Your Organization", score: 85, change: 1 },
-    { rank: 3, company: "Competitor A", score: 78, change: -1 },
-    { rank: 4, company: "Competitor B", score: 72, change: 0 },
-    { rank: 5, company: "Competitor C", score: 68, change: -2 },
-  ];
+  const rankings = (data || []).map((item, index) => ({
+    rank: item.rank !== undefined ? item.rank : index + 1,
+    company: item.company || item.name || "Unknown",
+    score: item.score !== undefined ? item.score :
+           item.scorePct !== undefined ? item.scorePct :
+           item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0,
+    change: item.change !== undefined ? item.change : 0
+  }));
+
+  if (rankings.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No sector ranking data available
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

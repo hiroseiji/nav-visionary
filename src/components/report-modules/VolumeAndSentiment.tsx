@@ -3,19 +3,30 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 interface VolumeAndSentimentProps {
   data?: Array<{
-    period: string;
-    volume: number;
-    sentiment: number;
+    period?: string;
+    date?: string;
+    volume?: number;
+    count?: number;
+    sentiment?: number;
+    averageSentiment?: number;
   }>;
 }
 
 export function VolumeAndSentiment({ data }: VolumeAndSentimentProps) {
-  const chartData = data || [
-    { period: "Week 1", volume: 450, sentiment: 72 },
-    { period: "Week 2", volume: 520, sentiment: 68 },
-    { period: "Week 3", volume: 480, sentiment: 75 },
-    { period: "Week 4", volume: 610, sentiment: 70 },
-  ];
+  const chartData = (data || []).map(item => ({
+    period: item.period || item.date || "Unknown",
+    volume: item.volume || item.count || 0,
+    sentiment: item.sentiment !== undefined ? item.sentiment :
+               item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0
+  }));
+
+  if (chartData.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No volume and sentiment data available
+      </div>
+    );
+  }
 
   return (
     <Card className="p-6">

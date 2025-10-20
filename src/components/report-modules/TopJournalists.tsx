@@ -3,21 +3,36 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface TopJournalistsProps {
   data?: Array<{
-    name: string;
-    outlet: string;
-    articles: number;
-    sentiment: number;
+    name?: string;
+    journalist?: string;
+    outlet?: string;
+    source?: string;
+    articles?: number;
+    count?: number;
+    volume?: number;
+    sentiment?: number;
+    averageSentiment?: number;
   }>;
 }
 
 export function TopJournalists({ data }: TopJournalistsProps) {
-  const journalists = data || [
-    { name: "Sarah Johnson", outlet: "Daily News", articles: 12, sentiment: 75 },
-    { name: "Michael Chen", outlet: "Business Weekly", articles: 9, sentiment: 68 },
-    { name: "Emma Davis", outlet: "Tech Today", articles: 8, sentiment: 82 },
-    { name: "James Wilson", outlet: "National Post", articles: 7, sentiment: 71 },
-    { name: "Lisa Anderson", outlet: "The Chronicle", articles: 6, sentiment: 79 },
-  ];
+  const journalists = (data || [])
+    .map(item => ({
+      name: item.name || item.journalist || "Unknown",
+      outlet: item.outlet || item.source || "Unknown",
+      articles: item.articles || item.count || item.volume || 0,
+      sentiment: item.sentiment !== undefined ? item.sentiment : 
+                 item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0
+    }))
+    .slice(0, 10); // Top 10 journalists
+
+  if (journalists.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No journalist data available
+      </div>
+    );
+  }
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');

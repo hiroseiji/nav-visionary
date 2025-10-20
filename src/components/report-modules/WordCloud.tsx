@@ -3,8 +3,11 @@ import { useMemo } from "react";
 
 interface WordCloudProps {
   data?: Array<{
-    word: string;
-    frequency: number;
+    word?: string;
+    text?: string;
+    frequency?: number;
+    count?: number;
+    value?: number;
   }>;
 }
 
@@ -27,18 +30,21 @@ const colors = [
 ];
 
 export function WordCloud({ data }: WordCloudProps) {
-  const words = data || [
-    { word: "Innovation", frequency: 95 },
-    { word: "Growth", frequency: 85 },
-    { word: "Leadership", frequency: 75 },
-    { word: "Community", frequency: 70 },
-    { word: "Excellence", frequency: 65 },
-    { word: "Service", frequency: 60 },
-    { word: "Quality", frequency: 55 },
-    { word: "Impact", frequency: 50 },
-    { word: "Trust", frequency: 45 },
-    { word: "Vision", frequency: 40 },
-  ];
+  const words = (data || [])
+    .map(item => ({
+      word: item.word || item.text || "",
+      frequency: item.frequency || item.count || item.value || 0
+    }))
+    .filter(item => item.word && item.frequency > 0)
+    .slice(0, 20); // Top 20 words
+
+  if (words.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No word cloud data available
+      </div>
+    );
+  }
 
   const maxFreq = Math.max(...words.map(w => w.frequency));
 

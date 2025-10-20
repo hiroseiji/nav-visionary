@@ -140,7 +140,7 @@ export const ReportModulePage = ({
   const isSentimentTrend = moduleName === "sentimentTrend";
 
   // Debug: Log what we have
-  console.log("📊 SentimentTrend Debug:", {
+  console.log("SentimentTrend Debug:", {
     moduleName,
     mediaType,
     hasFormData: !!formData,

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios, { isAxiosError } from "axios";
 import { toast } from "sonner";
 
-// --- Types that match what your ReportModulePage expects (trim as needed) ---
 export interface SentimentPoint {
   date: string;
   sentiment: number;
@@ -54,17 +53,14 @@ export interface Report {
   created_at?: string;
   organizationId?: string;
 
-  // buckets (some reports put these under root, some under formData)
   articles?: MediaBucket;
   printmedia?: MediaBucket;
   broadcast?: MediaBucket;
   posts?: MediaBucket;
 
-  // optional root-level fallbacks
   sentimentTrend?: SentimentPoint[];
   sentimentTrendAnnotations?: SentimentAnnotation[];
 
-  // sometimes you stash everything under formData
   formData?: Partial<Report> & Record<string, unknown>;
 }
 
@@ -80,55 +76,54 @@ export const useReportData = (
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  if (!reportId) return;
+    if (!reportId) return;
 
-  const fetchReport = async () => {
-    setLoading(true);
-    try {
-      const reportUrl = `${API_BASE}/reports/generated-reports/view/${reportId}?t=${Date.now()}`;
-      const res = await axios.get<Report>(reportUrl, {
-        headers: {
-          Accept: "application/json",
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-        validateStatus: (s) => s >= 200 && s < 300, // treat 304 as failure
-      });
-
-      const report = res.data;
-      setReportData(report);
-
-      const orgIdToFetch = report.organizationId || orgId;
-      if (orgIdToFetch) {
-        const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
-        const orgRes = await axios.get<Organization>(orgUrl, {
+    const fetchReport = async () => {
+      setLoading(true);
+      try {
+        const reportUrl = `${API_BASE}/reports/generated-reports/view/${reportId}?t=${Date.now()}`;
+        const res = await axios.get<Report>(reportUrl, {
           headers: {
             Accept: "application/json",
             "Cache-Control": "no-cache",
             Pragma: "no-cache",
           },
-          validateStatus: (s) => s >= 200 && s < 300,
+          validateStatus: (s) => s >= 200 && s < 300, // treat 304 as failure
         });
-        setOrganizationData(orgRes.data);
-      } else {
-        setOrganizationData(null);
-      }
-    } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        console.error("Failed to fetch report/org:", err.response?.status, err.message);
-      } else {
-        console.error("Failed to fetch report/org:", err);
-      }
-      toast.error("Failed to load report");
-      navigate(`/reports/${orgId || ""}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  fetchReport();
-}, [reportId, orgId, navigate]);
+        const report = res.data;
+        setReportData(report);
 
+        const orgIdToFetch = report.organizationId || orgId;
+        if (orgIdToFetch) {
+          const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
+          const orgRes = await axios.get<Organization>(orgUrl, {
+            headers: {
+              Accept: "application/json",
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+            },
+            validateStatus: (s) => s >= 200 && s < 300,
+          });
+          setOrganizationData(orgRes.data);
+        } else {
+          setOrganizationData(null);
+        }
+      } catch (err: unknown) {
+        if (isAxiosError(err)) {
+          console.error("Failed to fetch report/org:", err.response?.status, err.message);
+        } else {
+          console.error("Failed to fetch report/org:", err);
+        }
+        toast.error("Failed to load report");
+        navigate(`/reports/${orgId || ""}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [reportId, orgId, navigate]);
 
   return { reportData, organizationData, loading };
 };

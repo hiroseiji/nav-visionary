@@ -393,12 +393,13 @@ export function SentimentTrend({
                           `v_${i}`,
                           {
                             type: "line" as const,
+                            xScaleID: "x",
                             xMin: a.date,
                             xMax: a.date,
                             borderColor: getSpikeColor(a.type) || "rgba(11, 179, 123, 0.17)",
                             borderDash: [4, 4],
                             borderWidth: 1,
-                            scaleID: "x",
+                            drawTime: "afterDatasetsDraw",
                           },
                         ])
                     ),

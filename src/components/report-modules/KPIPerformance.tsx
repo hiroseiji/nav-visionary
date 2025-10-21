@@ -261,14 +261,14 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
                 // Green for positive, red for negative, grey for neutral
                 const fillColor = 
-                  variant === "pos" ? "#22c55e" :
-                  variant === "neg" ? "#ef4444" :
-                  "#9ca3af";
+                  variant === "pos" ? "hsl(var(--chart-2))" :
+                  variant === "neg" ? "hsl(var(--destructive))" :
+                  "hsl(var(--muted-foreground))";
 
                 const strokeColor = 
-                  variant === "pos" ? "#16a34a" :
-                  variant === "neg" ? "#dc2626" :
-                  "#6b7280";
+                  variant === "pos" ? "hsl(var(--chart-2))" :
+                  variant === "neg" ? "hsl(var(--destructive))" :
+                  "hsl(var(--muted-foreground))";
 
                 return (
                   <g filter="url(#kpiShadow)">
@@ -282,7 +282,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                           y1={cy}
                           x2={calloutX}
                           y2={cy}
-                          stroke="#6b7280"
+                          stroke="hsl(var(--muted-foreground))"
                           strokeWidth={1}
                           strokeDasharray="2 2"
                         />
@@ -290,7 +290,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                           x={toRight ? calloutX + 6 : calloutX - 6}
                           y={cy - 2}
                           textAnchor={toRight ? "start" : "end"}
-                          style={{ fill: '#1f2937', fontSize: 11, fontWeight: 500 }}
+                          style={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }}
                         >
                           {payload.kpi}
                         </text>
@@ -305,7 +305,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
       </div>
 
       {/* Footnotes */}
-      <div className="mt-6 space-y-2 text-sm text-muted-foreground">
+      <div className="mt-6 space-y-2 text-sm text-muted-foreground text-center">
         <div><span className="font-semibold">*</span> Sentiment is scored on a scale between -100 and 100.</div>
         <div><span className="font-semibold">*</span> Visibility is a measure of volume weighted by influence of the source as well as the prominence and relevance of the mention.</div>
         <div className="text-xs opacity-70">The dotted sentiment average line represents the average sentiment score for all KPIs. The dotted visibility average line represents average visibility for all KPIs.</div>

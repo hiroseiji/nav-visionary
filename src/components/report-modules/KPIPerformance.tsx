@@ -246,9 +246,10 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                 const { cx, cy, payload } = props;
                 const r = Math.sqrt(sizeFor(payload.volume) / Math.PI);
 
+                // Color based on sentiment relative to average
                 const variant =
-                  payload.sentPct > 10 ? "pos" :
-                  payload.sentPct < -10 ? "neg" : "neu";
+                  payload.sentPct > meanSentPct + 5 ? "pos" :
+                  payload.sentPct < meanSentPct - 5 ? "neg" : "neu";
 
                 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
                 const ringW = clamp(r * 0.22, 8, 42);
@@ -258,14 +259,21 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                 const toRight = (payload.volume || 0) >= meanVol;
                 const calloutX = toRight ? cx + r + CALLOUT_GAP : cx - r - CALLOUT_GAP;
 
-                const fillColor = variant === "pos" ? "hsl(var(--chart-2))" :
-                                  variant === "neg" ? "hsl(var(--destructive))" :
-                                  "hsl(var(--muted))";
+                // Green for positive, red for negative, grey for neutral
+                const fillColor = 
+                  variant === "pos" ? "#22c55e" :
+                  variant === "neg" ? "#ef4444" :
+                  "#9ca3af";
+
+                const strokeColor = 
+                  variant === "pos" ? "#16a34a" :
+                  variant === "neg" ? "#dc2626" :
+                  "#6b7280";
 
                 return (
                   <g filter="url(#kpiShadow)">
-                    <circle cx={cx} cy={cy} r={r} fill={fillColor} opacity={0.2} />
-                    <circle cx={cx} cy={cy} r={r - ringW / 2} strokeWidth={ringW} fill="none" stroke={fillColor} />
+                    <circle cx={cx} cy={cy} r={r} fill={fillColor} opacity={0.15} />
+                    <circle cx={cx} cy={cy} r={r - ringW / 2} strokeWidth={ringW} fill="none" stroke={strokeColor} opacity={0.8} />
 
                     {showCallout && (
                       <>
@@ -274,7 +282,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                           y1={cy}
                           x2={calloutX}
                           y2={cy}
-                          stroke="hsl(var(--muted-foreground))"
+                          stroke="#6b7280"
                           strokeWidth={1}
                           strokeDasharray="2 2"
                         />
@@ -282,7 +290,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                           x={toRight ? calloutX + 6 : calloutX - 6}
                           y={cy - 2}
                           textAnchor={toRight ? "start" : "end"}
-                          style={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }}
+                          style={{ fill: '#1f2937', fontSize: 11, fontWeight: 500 }}
                         >
                           {payload.kpi}
                         </text>
@@ -309,16 +317,24 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
         <ul className="space-y-3">
           {items.map((item, idx) => {
             const sent = sentPct(item.averageSentiment);
+            
+            // Color based on sentiment relative to average
             let sentimentClass = "text-muted-foreground";
-            if (sent > 10) sentimentClass = "text-chart-2";
-            else if (sent < -10) sentimentClass = "text-destructive";
+            let marker = "▼";
+            if (sent > meanSentPct + 5) {
+              sentimentClass = "text-green-600";
+              marker = "▲";
+            } else if (sent < meanSentPct - 5) {
+              sentimentClass = "text-red-600";
+              marker = "▼";
+            }
 
             const sentimentStr = sent > 0 ? `(+${sent})` : `(${sent})`;
 
             return (
               <li key={idx} className="text-sm">
                 <strong className={sentimentClass}>
-                  {item.kpi} {sentimentStr}
+                  {marker} {item.kpi} {sentimentStr}
                 </strong>:{" "}
                 {item.summary || <i className="text-muted-foreground">No significant discussion.</i>}
               </li>

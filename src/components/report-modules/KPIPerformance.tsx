@@ -336,7 +336,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
             return (
               <li key={idx} className="text-sm">
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border font-semibold text-xs ${pillClass}`}>
+                <span className={`inline-flex items-center justify-center gap-1 px-3 py-1 rounded-full border font-semibold text-xs min-w-[200px] ${pillClass}`}>
                   {marker} {item.kpi} {sentimentStr}
                 </span>:{" "}
                 {item.summary || <i className="text-muted-foreground">No significant discussion.</i>}

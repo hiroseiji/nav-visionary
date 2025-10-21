@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,8 @@ export default function Reports() {
   const [dateSortOrder, setDateSortOrder] = useState<"ascending" | "descending">("descending");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightedReportId = searchParams.get("highlight");
   const rowRefs = useRef<Record<string, HTMLTableRowElement>>({});
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
@@ -65,6 +67,20 @@ export default function Reports() {
 
     fetchReports();
   }, [user, selectedOrg, navigate]);
+
+  // Scroll to and highlight the report that was just viewed
+  useEffect(() => {
+    if (highlightedReportId && rowRefs.current[highlightedReportId] && !loading) {
+      setTimeout(() => {
+        const row = rowRefs.current[highlightedReportId];
+        if (row) {
+          row.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Clear the highlight param after scrolling
+          setTimeout(() => setSearchParams({}), 3000);
+        }
+      }, 100);
+    }
+  }, [highlightedReportId, loading, setSearchParams]);
 
   const reportsToDisplay = searchQuery ? filteredReports : reports;
   const displayedReports = (Array.isArray(reportsToDisplay) ? reportsToDisplay : [])
@@ -197,6 +213,11 @@ export default function Reports() {
                           ref={(el) => {
                             if (el) rowRefs.current[report._id] = el;
                           }}
+                          className={
+                            highlightedReportId === report._id
+                              ? "bg-primary/10 transition-colors duration-1000"
+                              : ""
+                          }
                         >
                           <TableCell className="font-medium">
                             {report.title || "Untitled"}

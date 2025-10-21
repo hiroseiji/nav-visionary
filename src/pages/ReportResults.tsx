@@ -173,7 +173,7 @@ export default function ReportResults() {
         <div className="container mx-auto p-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/reports/${orgId ?? ""}`)}
+            onClick={() => navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Reports
@@ -193,7 +193,7 @@ export default function ReportResults() {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/reports/${orgId ?? ""}`)}
+            onClick={() => navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Reports

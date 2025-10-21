@@ -17,20 +17,20 @@ interface KPIPerformanceProps {
 }
 
 // Helper: convert to array
-const toArray = (d: any): any[] => {
+const toArray = (d: unknown): unknown[] => {
   if (Array.isArray(d)) return d;
   if (d && typeof d === "object") return Object.values(d);
   return [];
 };
 
 // Helper: ensure number
-const num = (v: any): number => {
+const num = (v: unknown): number => {
   const n = Number(v);
   return isNaN(n) ? 0 : n;
 };
 
 // Helper: convert sentiment to unit scale (-1 to 1)
-const sentUnit = (v: any): number => {
+const sentUnit = (v: unknown): number => {
   const n = num(v);
   // If already in -1 to 1 range, return as is
   if (n >= -1 && n <= 1) return n;
@@ -40,20 +40,23 @@ const sentUnit = (v: any): number => {
 };
 
 // Helper: convert sentiment to percentage (-100 to 100)
-const sentPct = (v: any): number => {
+const sentPct = (v: unknown): number => {
   const unit = sentUnit(v);
   return Math.round(unit * 100);
 };
 
 export function KPIPerformance({ data }: KPIPerformanceProps) {
   // Adapt data according to the kpiPerformance adapter
-  const rawData = (data as any)?.points ?? data;
-  const items = toArray(rawData).map((m) => ({
-    kpi: m.kpi || m.name || "KPI",
-    volume: num(m.x ?? m.volume),
-    averageSentiment: sentUnit(m.y ?? m.averageSentiment),
-    summary: m.summary || m.tooltip || "",
-  }));
+  const rawData = (data as { points?: KPIItem[] })?.points ?? data;
+  const items = toArray(rawData).map((m) => {
+    const item = m as Partial<KPIItem>;
+    return {
+      kpi: item.kpi || item.name || "KPI",
+      volume: num(item.x ?? item.volume),
+      averageSentiment: sentUnit(item.y ?? item.averageSentiment),
+      summary: item.summary || item.tooltip || "",
+    };
+  });
 
   if (items.length === 0) {
     return (
@@ -99,7 +102,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
   const xRight = xDomainMax - inset;
 
   // Corner label component
-  const cornerLabel = ({ top, align, lines }: { top: boolean; align: string; lines: Array<{ text: string; cls: string }> }) => (props: any) => {
+  const cornerLabel = ({ top, align, lines }: { top: boolean; align: string; lines: Array<{ text: string; cls: string }> }) => (props: { viewBox?: { cx?: number; cy?: number; x?: number; y?: number } }) => {
     const vb = props.viewBox || {};
     const px = vb.cx ?? vb.x ?? 0;
     const py = vb.cy ?? vb.y ?? 0;
@@ -282,7 +285,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
             <Tooltip
               labelFormatter={() => ""}
-              formatter={(value: any, name: any) => {
+              formatter={(value: number | string, name: string) => {
                 if (name === "volume")
                   return [`${Number(value).toLocaleString()}`, "Visibility"];
                 if (name === "sentPct") return [`${value}`, "Sentiment"];
@@ -294,7 +297,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
             <Scatter
               name="KPIs"
               data={chartData}
-              shape={(props: any) => {
+              shape={(props: { cx: number; cy: number; payload: typeof chartData[0] }) => {
                 const { cx, cy, payload } = props;
                 const r = Math.sqrt(sizeFor(payload.volume) / Math.PI);
 

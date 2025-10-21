@@ -78,11 +78,11 @@ export const useReportData = (
   useEffect(() => {
     if (!reportId) return;
 
-    const fetchReport = async () => {
+      const fetchReport = async () => {
       setLoading(true);
       try {
         const reportUrl = `${API_BASE}/reports/generated-reports/view/${reportId}?t=${Date.now()}`;
-        const res = await axios.get<Report>(reportUrl, {
+        const res = await axios.get<{reportData: Report; formData: Record<string, unknown>; organizationId: string}>(reportUrl, {
           headers: {
             Accept: "application/json",
             "Cache-Control": "no-cache",
@@ -91,7 +91,17 @@ export const useReportData = (
           validateStatus: (s) => s >= 200 && s < 300, // treat 304 as failure
         });
 
-        const report = res.data;
+        // The API returns { reportData, formData, organizationId }
+        // Merge them into a single Report object
+        const saved = res.data;
+        const report: Report = {
+          ...saved.reportData,
+          formData: saved.formData,
+          organizationId: saved.organizationId,
+          _id: reportId || "",
+          createdBy: "",
+          createdAt: "",
+        } as Report;
         setReportData(report);
 
         const orgIdToFetch = report.organizationId || orgId;

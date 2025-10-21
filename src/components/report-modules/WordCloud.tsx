@@ -30,12 +30,26 @@ const colors = [
 ];
 
 export function WordCloud({ data }: WordCloudProps) {
-  const words = (data || [])
-    .map(item => ({
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: Array<any> = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const candidates = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).words,
+      (data as any).list,
+    ];
+    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+  }
+
+  const words = dataArray
+    .map((item) => ({
       word: item.word || item.text || "",
-      frequency: item.frequency || item.count || item.value || 0
+      frequency: item.frequency ?? item.count ?? item.value ?? 0,
     }))
-    .filter(item => item.word && item.frequency > 0)
+    .filter((item) => item.word && item.frequency > 0)
     .slice(0, 20); // Top 20 words
 
   if (words.length === 0) {

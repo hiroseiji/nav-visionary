@@ -15,7 +15,23 @@ interface IssueImpactProps {
 }
 
 export function IssueImpact({ data }: IssueImpactProps) {
-  const issues = (data || []).map(item => ({
+  // Handle different data structures: array, object with items/data property, or undefined
+  let dataArray: Array<any> = [];
+  
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === 'object') {
+    // Check for common array property names
+    const possibleArrays = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).issues,
+      (data as any).list
+    ];
+    dataArray = possibleArrays.find(arr => Array.isArray(arr)) || [];
+  }
+
+  const issues = dataArray.map(item => ({
     title: item.title || item.issue || "Unknown Issue",
     description: item.description || item.summary || "",
     impactScore: item.impactScore !== undefined ? item.impactScore :

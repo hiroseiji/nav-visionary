@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Wordcloud } from "@visx/wordcloud";
+import Wordcloud from "@visx/wordcloud/lib/Wordcloud";
 import { scaleLog } from "@visx/scale";
 import { Text } from "@visx/text";
 

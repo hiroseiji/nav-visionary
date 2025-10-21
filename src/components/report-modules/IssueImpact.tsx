@@ -93,7 +93,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
   };
 
   const CustomBar = (props: any) => {
-    const { fill, x, y, width, height, payload, value } = props;
+    const { fill, x, y, width, height, payload, value, highlightIdx, index } = props;
     const signedVal = payload?.rawValue ?? value;
     const tooNarrow = width < 36;
     const isPos = signedVal > 0;
@@ -123,6 +123,15 @@ export function IssueImpact({ data }: IssueImpactProps) {
         >
           {Math.abs(signedVal).toFixed(0)}
         </text>
+        
+        {/* Add leader lines for highlighted items */}
+        {highlightIdx.has(index) && (
+          signedVal > 0 ? (
+            <LeaderDotRight x={x} y={y} width={width} height={height} />
+          ) : (
+            <LeaderDotLeft x={x} y={y} width={width} height={height} />
+          )
+        )}
       </g>
     );
   };
@@ -217,9 +226,10 @@ export function IssueImpact({ data }: IssueImpactProps) {
           const cy = (yScale(d.name) ?? 0) + band / 2;
           const barEndX = xScale(d.value);
           const isPositive = d.value > 0;
-          const textX = isPositive ? barEndX + 40 : barEndX - 40;
+          // Position text further from the leader line end
+          const textX = isPositive ? barEndX + 45 : barEndX - 45;
 
-          const lines = wrapText(d.description, 35);
+          const lines = wrapText(d.description, 30);
 
           return (
             <g key={i}>
@@ -231,17 +241,17 @@ export function IssueImpact({ data }: IssueImpactProps) {
                 fontSize={13}
                 fill={isPositive ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))"}
               >
-                {d.name}
+                {d.name.length > 30 ? d.name.substring(0, 30) + '...' : d.name}
               </text>
               <text 
                 x={textX} 
                 y={cy + 8} 
                 textAnchor={isPositive ? "start" : "end"}
-                fontSize={12} 
+                fontSize={11} 
                 fill="hsl(var(--muted-foreground))"
               >
-                {lines.map((line, idx) => (
-                  <tspan key={idx} x={textX} dy={idx === 0 ? 0 : 14}>
+                {lines.slice(0, 3).map((line, idx) => (
+                  <tspan key={idx} x={textX} dy={idx === 0 ? 0 : 13}>
                     {line}
                   </tspan>
                 ))}
@@ -254,14 +264,15 @@ export function IssueImpact({ data }: IssueImpactProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div style={{ width: "100%", height: 460 }}>
-        <ResponsiveContainer>
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ top: 8, right: 280, bottom: 24, left: 280 }}
-          >
+    <div className="space-y-4 w-full">
+      <div className="w-full overflow-x-auto">
+        <div style={{ minWidth: "900px", width: "100%", height: 500 }}>
+          <ResponsiveContainer>
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ top: 20, right: 320, bottom: 30, left: 320 }}
+            >
             <CartesianGrid stroke="#9ca3af0f" />
             <XAxis
               type="number"
@@ -308,7 +319,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
               }}
             />
 
-            {/* Bars with custom rendering */}
+            {/* Bars with custom rendering including leader lines */}
             <Bar
               dataKey="value"
               shape={(props) => (
@@ -319,25 +330,13 @@ export function IssueImpact({ data }: IssueImpactProps) {
                   index={props.index}
                 />
               )}
-            >
-              {chartData.map((entry, index) => {
-                const showLeader = highlightIdx.has(index) && entry.description;
-                return (
-                  <Cell key={`cell-${index}`}>
-                    {showLeader && (entry.value > 0 ? (
-                      <LeaderDotRight {...entry} />
-                    ) : (
-                      <LeaderDotLeft {...entry} />
-                    ))}
-                  </Cell>
-                );
-              })}
-            </Bar>
+            />
 
             {/* Callouts overlay */}
             <Customized component={<CalloutsOverlay data={chartData} highlightIdx={highlightIdx} />} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
       </div>
 
       <p className="text-xs text-muted-foreground italic text-center">

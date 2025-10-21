@@ -109,9 +109,11 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
     const y0 = py + (top ? 18 : -26);
 
     const color = (cls: string) =>
-      cls === "pos" ? "hsl(var(--chart-2))" :
-      cls === "neg" ? "hsl(var(--destructive))" :
-      "hsl(var(--muted-foreground))";
+      cls === "pos"
+        ? "hsl(var(--sentiment-positive))"
+        : cls === "neg"
+        ? "hsl(var(--destructive))"
+        : "hsl(var(--muted-foreground))";
 
     return (
       <g>
@@ -137,14 +139,27 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-6">KPI Visibility vs Sentiment</h3>
-      
+      <h3 className="text-lg font-semibold mb-6">
+        KPI Visibility vs Sentiment
+      </h3>
+
       <div style={{ paddingRight: "80px", overflow: "visible" }}>
         <ResponsiveContainer width="100%" height={500}>
           <ScatterChart margin={{ top: 48, right: 70, bottom: 64, left: 44 }}>
             <defs>
-              <filter id="kpiShadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.24" />
+              <filter
+                id="kpiShadow"
+                x="-50%"
+                y="-50%"
+                width="200%"
+                height="200%"
+              >
+                <feDropShadow
+                  dx="0"
+                  dy="2"
+                  stdDeviation="2"
+                  floodOpacity="0.24"
+                />
               </filter>
             </defs>
 
@@ -159,7 +174,12 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
               stroke="hsl(var(--muted-foreground))"
               style={{ fontWeight: 600, fontSize: 12 }}
             >
-              <Label value="Visibility* (mentions)" offset={-10} position="insideBottom" style={{ fill: 'hsl(var(--muted-foreground))' }} />
+              <Label
+                value="Visibility* (mentions)"
+                offset={-10}
+                position="insideBottom"
+                style={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              />
             </XAxis>
 
             <YAxis
@@ -172,52 +192,79 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
               stroke="hsl(var(--muted-foreground))"
               style={{ fontWeight: 600, fontSize: 12 }}
             >
-              <Label angle={-90} value="Sentiment* (−100 to +100)" position="insideLeft" style={{ fill: 'hsl(var(--muted-foreground))' }} />
+              <Label
+                angle={-90}
+                value="Sentiment* (−100 to +100)"
+                position="insideLeft"
+                style={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              />
             </YAxis>
 
             {/* Mean lines */}
-            <ReferenceLine x={meanVol} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" strokeWidth={1.5} />
-            <ReferenceLine y={meanSentPct} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" strokeWidth={1.5} />
+            <ReferenceLine
+              x={meanVol}
+              stroke="hsl(var(--muted-foreground))"
+              strokeDasharray="5 5"
+              strokeWidth={1.5}
+            />
+            <ReferenceLine
+              y={meanSentPct}
+              stroke="hsl(var(--muted-foreground))"
+              strokeDasharray="5 5"
+              strokeWidth={1.5}
+            />
 
             {/* Quadrant labels */}
             <ReferenceDot x={xLeft} y={100} r={0} isFront>
-              <Label content={cornerLabel({
-                top: true, align: "start",
-                lines: [
-                  { text: "Above-average Sentiment", cls: "pos" },
-                  { text: "Below-average Visibility", cls: "neg" },
-                ],
-              })} />
+              <Label
+                content={cornerLabel({
+                  top: true,
+                  align: "start",
+                  lines: [
+                    { text: "Above-average Sentiment", cls: "pos" },
+                    { text: "Below-average Visibility", cls: "neg" },
+                  ],
+                })}
+              />
             </ReferenceDot>
 
             <ReferenceDot x={xRight} y={100} r={0} isFront>
-              <Label content={cornerLabel({
-                top: true, align: "end",
-                lines: [
-                  { text: "Above-average Sentiment", cls: "pos" },
-                  { text: "Above-average Visibility", cls: "pos" },
-                ],
-              })} />
+              <Label
+                content={cornerLabel({
+                  top: true,
+                  align: "end",
+                  lines: [
+                    { text: "Above-average Sentiment", cls: "pos" },
+                    { text: "Above-average Visibility", cls: "pos" },
+                  ],
+                })}
+              />
             </ReferenceDot>
 
             <ReferenceDot x={xLeft} y={-100} r={0} isFront>
-              <Label content={cornerLabel({
-                top: false, align: "start",
-                lines: [
-                  { text: "Below-average Sentiment", cls: "neg" },
-                  { text: "Below-average Visibility", cls: "neg" },
-                ],
-              })} />
+              <Label
+                content={cornerLabel({
+                  top: false,
+                  align: "start",
+                  lines: [
+                    { text: "Below-average Sentiment", cls: "neg" },
+                    { text: "Below-average Visibility", cls: "neg" },
+                  ],
+                })}
+              />
             </ReferenceDot>
 
             <ReferenceDot x={xRight} y={-100} r={0} isFront>
-              <Label content={cornerLabel({
-                top: false, align: "end",
-                lines: [
-                  { text: "Below-average Sentiment", cls: "neg" },
-                  { text: "Above-average Visibility", cls: "pos" },
-                ],
-              })} />
+              <Label
+                content={cornerLabel({
+                  top: false,
+                  align: "end",
+                  lines: [
+                    { text: "Below-average Sentiment", cls: "neg" },
+                    { text: "Above-average Visibility", cls: "pos" },
+                  ],
+                })}
+              />
             </ReferenceDot>
 
             {/* Average label */}
@@ -225,14 +272,19 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
               <Label
                 position="right"
                 value={`KPI Average: ${meanSentPct}`}
-                style={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontWeight: 500 }}
+                style={{
+                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
               />
             </ReferenceDot>
 
             <Tooltip
               labelFormatter={() => ""}
               formatter={(value: any, name: any) => {
-                if (name === "volume") return [`${Number(value).toLocaleString()}`, "Visibility"];
+                if (name === "volume")
+                  return [`${Number(value).toLocaleString()}`, "Visibility"];
                 if (name === "sentPct") return [`${value}`, "Sentiment"];
                 return [String(value), name];
               }}
@@ -248,32 +300,58 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
                 // Color based on sentiment relative to average
                 const variant =
-                  payload.sentPct > 10 ? "pos" :
-                  payload.sentPct < -10 ? "neg" : "neu";
+                  payload.sentPct > 10
+                    ? "pos"
+                    : payload.sentPct < -10
+                    ? "neg"
+                    : "neu";
 
-                const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+                const clamp = (x: number, lo: number, hi: number) =>
+                  Math.max(lo, Math.min(hi, x));
                 const ringW = clamp(r * 0.22, 8, 42);
                 const CALLOUT_GAP = 24;
 
-                const showCallout = Math.abs(payload.sentPct) >= 35 || (payload.volume || 0) >= maxVol * 0.55;
+                const showCallout =
+                  Math.abs(payload.sentPct) >= 35 ||
+                  (payload.volume || 0) >= maxVol * 0.55;
                 const toRight = (payload.volume || 0) >= meanVol;
-                const calloutX = toRight ? cx + r + CALLOUT_GAP : cx - r - CALLOUT_GAP;
+                const calloutX = toRight
+                  ? cx + r + CALLOUT_GAP
+                  : cx - r - CALLOUT_GAP;
 
                 // Green for positive, red for negative, grey for neutral
-                const fillColor = 
-                  variant === "pos" ? "#22c55e" :
-                  variant === "neg" ? "#ef4444" :
-                  "#9ca3af";
+                const fillColor =
+                  variant === "pos"
+                    ? "#22c55e"
+                    : variant === "neg"
+                    ? "#ef4444"
+                    : "#9ca3af";
 
-                const strokeColor = 
-                  variant === "pos" ? "#16a34a" :
-                  variant === "neg" ? "#dc2626" :
-                  "#6b7280";
+                const strokeColor =
+                  variant === "pos"
+                    ? "#22c55e"
+                    : variant === "neg"
+                    ? "#dc2626"
+                    : "#6b7280";
 
                 return (
                   <g filter="url(#kpiShadow)">
-                    <circle cx={cx} cy={cy} r={r} fill={fillColor} opacity={0.15} />
-                    <circle cx={cx} cy={cy} r={r - ringW / 2} strokeWidth={ringW} fill="none" stroke={strokeColor} opacity={0.8} />
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill={fillColor}
+                      opacity={0.15}
+                    />
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r - ringW / 2}
+                      strokeWidth={ringW}
+                      fill="none"
+                      stroke={strokeColor}
+                      opacity={0.8}
+                    />
 
                     {showCallout && (
                       <>
@@ -290,7 +368,11 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                           x={toRight ? calloutX + 6 : calloutX - 6}
                           y={cy - 2}
                           textAnchor={toRight ? "start" : "end"}
-                          style={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }}
+                          style={{
+                            fill: "hsl(var(--foreground))",
+                            fontSize: 11,
+                            fontWeight: 500,
+                          }}
                         >
                           {payload.kpi}
                         </text>
@@ -305,10 +387,19 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
       </div>
 
       {/* Footnotes */}
-      <div className="mt-6 space-y-2 text-sm text-muted-foreground text-center">
-        <div><span className="font-semibold">*</span> Sentiment is scored on a scale between -100 and 100.</div>
-        <div><span className="font-semibold">*</span> Visibility is a measure of volume weighted by influence of the source as well as the prominence and relevance of the mention.</div>
-        <div className="text-xs opacity-70">The dotted sentiment average line represents the average sentiment score for all KPIs. The dotted visibility average line represents average visibility for all KPIs.</div>
+      <div className="mt-6 space-y-1 text-sm text-muted-foreground text-center">
+        <div className="text-xs opacity-70">*Sentiment is scored on a
+          scale between -100 and 100.
+        </div>
+        <div className="text-xs opacity-70">*Visibility is a measure
+          of volume weighted by influence of the source as well as the
+          prominence and relevance of the mention.
+        </div>
+        <div className="text-xs opacity-70">
+          The dotted sentiment average line represents the average sentiment
+          score for all KPIs. The dotted visibility average line represents
+          average visibility for all KPIs.
+        </div>
       </div>
 
       {/* Summary section */}
@@ -317,7 +408,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
         <ul className="space-y-3">
           {items.map((item, idx) => {
             const sent = sentPct(item.averageSentiment);
-            
+
             // Color based on sentiment relative to average
             let pillClass = "";
             let marker = "▼";
@@ -328,7 +419,8 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
               pillClass = "text-red-600 border-red-600 bg-red-600/10";
               marker = "▼";
             } else {
-              pillClass = "text-muted-foreground border-muted-foreground bg-muted-foreground/10";
+              pillClass =
+                "text-muted-foreground border-muted-foreground bg-muted-foreground/10";
               marker = "▼";
             }
 
@@ -336,10 +428,17 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
             return (
               <li key={idx} className="text-sm">
-                <span className={`inline-flex items-center justify-center gap-1 px-3 py-1 rounded-full border font-semibold text-xs min-w-[200px] ${pillClass}`}>
+                <span
+                  className={`inline-flex items-center  gap-1 px-3 py-1 rounded-full border font-semibold text-xs min-w-[200px] ${pillClass}`}
+                >
                   {marker} {item.kpi} {sentimentStr}
-                </span>:{" "}
-                {item.summary || <i className="text-muted-foreground">No significant discussion.</i>}
+                </span>
+                :{" "}
+                {item.summary || (
+                  <i className="text-muted-foreground">
+                    No significant discussion.
+                  </i>
+                )}
               </li>
             );
           })}

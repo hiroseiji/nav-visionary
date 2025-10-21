@@ -154,7 +154,6 @@ const HaloPointsPlugin = {
         const pointEl = pt as { x?: number; y?: number; options?: { backgroundColor?: string } };
         if (!pointEl?.x || !pointEl?.y) return;
 
-        // @ts-expect-error - pointRadius may not exist on all dataset types
         const dsAny = ds as { pointRadius?: number | ((ctx: unknown) => number) };
         const pr =
           typeof dsAny.pointRadius === "function"
@@ -280,7 +279,6 @@ export function SentimentTrend({
                 datalabels: { display: false },
                 order: 1,
               },
-              // @ts-expect-error - Custom dataset properties
               {
                 type: "line" as const,
                 label: "Sentiment",
@@ -298,7 +296,6 @@ export function SentimentTrend({
                 },
                 pointRadius: (ctx: { chart: ChartJS }) => dynamicPointRadius(ctx.chart),
                 pointHoverRadius: (ctx: { chart: ChartJS }) => Math.max(4, dynamicPointRadius(ctx.chart) * 1.6),
-                hitRadius: (ctx: { chart: ChartJS }) => Math.max(6, dynamicPointRadius(ctx.chart) * 2),
                 pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 fill: {
@@ -306,6 +303,7 @@ export function SentimentTrend({
                   above: "rgba(11,179,123,0.08)",
                   below: "rgba(239,68,68,0.10)",
                 },
+                // @ts-expect-error - Custom property for HaloPointsPlugin
                 _drawHalo: true,
                 datalabels: { display: false },
                 order: 2,

@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card";
-import ReactWordcloud from "react-wordcloud";
+import { Wordcloud } from "@visx/wordcloud";
+import { scaleLog } from "@visx/scale";
+import { Text } from "@visx/text";
 
 interface WordCloudWord {
   text: string;
@@ -27,6 +29,12 @@ interface WordCloudProps {
   }>;
 }
 
+const colors = [
+  "#FF6B6B", "#FF8C42", "#4ECDC4", "#45B7D1", "#96CEB4",
+  "#FFEAA7", "#DDA15E", "#BC6C25", "#A8DADC", "#E63946",
+  "#F4A261", "#2A9D8F", "#E76F51", "#8AC926", "#FF006E",
+];
+
 export function WordCloud({ data }: WordCloudProps) {
   // Normalize input
   let keywords: Array<any> = [];
@@ -39,7 +47,7 @@ export function WordCloud({ data }: WordCloudProps) {
     industry = (data as WordCloudData).industry || "";
   }
 
-  // Convert to react-wordcloud format
+  // Convert to visx wordcloud format
   const words: WordCloudWord[] = keywords
     .map((item) => ({
       text: item.word || item.text || "",
@@ -55,25 +63,46 @@ export function WordCloud({ data }: WordCloudProps) {
     );
   }
 
-  const options = {
-    rotations: 2,
-    rotationAngles: [-90, 0] as [number, number],
-    fontSizes: [15, 50] as [number, number],
-    fontWeights: ["500", "700"],
-    scale: "sqrt" as const,
-    spiral: "archimedean" as const,
-    transitionDuration: 1000,
-    fontFamily: "Raleway",
-    padding: 5,
-  };
+  const fontScale = scaleLog({
+    domain: [Math.min(...words.map((w) => w.value)), Math.max(...words.map((w) => w.value))],
+    range: [15, 50],
+  });
+
+  const fontSizeSetter = (datum: WordCloudWord) => fontScale(datum.value);
 
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">
         Trending Keywords{industry ? ` in ${industry} Sector` : ""}
       </h3>
-      <div style={{ height: 400, width: "100%", padding: "10px" }}>
-        <ReactWordcloud words={words} options={options} />
+      <div style={{ height: 400, width: "100%" }}>
+        <Wordcloud
+          words={words}
+          width={800}
+          height={400}
+          fontSize={fontSizeSetter}
+          font="Raleway"
+          padding={5}
+          spiral="archimedean"
+          rotate={() => (Math.random() > 0.5 ? 0 : -90)}
+          random={() => 0.5}
+        >
+          {(cloudWords) =>
+            cloudWords.map((w, i) => (
+              <Text
+                key={w.text}
+                fill={colors[i % colors.length]}
+                textAnchor="middle"
+                transform={`translate(${w.x}, ${w.y}) rotate(${w.rotate})`}
+                fontSize={w.size}
+                fontFamily={w.font}
+                fontWeight={600}
+              >
+                {w.text}
+              </Text>
+            ))
+          }
+        </Wordcloud>
       </div>
     </Card>
   );

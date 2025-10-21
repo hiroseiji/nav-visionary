@@ -319,13 +319,16 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
             const sent = sentPct(item.averageSentiment);
             
             // Color based on sentiment relative to average
-            let sentimentClass = "text-muted-foreground";
+            let pillClass = "";
             let marker = "▼";
             if (sent > meanSentPct + 5) {
-              sentimentClass = "text-green-600";
+              pillClass = "text-green-600 border-green-600 bg-green-600/10";
               marker = "▲";
             } else if (sent < meanSentPct - 5) {
-              sentimentClass = "text-red-600";
+              pillClass = "text-red-600 border-red-600 bg-red-600/10";
+              marker = "▼";
+            } else {
+              pillClass = "text-muted-foreground border-muted-foreground bg-muted-foreground/10";
               marker = "▼";
             }
 
@@ -333,9 +336,9 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
             return (
               <li key={idx} className="text-sm">
-                <strong className={sentimentClass}>
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border font-semibold text-xs ${pillClass}`}>
                   {marker} {item.kpi} {sentimentStr}
-                </strong>:{" "}
+                </span>:{" "}
                 {item.summary || <i className="text-muted-foreground">No significant discussion.</i>}
               </li>
             );

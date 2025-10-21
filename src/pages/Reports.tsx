@@ -162,7 +162,6 @@ export default function Reports() {
     setVisibleReports(20);
   };
 
-
   const formatModules = (modules: string[] | Record<string, boolean>) => {
     if (Array.isArray(modules)) return modules.join(", ");
     if (typeof modules === "object" && modules)
@@ -273,7 +272,7 @@ export default function Reports() {
                             <div className="flex flex-wrap gap-1">
                               {formatModules(report.modules)
                                 .split(", ")
-                                .slice(0, 3)
+                                .slice(0, 4)
                                 .map((mod, i) => (
                                   <Badge key={i} variant="secondary">
                                     {mod}

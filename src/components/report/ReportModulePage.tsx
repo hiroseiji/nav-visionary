@@ -117,10 +117,31 @@ export const ReportModulePage = ({
   const formData = isObject(formDataUnknown)
     ? (formDataUnknown as Record<string, unknown>)
     : undefined;
-  const dataSource = (formData ?? reportData) as ReportWithMedia;
+
+  const dataSource = {
+    ...(reportData as ReportWithMedia),
+    ...(formData ?? {}),
+  } as ReportWithMedia;
+
+  // after computing dataSource
+  const aliasMap: Record<
+    MediaKey | "printMedia" | "social" | "online",
+    MediaKey
+  > = {
+    printMedia: "printmedia",
+    social: "posts",
+    online: "articles",
+    articles: "articles",
+    printmedia: "printmedia",
+    broadcast: "broadcast",
+    posts: "posts",
+  };
+  const resolvedMediaType: MediaKey = aliasMap[mediaType];
 
   // Typed access to the media bucket
-  const mediaBucket: MediaBucket | undefined = dataSource[mediaType];
+  type BucketsOnly = Pick<ReportWithMedia, MediaKey>;
+  const mediaBucket: BucketsOnly[typeof resolvedMediaType] =
+    dataSource[resolvedMediaType];
 
   /* -----------------------------
      Sentiment Trend (typed)
@@ -128,14 +149,18 @@ export const ReportModulePage = ({
   const isSentimentTrend = moduleName === "sentimentTrend";
 
   const seriesRaw: SentimentLike[] = isSentimentTrend
-    ? (mediaBucket?.sentimentTrend as SentimentLike[]) ??
-      (dataSource.sentimentTrend as SentimentLike[]) ??
+    ? (mediaBucket?.sentimentTrend as SentimentLike[] | undefined) ??
+      (dataSource.sentimentTrend as SentimentLike[] | undefined) ??
       []
     : [];
 
   const annotationsRaw: Partial<SentimentAnnotation>[] = isSentimentTrend
-    ? (mediaBucket?.sentimentTrendAnnotations as SentimentAnnotation[]) ??
-      (dataSource.sentimentTrendAnnotations as SentimentAnnotation[]) ??
+    ? (mediaBucket?.sentimentTrendAnnotations as
+        | Partial<SentimentAnnotation>[]
+        | undefined) ??
+      (dataSource.sentimentTrendAnnotations as
+        | Partial<SentimentAnnotation>[]
+        | undefined) ??
       []
     : [];
 
@@ -146,6 +171,17 @@ export const ReportModulePage = ({
   /* -----------------------------
      Render per module (typed)
   ------------------------------*/
+  console.debug("[Module Debug]", {
+    mediaType,
+    moduleName,
+    hasFormData: !!formData,
+    mediaKeys: Object.keys(dataSource || {}),
+    hasBucket: !!mediaBucket,
+    bucketKeys: mediaBucket ? Object.keys(mediaBucket) : [],
+    sampleSentiment:
+      mediaBucket?.sentimentTrend?.[0] ?? dataSource.sentimentTrend?.[0],
+  });
+
   const renderModuleComponent = () => {
     switch (moduleName) {
       case "executiveSummary": {

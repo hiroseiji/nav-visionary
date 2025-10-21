@@ -16,13 +16,31 @@ interface TopJournalistsProps {
 }
 
 export function TopJournalists({ data }: TopJournalistsProps) {
-  const journalists = (data || [])
-    .map(item => ({
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: Array<any> = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const candidates = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).journalists,
+      (data as any).list,
+    ];
+    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+  }
+
+  const journalists = dataArray
+    .map((item) => ({
       name: item.name || item.journalist || "Unknown",
       outlet: item.outlet || item.source || "Unknown",
-      articles: item.articles || item.count || item.volume || 0,
-      sentiment: item.sentiment !== undefined ? item.sentiment : 
-                 item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0
+      articles: item.articles ?? item.count ?? item.volume ?? 0,
+      sentiment:
+        item.sentiment !== undefined
+          ? item.sentiment
+          : item.averageSentiment !== undefined
+          ? Math.round(item.averageSentiment * 100)
+          : 0,
     }))
     .slice(0, 10); // Top 10 journalists
 

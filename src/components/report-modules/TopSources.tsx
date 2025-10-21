@@ -12,10 +12,24 @@ interface TopSourcesProps {
 }
 
 export function TopSources({ data }: TopSourcesProps) {
-  const chartData = (data || [])
-    .map(item => ({
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: Array<any> = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const candidates = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).sources,
+      (data as any).list,
+    ];
+    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+  }
+
+  const chartData = dataArray
+    .map((item) => ({
       source: item.source || item.name || "Unknown",
-      mentions: item.mentions || item.volume || item.count || 0
+      mentions: item.mentions ?? item.volume ?? item.count ?? 0,
     }))
     .slice(0, 10); // Top 10 sources
 

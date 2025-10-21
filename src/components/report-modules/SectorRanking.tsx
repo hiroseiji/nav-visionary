@@ -16,13 +16,33 @@ interface SectorRankingProps {
 }
 
 export function SectorRanking({ data }: SectorRankingProps) {
-  const rankings = (data || []).map((item, index) => ({
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: Array<any> = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const candidates = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).rankings,
+      (data as any).companies,
+      (data as any).list,
+    ];
+    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+  }
+
+  const rankings = dataArray.map((item, index) => ({
     rank: item.rank !== undefined ? item.rank : index + 1,
     company: item.company || item.name || "Unknown",
-    score: item.score !== undefined ? item.score :
-           item.scorePct !== undefined ? item.scorePct :
-           item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0,
-    change: item.change !== undefined ? item.change : 0
+    score:
+      item.score !== undefined
+        ? item.score
+        : item.scorePct !== undefined
+        ? item.scorePct
+        : item.averageSentiment !== undefined
+        ? Math.round(item.averageSentiment * 100)
+        : 0,
+    change: item.change !== undefined ? item.change : 0,
   }));
 
   if (rankings.length === 0) {

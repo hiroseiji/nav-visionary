@@ -14,9 +14,46 @@ interface IssueImpactProps {
   }>;
 }
 
+interface ChartDataPoint {
+  name: string;
+  value: number;
+  description: string;
+  sentiment: number;
+  rawValue: number;
+  sign: number;
+}
+
+interface CustomBarProps {
+  fill: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  payload: ChartDataPoint;
+  value: number;
+  highlightIdx: Set<number>;
+  index: number;
+}
+
+interface LeaderDotProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface ZeroAxisLabelProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  value: number;
+  payload: ChartDataPoint;
+}
+
 export function IssueImpact({ data }: IssueImpactProps) {
   // Handle different data structures: array, object with items/data property, or undefined
-  let dataArray: Array<any> = [];
+  let dataArray: Array<Record<string, unknown>> = [];
   
   if (Array.isArray(data)) {
     dataArray = data;
@@ -31,14 +68,14 @@ export function IssueImpact({ data }: IssueImpactProps) {
     dataArray = possibleArrays.find(arr => Array.isArray(arr)) || [];
   }
 
-  const issues = dataArray.map(item => ({
-    title: item.title || item.issue || "Unknown Issue",
-    description: item.description || item.summary || "",
-    impactScore: item.impactScore !== undefined ? item.impactScore :
-                 item.impact !== undefined ? item.impact : 0,
-    avgSentiment: item.avgSentiment !== undefined ? item.avgSentiment :
-                  item.sentiment !== undefined ? item.sentiment :
-                  item.averageSentiment !== undefined ? item.averageSentiment * 100 : 0
+  const issues = dataArray.map((item: any) => ({
+    title: String(item.title || item.issue || "Unknown Issue"),
+    description: String(item.description || item.summary || ""),
+    impactScore: item.impactScore !== undefined ? Number(item.impactScore) :
+                 item.impact !== undefined ? Number(item.impact) : 0,
+    avgSentiment: item.avgSentiment !== undefined ? Number(item.avgSentiment) :
+                  item.sentiment !== undefined ? Number(item.sentiment) :
+                  item.averageSentiment !== undefined ? Number(item.averageSentiment) * 100 : 0
   }));
 
   if (issues.length === 0) {
@@ -92,7 +129,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     return lines;
   };
 
-  const CustomBar = (props: any) => {
+  const CustomBar = (props: CustomBarProps) => {
     const { fill, x, y, width, height, payload, value, highlightIdx, index } = props;
     const signedVal = payload?.rawValue ?? value;
     const tooNarrow = width < 36;
@@ -136,14 +173,16 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  const ZeroAxisLabel = (props: any) => {
+  const ZeroAxisLabel = (props: ZeroAxisLabelProps) => {
     const { x, y, width, height, value, payload } = props;
     if (value == null || value === 0 || !payload?.name) return null;
 
     const isPos = value > 0;
     const gap = 10;
-    const tx = isPos ? x - gap : x + gap;
-    const anchor = isPos ? "end" : "start";
+    // For positive bars: label on left of zero line (end anchor)
+    // For negative bars: label on left of zero line (end anchor)
+    const tx = x - gap;
+    const anchor = "end";
 
     return (
       <text
@@ -160,7 +199,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  const LeaderDotRight = ({ x, y, width, height }: any) => {
+  const LeaderDotRight = ({ x, y, width, height }: LeaderDotProps) => {
     const cy = y + height / 2;
     const endX = x + width;
     const color = "hsl(var(--sentiment-positive))";
@@ -184,7 +223,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  const LeaderDotLeft = ({ x, y, width, height }: any) => {
+  const LeaderDotLeft = ({ x, y, width, height }: LeaderDotProps) => {
     const cy = y + height / 2;
     const endX = x + width;
     const color = "hsl(var(--sentiment-negative))";
@@ -208,7 +247,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  const CalloutsOverlay = (props: any) => {
+  const CalloutsOverlay = (props: { offset: { left: number; top: number }; xAxisMap: Record<string, any>; yAxisMap: Record<string, any>; data?: ChartDataPoint[]; highlightIdx?: Set<number> }) => {
     const { offset, xAxisMap, yAxisMap } = props;
     const xAxis = xAxisMap?.[Object.keys(xAxisMap || {})[0]];
     const yAxis = yAxisMap?.[Object.keys(yAxisMap || {})[0]];
@@ -333,7 +372,9 @@ export function IssueImpact({ data }: IssueImpactProps) {
             />
 
             {/* Callouts overlay */}
-            <Customized component={<CalloutsOverlay data={chartData} highlightIdx={highlightIdx} />} />
+            <Customized component={(rechartsProps: any) => (
+              <CalloutsOverlay {...rechartsProps} data={chartData} highlightIdx={highlightIdx} />
+            )} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -49,31 +49,15 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   }
 
-  // Calculate signed impact based on sentiment
+  // Calculate signed impact based on sentiment (matching original logic)
   const chartData = issues.map(issue => {
     const impactScore = Number(issue.impactScore) || 0;
-    let sentiment = Number(issue.avgSentiment) || 0;
+    const sentiment = Number(issue.avgSentiment) || 0;
     
-    // Normalize sentiment: if it's in 0-1 range, convert to -100 to 100
-    if (sentiment > -1 && sentiment < 1 && sentiment !== 0) {
-      sentiment = sentiment * 100;
-    }
-    
-    // If sentiment looks like it's centered around 0.5, normalize it to -100 to 100
-    if (sentiment >= 0 && sentiment <= 1) {
-      sentiment = (sentiment - 0.5) * 200; // 0 becomes -100, 0.5 becomes 0, 1 becomes 100
-    }
-    
-    // Negative sentiment = negative bar (extends left), positive = positive bar (extends right)
-    const signed = impactScore === 0 ? 0 : (sentiment < 0 ? -1 : 1) * impactScore;
-    
-    console.log('[IssueImpact]', {
-      title: issue.title,
-      impactScore,
-      rawSentiment: issue.avgSentiment,
-      normalizedSentiment: sentiment,
-      signed
-    });
+    // Original logic: Force sign based on sentiment
+    // If sentiment >= 0 (positive), bar extends right (positive value)
+    // If sentiment < 0 (negative), bar extends left (negative value)
+    const signed = impactScore === 0 ? 0 : (sentiment >= 0 ? 1 : -1) * impactScore;
     
     return {
       name: issue.title,

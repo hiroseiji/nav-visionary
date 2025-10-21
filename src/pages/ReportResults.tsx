@@ -75,7 +75,32 @@ export default function ReportResults() {
 
   // Build modules & pages with safe fallbacks so hooks run even while loading
   const modulesData = useMemo<ModulesByMedia>(() => {
-    const mods = normalizeModules(reportData?.modules); // existing
+    // First try to get modules from formData.mediaSelections (old API format)
+    const formDataUnknown = (reportData as any)?.formData;
+    if (formDataUnknown?.mediaSelections && Array.isArray(formDataUnknown.mediaSelections)) {
+      const result: ModulesByMedia = {};
+      formDataUnknown.mediaSelections.forEach((entry: any) => {
+        if (entry.mediaType && Array.isArray(entry.selectedModules)) {
+          result[entry.mediaType] = {};
+          entry.selectedModules.forEach((mod: string) => {
+            result[entry.mediaType][mod] = true;
+          });
+        }
+      });
+      // Always ensure executiveSummary and sentimentTrend for articles
+      if (!result.articles) result.articles = {};
+      result.articles.executiveSummary = true;
+      result.articles.sentimentTrend = true;
+      
+      console.log("[ReportResults] Using formData.mediaSelections:", result);
+      return result;
+    }
+
+    // Fallback: try normalizeModules on reportData.modules
+    const mods = normalizeModules(reportData?.modules);
+    console.log("[ReportResults] Using normalized modules:", mods);
+    
+    // Ensure executiveSummary and sentimentTrend are always included for articles
     return {
       ...mods,
       articles: {
@@ -84,7 +109,7 @@ export default function ReportResults() {
         sentimentTrend: true,
       },
     };
-  }, [reportData?.modules]);
+  }, [reportData]);
 
   const mediaTypes: string[] = useMemo(
     () => Object.keys(modulesData),

@@ -12,7 +12,23 @@ interface ReputationalOpportunitiesProps {
 }
 
 export function ReputationalOpportunities({ data }: ReputationalOpportunitiesProps) {
-  if (!data || data.length === 0) {
+  // Handle different data structures: array, object with items/data property, or undefined
+  let dataArray: Array<any> = [];
+  
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === 'object') {
+    // Check for common array property names
+    const possibleArrays = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).opportunities,
+      (data as any).list
+    ];
+    dataArray = possibleArrays.find(arr => Array.isArray(arr)) || [];
+  }
+
+  if (dataArray.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         No reputational opportunities identified during this period.
@@ -20,7 +36,7 @@ export function ReputationalOpportunities({ data }: ReputationalOpportunitiesPro
     );
   }
 
-  const opportunities = data;
+  const opportunities = dataArray;
 
   return (
     <div className="space-y-4">

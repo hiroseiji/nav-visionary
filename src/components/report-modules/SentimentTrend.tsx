@@ -143,24 +143,28 @@ const HaloPointsPlugin = {
   afterDatasetsDraw(chart: ChartJS) {
     const { ctx } = chart;
 
-    chart.data.datasets.forEach((ds: any, i: number) => {
+    chart.data.datasets.forEach((ds, i: number) => {
+      // @ts-expect-error - Custom property
       if (!ds._drawHalo) return;
 
       const meta = chart.getDatasetMeta(i);
       if (!meta?.data?.length) return;
 
-      meta.data.forEach((pt: any, idx: number) => {
-        if (!pt?.x || !pt?.y) return;
+      meta.data.forEach((pt, idx: number) => {
+        const pointEl = pt as { x?: number; y?: number; options?: { backgroundColor?: string } };
+        if (!pointEl?.x || !pointEl?.y) return;
 
+        // @ts-expect-error - pointRadius may not exist on all dataset types
+        const dsAny = ds as { pointRadius?: number | ((ctx: unknown) => number) };
         const pr =
-          typeof ds.pointRadius === "function"
-            ? ds.pointRadius({ chart, dataset: ds, dataIndex: idx })
-            : ds.pointRadius || 3;
+          typeof dsAny.pointRadius === "function"
+            ? dsAny.pointRadius({ chart, dataset: ds, dataIndex: idx })
+            : (dsAny.pointRadius || 3);
 
-        const prev = meta.data[idx - 1];
-        const next = meta.data[idx + 1];
-        const dxPrev = Number.isFinite((prev as any)?.x) ? Math.abs(pt.x - (prev as any).x) : Infinity;
-        const dxNext = Number.isFinite((next as any)?.x) ? Math.abs(pt.x - (next as any).x) : Infinity;
+        const prev = meta.data[idx - 1] as typeof pointEl;
+        const next = meta.data[idx + 1] as typeof pointEl;
+        const dxPrev = prev?.x !== undefined ? Math.abs(pointEl.x - prev.x) : Infinity;
+        const dxNext = next?.x !== undefined ? Math.abs(pointEl.x - next.x) : Infinity;
         const nearestDx = Math.min(dxPrev, dxNext);
 
         const spacing = nearestDx / (pr * 3);
@@ -175,13 +179,13 @@ const HaloPointsPlugin = {
         const baseAlpha = 0.25;
         const alpha = 0.25 * baseAlpha + 0.75 * baseAlpha * ease;
 
-        const fillCol = (pt.options as any)?.backgroundColor || "#0bb37b";
+        const fillCol = pointEl.options?.backgroundColor || "#0bb37b";
 
         ctx.save();
         ctx.globalCompositeOperation = "destination-over";
         ctx.globalAlpha = alpha;
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, haloR, 0, Math.PI * 2);
+        ctx.arc(pointEl.x, pointEl.y, haloR, 0, Math.PI * 2);
         ctx.fillStyle = fillCol;
         ctx.fill();
         ctx.restore();
@@ -248,7 +252,7 @@ export function SentimentTrend({
                     {
                       type: "line" as const,
                       label: "Industry Trend",
-                      data: industry as any,
+                      data: industry as (number | null)[],
                       borderColor: industryColor,
                       borderWidth: 2,
                       pointRadius: 0,
@@ -264,8 +268,8 @@ export function SentimentTrend({
               {
                 type: "line" as const,
                 label: "Sentiment Trend",
-                data: smoothSent as any,
-                borderWidth: (ctx: any) => Math.max(2, dynamicPointRadius(ctx.chart) * 0.6),
+                data: smoothSent as (number | null)[],
+                borderWidth: (ctx: { chart: ChartJS }) => Math.max(2, dynamicPointRadius(ctx.chart) * 0.6),
                 borderColor: "#e0c80c",
                 backgroundColor: "rgba(214,191,21,0.05)",
                 pointRadius: 0,
@@ -276,26 +280,27 @@ export function SentimentTrend({
                 datalabels: { display: false },
                 order: 1,
               },
+              // @ts-expect-error - Custom dataset properties
               {
                 type: "line" as const,
                 label: "Sentiment",
-                data: dailySent as any,
+                data: dailySent as (number | null)[],
                 yAxisID: "y1",
                 tension: 0.35,
                 spanGaps: true,
                 cubicInterpolationMode: "monotone" as const,
-                borderWidth: (ctx: any) => Math.max(1, dynamicPointRadius(ctx.chart) * 0.75),
+                borderWidth: (ctx: { chart: ChartJS }) => Math.max(1, dynamicPointRadius(ctx.chart) * 0.75),
                 segment: {
-                  borderColor: (ctx: any) => {
+                  borderColor: (ctx: { p0DataIndex: number }) => {
                     const i = ctx.p0DataIndex ?? 0;
                     return colorAt(i);
                   },
                 },
-                pointRadius: (ctx: any) => dynamicPointRadius(ctx.chart),
-                pointHoverRadius: (ctx: any) => Math.max(4, dynamicPointRadius(ctx.chart) * 1.6),
-                hitRadius: (ctx: any) => Math.max(6, dynamicPointRadius(ctx.chart) * 2),
-                pointBackgroundColor: (ctx: any) => colorAt(ctx.dataIndex),
-                pointBorderColor: (ctx: any) => colorAt(ctx.dataIndex),
+                pointRadius: (ctx: { chart: ChartJS }) => dynamicPointRadius(ctx.chart),
+                pointHoverRadius: (ctx: { chart: ChartJS }) => Math.max(4, dynamicPointRadius(ctx.chart) * 1.6),
+                hitRadius: (ctx: { chart: ChartJS }) => Math.max(6, dynamicPointRadius(ctx.chart) * 2),
+                pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
+                pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 fill: {
                   target: "origin",
                   above: "rgba(11,179,123,0.08)",
@@ -304,7 +309,7 @@ export function SentimentTrend({
                 _drawHalo: true,
                 datalabels: { display: false },
                 order: 2,
-              } as any,
+              },
             ],
           },
           options: {
@@ -336,7 +341,7 @@ export function SentimentTrend({
                 title: {
                   display: true,
                   text: "Sentiment*",
-                  font: { family: "Raleway", size: 12, weight: "600" },
+                  font: { family: "Raleway", size: 12, weight: "bold" },
                   color: "#eee",
                 },
               },
@@ -367,10 +372,10 @@ export function SentimentTrend({
               },
               tooltip: {
                 backgroundColor: "rgba(0,0,0,0.85)",
-                titleFont: { family: "Raleway", size: 12, weight: "700" },
+                titleFont: { family: "Raleway", size: 12, weight: "bold" },
                 bodyFont: { family: "Raleway", size: 12 },
                 callbacks: {
-                  label: (ctx) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
+                  label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
                 },
               },
               subtitle: {
@@ -401,7 +406,7 @@ export function SentimentTrend({
                     ),
                   }
                 : undefined,
-            } as any,
+            },
           },
           plugins: [HaloPointsPlugin],
         });
@@ -484,12 +489,12 @@ export function SentimentTrend({
                 ticks: {
                   font: { family: "Raleway", size: 12 },
                   color: "#ddd",
-                  callback: (v: any) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v),
+                  callback: (v: number | string) => (typeof v === 'number' && v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v),
                 },
                 title: {
                   display: true,
                   text: "Volume",
-                  font: { family: "Raleway", size: 12, weight: "600" },
+                  font: { family: "Raleway", size: 12, weight: "bold" },
                   color: "#ddd",
                 },
                 stacked: true,

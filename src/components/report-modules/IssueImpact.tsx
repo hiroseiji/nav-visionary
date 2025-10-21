@@ -81,12 +81,12 @@ export function IssueImpact({ data }: IssueImpactProps) {
     // Impact value positioning
     let tx = isPos ? x + width - 8 : x + 8;
     let anchor = isPos ? "end" : "start";
-    let textFill = "#fff";
+    let textFill = "hsl(var(--primary-foreground))";
 
     if (tooNarrow) {
       tx = isPos ? x + width + 6 : x - 6;
       anchor = isPos ? "start" : "end";
-      textFill = isPos ? "#10b981" : "#ef4444";
+      textFill = isPos ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))";
     }
 
     return (
@@ -123,7 +123,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
         textAnchor={anchor}
         dominantBaseline="middle"
         fontSize="13"
-        fill="#374151"
+        fill="hsl(var(--foreground))"
         fontWeight="700"
       >
         {payload.name}
@@ -134,13 +134,13 @@ export function IssueImpact({ data }: IssueImpactProps) {
   const LeaderDotRight = ({ x, y, width, height }: any) => {
     const cy = y + height / 2;
     const endX = x + width;
-    const color = "#10b981";
+    const color = "hsl(var(--sentiment-positive))";
     const r = 5;
     const LINE_LEN = 30;
 
     return (
       <g>
-        <circle cx={endX} cy={cy} r={r} fill="#fff" stroke={color} strokeWidth={2} />
+        <circle cx={endX} cy={cy} r={r} fill="hsl(var(--background))" stroke={color} strokeWidth={2} />
         <line
           x1={endX + r + 1}
           y1={cy}
@@ -158,13 +158,13 @@ export function IssueImpact({ data }: IssueImpactProps) {
   const LeaderDotLeft = ({ x, y, width, height }: any) => {
     const cy = y + height / 2;
     const endX = x + width;
-    const color = "#ef4444";
+    const color = "hsl(var(--sentiment-negative))";
     const r = 5;
     const LINE_LEN = 30;
 
     return (
       <g>
-        <circle cx={endX} cy={cy} r={r} fill="#fff" stroke={color} strokeWidth={2} />
+        <circle cx={endX} cy={cy} r={r} fill="hsl(var(--background))" stroke={color} strokeWidth={2} />
         <line
           x1={endX - r - 1}
           y1={cy}
@@ -209,7 +209,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
                 textAnchor={isPositive ? "start" : "end"}
                 fontWeight="700"
                 fontSize={13}
-                fill={isPositive ? "#059669" : "#ef4444"}
+                fill={isPositive ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))"}
               >
                 {d.name}
               </text>
@@ -218,7 +218,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
                 y={cy + 8} 
                 textAnchor={isPositive ? "start" : "end"}
                 fontSize={12} 
-                fill="#374151"
+                fill="hsl(var(--muted-foreground))"
               >
                 {lines.map((line, idx) => (
                   <tspan key={idx} x={textX} dy={idx === 0 ? 0 : 14}>
@@ -294,7 +294,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
               shape={(props) => (
                 <CustomBar
                   {...props}
-                  fill={props.payload.sign === -1 ? "#ef4444" : "#10b981"}
+                  fill={props.payload.sign === -1 ? "hsl(var(--sentiment-negative))" : "hsl(var(--sentiment-positive))"}
                   highlightIdx={highlightIdx}
                   index={props.index}
                 />

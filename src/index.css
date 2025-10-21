@@ -61,6 +61,11 @@ All colors MUST be HSL.
 
     --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 35%), hsl(217, 91%, 60%));
 
+    --sentiment-positive: 160 84% 39%;
+    --sentiment-positive-light: 160 84% 95%;
+    --sentiment-negative: 0 84% 60%;
+    --sentiment-negative-light: 0 84% 95%;
+
     --radius: 1rem;
 
     --sidebar-background: 220 14% 96%;
@@ -110,6 +115,11 @@ All colors MUST be HSL.
     --ring: 217 91% 60%;
 
     --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 30%), hsl(217, 91%, 60%));
+
+    --sentiment-positive: 160 64% 49%;
+    --sentiment-positive-light: 160 64% 20%;
+    --sentiment-negative: 0 72% 51%;
+    --sentiment-negative-light: 0 72% 20%;
 
     --sidebar-background: 217 33% 10%;
     --sidebar-foreground: 210 40% 98%;

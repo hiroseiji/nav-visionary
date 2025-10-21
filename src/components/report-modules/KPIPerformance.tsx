@@ -261,14 +261,14 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
                 // Green for positive, red for negative, grey for neutral
                 const fillColor = 
-                  variant === "pos" ? "hsl(var(--chart-2))" :
-                  variant === "neg" ? "hsl(var(--destructive))" :
-                  "hsl(var(--muted-foreground))";
+                  variant === "pos" ? "#22c55e" :
+                  variant === "neg" ? "#ef4444" :
+                  "#9ca3af";
 
                 const strokeColor = 
-                  variant === "pos" ? "hsl(var(--chart-2))" :
-                  variant === "neg" ? "hsl(var(--destructive))" :
-                  "hsl(var(--muted-foreground))";
+                  variant === "pos" ? "#16a34a" :
+                  variant === "neg" ? "#dc2626" :
+                  "#6b7280";
 
                 return (
                   <g filter="url(#kpiShadow)">

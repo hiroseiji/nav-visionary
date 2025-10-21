@@ -53,7 +53,8 @@ export function IssueImpact({ data }: IssueImpactProps) {
   const chartData = issues.map(issue => {
     const impactScore = Number(issue.impactScore) || 0;
     const sentiment = Number(issue.avgSentiment) || 0;
-    const signed = impactScore === 0 ? 0 : (sentiment >= 0 ? 1 : -1) * impactScore;
+    // Negative sentiment = negative bar (extends left), positive = positive bar (extends right)
+    const signed = impactScore === 0 ? 0 : (sentiment < 0 ? -1 : 1) * impactScore;
     
     return {
       name: issue.title,
@@ -256,7 +257,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 8, right: 200, bottom: 24, left: 200 }}
+            margin={{ top: 8, right: 280, bottom: 24, left: 280 }}
           >
             <CartesianGrid stroke="#9ca3af0f" />
             <XAxis

@@ -248,8 +248,8 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
                 // Color based on sentiment relative to average
                 const variant =
-                  payload.sentPct > meanSentPct + 5 ? "pos" :
-                  payload.sentPct < meanSentPct - 5 ? "neg" : "neu";
+                  payload.sentPct > 10 ? "pos" :
+                  payload.sentPct < -10 ? "neg" : "neu";
 
                 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
                 const ringW = clamp(r * 0.22, 8, 42);
@@ -321,10 +321,10 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
             // Color based on sentiment relative to average
             let pillClass = "";
             let marker = "▼";
-            if (sent > meanSentPct + 5) {
+            if (sent > 10) {
               pillClass = "text-green-600 border-green-600 bg-green-600/10";
               marker = "▲";
-            } else if (sent < meanSentPct - 5) {
+            } else if (sent < -10) {
               pillClass = "text-red-600 border-red-600 bg-red-600/10";
               marker = "▼";
             } else {

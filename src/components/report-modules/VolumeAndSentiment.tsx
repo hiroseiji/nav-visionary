@@ -13,11 +13,30 @@ interface VolumeAndSentimentProps {
 }
 
 export function VolumeAndSentiment({ data }: VolumeAndSentimentProps) {
-  const chartData = (data || []).map(item => ({
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: Array<any> = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const candidates = [
+      (data as any).items,
+      (data as any).data,
+      (data as any).series,
+      (data as any).points,
+      (data as any).list,
+    ];
+    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+  }
+
+  const chartData = dataArray.map((item) => ({
     period: item.period || item.date || "Unknown",
-    volume: item.volume || item.count || 0,
-    sentiment: item.sentiment !== undefined ? item.sentiment :
-               item.averageSentiment !== undefined ? Math.round(item.averageSentiment * 100) : 0
+    volume: item.volume ?? item.count ?? 0,
+    sentiment:
+      item.sentiment !== undefined
+        ? item.sentiment
+        : item.averageSentiment !== undefined
+        ? Math.round(Number(item.averageSentiment) * 100)
+        : 0,
   }));
 
   if (chartData.length === 0) {

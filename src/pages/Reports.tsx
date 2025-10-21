@@ -1,16 +1,34 @@
-import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import { useEffect, useState, useRef, useMemo } from "react";
+import axios, { isAxiosError } from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { Search, FileText, Plus, Minus, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Report {
   _id: string;
@@ -29,19 +47,30 @@ interface User {
   lastName?: string;
 }
 
+const API_BASE = "https://sociallightbw-backend-34f7586fa57c.herokuapp.com";
+
 export default function Reports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleReports, setVisibleReports] = useState(20);
-  const [dateSortOrder, setDateSortOrder] = useState<"ascending" | "descending">("descending");
+  const [dateSortOrder, setDateSortOrder] = useState<
+    "ascending" | "descending"
+  >("descending");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightedReportId = searchParams.get("highlight");
   const rowRefs = useRef<Record<string, HTMLTableRowElement>>({});
 
-  const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
+  // typed read from localStorage (avoid implicit any)
+  const user = useMemo<User | null>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null") as User | null;
+    } catch {
+      return null;
+    }
+  }, []);
   const selectedOrg = localStorage.getItem("selectedOrg");
 
   useEffect(() => {
@@ -51,14 +80,39 @@ export default function Reports() {
     }
 
     const fetchReports = async () => {
+      setLoading(true);
       try {
-        const orgId = user.role === "super_admin" ? selectedOrg : user.organizationId;
+        const orgId =
+          user.role === "super_admin" ? selectedOrg : user.organizationId;
+        if (!orgId) {
+          toast.error("Organization ID not found");
+          setReports([]);
+          return;
+        }
+
+        // Don't assume array vs paginated object
         const res = await axios.get(
-          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/generated-reports/${orgId}`
+          `${API_BASE}/reports/generated-reports/${orgId}?t=${Date.now()}`
         );
-        setReports(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Failed to fetch reports:", err);
+
+        const data = res.data as unknown;
+        const list: Report[] = Array.isArray(data)
+          ? (data as Report[])
+          : Array.isArray((data as { items?: unknown })?.items)
+          ? ((data as { items: unknown }).items as Report[]) ?? []
+          : [];
+
+        setReports(list);
+      } catch (err: unknown) {
+        if (isAxiosError(err)) {
+          console.error(
+            "Failed to fetch reports:",
+            err.response?.status,
+            err.message
+          );
+        } else {
+          console.error("Failed to fetch reports:", err);
+        }
         toast.error("Failed to load generated reports.");
       } finally {
         setLoading(false);
@@ -68,69 +122,62 @@ export default function Reports() {
     fetchReports();
   }, [user, selectedOrg, navigate]);
 
-  // Scroll to and highlight the report that was just viewed
-  useEffect(() => {
-    if (highlightedReportId && rowRefs.current[highlightedReportId] && !loading) {
-      setTimeout(() => {
-        const row = rowRefs.current[highlightedReportId];
-        if (row) {
-          row.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Clear the highlight param after scrolling
-          setTimeout(() => setSearchParams({}), 3000);
-        }
-      }, 100);
-    }
-  }, [highlightedReportId, loading, setSearchParams]);
 
-  const reportsToDisplay = searchQuery ? filteredReports : reports;
-  const displayedReports = (Array.isArray(reportsToDisplay) ? reportsToDisplay : [])
+  const baseList = searchQuery ? filteredReports : reports;
+  const safeList = Array.isArray(baseList) ? baseList : [];
+
+  const displayedReports = [...safeList]
     .sort((a, b) => {
-      const da = new Date(a.createdAt ?? a.created_at ?? 0);
-      const db = new Date(b.createdAt ?? b.created_at ?? 0);
-      return dateSortOrder === "ascending" ? da.getTime() - db.getTime() : db.getTime() - da.getTime();
+      const da = new Date(a.createdAt ?? a.created_at ?? 0).getTime();
+      const db = new Date(b.createdAt ?? b.created_at ?? 0).getTime();
+      return dateSortOrder === "ascending" ? da - db : db - da;
     })
     .slice(0, visibleReports);
 
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    const lowerCaseQuery = query.toLowerCase();
+    const lower = query.toLowerCase();
 
-    const filtered = reports.filter((report) => {
-      const modulesStr = typeof report.modules === "object" 
-        ? Object.keys(report.modules).join(", ") 
-        : String(report.modules || "");
-      const scopeStr = Array.isArray(report.scope) 
-        ? report.scope.join(", ") 
-        : String(report.scope || "");
+    const filtered = (Array.isArray(reports) ? reports : []).filter(
+      (report) => {
+        const modulesStr =
+          typeof report.modules === "object"
+            ? Object.keys(report.modules).join(", ")
+            : String(report.modules || "");
+        const scopeStr = Array.isArray(report.scope)
+          ? report.scope.join(", ")
+          : String(report.scope || "");
 
-      return (
-        modulesStr.toLowerCase().includes(lowerCaseQuery) ||
-        scopeStr.toLowerCase().includes(lowerCaseQuery) ||
-        report.createdBy?.toLowerCase().includes(lowerCaseQuery) ||
-        report.title?.toLowerCase().includes(lowerCaseQuery)
-      );
-    });
+        return (
+          modulesStr.toLowerCase().includes(lower) ||
+          scopeStr.toLowerCase().includes(lower) ||
+          (report.createdBy || "").toLowerCase().includes(lower) ||
+          (report.title || "").toLowerCase().includes(lower)
+        );
+      }
+    );
 
     setFilteredReports(filtered);
     setVisibleReports(20);
   };
 
+
   const formatModules = (modules: string[] | Record<string, boolean>) => {
     if (Array.isArray(modules)) return modules.join(", ");
-    if (typeof modules === "object") return Object.keys(modules).join(", ");
-    return String(modules || "");
+    if (typeof modules === "object" && modules)
+      return Object.keys(modules).join(", ");
+    return "";
   };
 
-  const formatScope = (scope: string[]) => {
-    if (Array.isArray(scope)) return scope.join(", ");
-    return String(scope || "");
-  };
+  const formatScope = (scope: string[]) =>
+    Array.isArray(scope) ? scope.join(", ") : "";
 
   if (loading) {
     return (
       <SidebarLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
         </div>
       </SidebarLayout>
     );

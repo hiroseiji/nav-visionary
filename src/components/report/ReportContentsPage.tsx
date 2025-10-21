@@ -114,10 +114,11 @@ interface ReportContentsPageProps {
   reportData: Report & ReportLike; // extend your Report with the flexible shape
   modulesData: ModulesData;
   mediaTypes: string[];
+  onNavigateToPage?: (pageNumber: number) => void;
 }
 
 /* ====== Component ====== */
-export const ReportContentsPage = ({ reportData, modulesData, mediaTypes }: ReportContentsPageProps) => {
+export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavigateToPage }: ReportContentsPageProps) => {
   /* ---- Languages & date range (typed) ---- */
   const summarizeLanguagesFromReport = (r: ReportLike): string => {
     const arr =
@@ -359,13 +360,33 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes }: Repo
     printmedia: "Print Media",
   };
 
-  const ContentsRow = ({ label, page }: { label: string; page: number | string }) => (
-    <li className="flex items-center gap-2 py-2 px-2 rounded hover:bg-accent/50">
-      <span className="font-medium truncate">{label}</span>
-      <span className="flex-1 border-b border-dotted border-muted-foreground/50 mx-2" />
-      <span className="text-sm text-muted-foreground tabular-nums">{page}</span>
-    </li>
-  );
+  const ContentsRow = ({ label, page }: { label: string; page: number | string }) => {
+    const pageNum = typeof page === 'number' ? page : parseInt(String(page), 10);
+    const handleClick = () => {
+      if (onNavigateToPage && !isNaN(pageNum)) {
+        onNavigateToPage(pageNum);
+      }
+    };
+
+    return (
+      <li 
+        className="flex items-center gap-2 py-2 px-2 rounded hover:bg-accent/50 cursor-pointer transition-colors"
+        onClick={handleClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+      >
+        <span className="font-medium truncate">{label}</span>
+        <span className="flex-1 border-b border-dotted border-muted-foreground/50 mx-2" />
+        <span className="text-sm text-muted-foreground tabular-nums">{page}</span>
+      </li>
+    );
+  };
 
   const mediaOrder = ["articles", "printmedia", "broadcast", "posts"];
 

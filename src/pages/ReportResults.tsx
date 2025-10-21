@@ -248,6 +248,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
             reportData={reportData}
             modulesData={modulesData}
             mediaTypes={mediaTypes}
+            onNavigateToPage={setCurrentPage}
           />
         )}
 

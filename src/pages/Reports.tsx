@@ -92,7 +92,7 @@ export default function Reports() {
 
         // Don't assume array vs paginated object
         const res = await axios.get(
-          `${API_BASE}/reports/generated-reports/${orgId}?t=${Date.now()}`
+          `${API_BASE}/reports/generated-reports2/${orgId}?t=${Date.now()}`
         );
 
         const data = res.data as unknown;

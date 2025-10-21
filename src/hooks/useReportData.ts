@@ -81,7 +81,7 @@ export const useReportData = (
       const fetchReport = async () => {
       setLoading(true);
       try {
-        const reportUrl = `${API_BASE}/reports/generated-reports/view/${reportId}?t=${Date.now()}`;
+        const reportUrl = `${API_BASE}/reports/generated-reports2/view/${reportId}?t=${Date.now()}`;
         const res = await axios.get<{reportData: Report; formData: Record<string, unknown>; organizationId: string}>(reportUrl, {
           headers: {
             Accept: "application/json",

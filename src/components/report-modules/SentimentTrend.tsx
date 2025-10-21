@@ -16,7 +16,7 @@ import {
 } from "recharts";
 
 import { SentimentPoint, SentimentAnnotation } from "../../types/sentiment";
-import { getLineColor, getSpikeColor } from "../../utils/sentimentTrendUtils";
+import { getSpikeColor } from "../../utils/sentimentTrendUtils";
 
 type DotProps = { cx?: number; cy?: number; payload: SentimentPoint };
 
@@ -24,6 +24,34 @@ interface SentimentTrendProps {
   data: SentimentPoint[];
   annotations?: SentimentAnnotation[];
 }
+
+// Helper: determine dominant category for a day
+const getDayCategory = (d: SentimentPoint): string => {
+  const pos = d.positive ?? 0;
+  const neg = d.negative ?? 0;
+  const neu = d.neutral ?? 0;
+  const mix = d.mixed ?? 0;
+  const max = Math.max(pos, neg, neu, mix);
+  if (max === 0) return "neutral";
+  if (pos === max) return "positive";
+  if (neg === max) return "negative";
+  if (mix === max) return "mixed";
+  return "neutral";
+};
+
+// Color mapping for categories
+const CAT_COLORS = {
+  positive: "#34d139",
+  negative: "#ff1b0b",
+  neutral: "#bbbbbb",
+  mixed: "#5d98ff",
+};
+
+// Get color for a specific data point
+const getPointColor = (point: SentimentPoint): string => {
+  const cat = getDayCategory(point);
+  return CAT_COLORS[cat as keyof typeof CAT_COLORS] || CAT_COLORS.neutral;
+};
 
 export function SentimentTrend({
   data,
@@ -66,6 +94,17 @@ export function SentimentTrend({
             <Tooltip />
             <ReferenceLine y={0} stroke="#000" strokeWidth={1} />
 
+            {hasIndustryTrend && (
+              <Line
+                type="monotone"
+                dataKey="industryTrend"
+                stroke="#fff"
+                strokeWidth={2}
+                dot={false}
+                name="Industry Trend"
+              />
+            )}
+
             <Line
               type="monotone"
               dataKey="rolling"
@@ -79,26 +118,48 @@ export function SentimentTrend({
             <Line
               type="monotone"
               dataKey="sentiment"
-              stroke="#10b981"
+              stroke="transparent"
               strokeWidth={2}
               dot={(p: DotProps) => {
+                if (!p.cx || !p.cy || !p.payload) return null;
                 const { cx, cy, payload } = p;
-                const c = getLineColor(payload.sentiment);
-                return <circle cx={cx} cy={cy} r={5} fill={c} stroke={c} />;
+                const color = getPointColor(payload);
+                const r = 7;
+                const haloR = r + 4;
+                
+                return (
+                  <g>
+                    {/* Outer halo/glow */}
+                    <circle 
+                      cx={cx} 
+                      cy={cy} 
+                      r={haloR} 
+                      fill={color}
+                      opacity={0.2}
+                    />
+                    {/* Ring */}
+                    <circle 
+                      cx={cx} 
+                      cy={cy} 
+                      r={r} 
+                      fill="none"
+                      stroke={color}
+                      strokeWidth={3}
+                      opacity={0.8}
+                    />
+                    {/* Inner fill */}
+                    <circle 
+                      cx={cx} 
+                      cy={cy} 
+                      r={r - 2} 
+                      fill={color}
+                      opacity={0.3}
+                    />
+                  </g>
+                );
               }}
               name="Sentiment"
             />
-
-            {hasIndustryTrend && (
-              <Line
-                type="monotone"
-                dataKey="industryTrend"
-                stroke="#000"
-                strokeWidth={2}
-                dot={false}
-                name="Industry Trend"
-              />
-            )}
 
             {annotations.map((ann, idx) => (
               <ReferenceLine
@@ -127,10 +188,10 @@ export function SentimentTrend({
               />
             </YAxis>
             <Tooltip />
-            <Bar dataKey="negative" stackId="a" fill="#ef4444" />
-            <Bar dataKey="neutral" stackId="a" fill="#9ca3af" />
-            <Bar dataKey="positive" stackId="a" fill="#10b981" />
-            {hasMixed && <Bar dataKey="mixed" stackId="a" fill="#5d98ff" />}
+            <Bar dataKey="negative" stackId="a" fill="#ff1b0b" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="neutral" stackId="a" fill="#bbbbbb" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="positive" stackId="a" fill="#34d139" radius={[3, 3, 0, 0]} />
+            {hasMixed && <Bar dataKey="mixed" stackId="a" fill="#5d98ff" radius={[3, 3, 0, 0]} />}
           </BarChart>
         </ResponsiveContainer>
       </Card>

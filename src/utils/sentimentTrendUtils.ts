@@ -4,10 +4,10 @@ import { SentimentAnnotation, SentimentLike, SentimentPoint } from "../types/sen
 /** Color for spike markers / cards */
 export function getSpikeColor(type: string): string {
   const t = (type || "").toLowerCase();
-  if (t.includes("negative")) return "#ef4444";
+  if (t.includes("negative")) return "#ff1b0b";
   if (t.includes("mixed")) return "#5d98ff";
-  if (t.includes("neutral")) return "#9ca3af";
-  return "#10b981";
+  if (t.includes("neutral")) return "#bbbbbb";
+  return "#34d139";
 }
 
 /** Point color by sentiment sign */

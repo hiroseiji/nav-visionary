@@ -1,29 +1,52 @@
-// components/report-modules/SentimentTrend.tsx
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  BarChart,
-  Bar,
-  ReferenceLine,
-  Label,
-} from "recharts";
-
 import { SentimentPoint, SentimentAnnotation } from "../../types/sentiment";
 import { getSpikeColor } from "../../utils/sentimentTrendUtils";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  BarController,
+  LineController,
+} from "chart.js";
+import annotationPlugin from "chartjs-plugin-annotation";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
-type DotProps = { cx?: number; cy?: number; payload: SentimentPoint };
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  BarController,
+  LineController,
+  annotationPlugin,
+  ChartDataLabels
+);
 
 interface SentimentTrendProps {
   data: SentimentPoint[];
   annotations?: SentimentAnnotation[];
 }
+
+// Color mapping for categories
+const CAT_COLORS = {
+  positive: "#34d139",
+  negative: "#ff1b0b",
+  neutral: "#bbbbbb",
+  mixed: "#5d98ff",
+};
 
 // Helper: determine dominant category for a day
 const getDayCategory = (d: SentimentPoint): string => {
@@ -39,24 +62,145 @@ const getDayCategory = (d: SentimentPoint): string => {
   return "neutral";
 };
 
-// Color mapping for categories
-const CAT_COLORS = {
-  positive: "#34d139",
-  negative: "#ff1b0b",
-  neutral: "#bbbbbb",
-  mixed: "#5d98ff",
+// Utility functions
+const clamp1 = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+const smoothstep = (x: number) => x * x * (3 - 2 * x);
+
+function dynamicPointRadius(
+  chart: ChartJS,
+  { min = 1.5, max = 1.6, pxPerUnit = 10 } = {}
+) {
+  const x = chart.scales.x;
+  const n = chart.data?.labels?.length ?? 0;
+  if (!x || n <= 1) return (min + max) / 2;
+
+  const span = x.getPixelForTick(n - 1) - x.getPixelForTick(0);
+  const avgPx = span / (n - 1);
+  const r = (avgPx / pxPerUnit) * max;
+  return clamp1(r, min, max);
+}
+
+const TICK_EVERY_DAYS = 4;
+const month3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const daysBetween = (a: Date, b: Date) =>
+  Math.round(
+    (Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) -
+      Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) /
+      86400000
+  );
+
+const fourDayTickCallback = (labels: string[]) => (val: string | number, idx: number) => {
+  const first = new Date(labels[0]);
+  const cur = new Date(labels[idx]);
+  if (isNaN(first.getTime()) || isNaN(cur.getTime())) {
+    if (idx % TICK_EVERY_DAYS !== 0 && idx !== labels.length - 1) return "";
+    return labels[idx];
+  }
+  const d = daysBetween(first, cur);
+  if (d % TICK_EVERY_DAYS !== 0 && idx !== labels.length - 1) return "";
+  return `${cur.getDate()}-${month3[cur.getMonth()]}`;
 };
 
-// Get color for a specific data point
-const getPointColor = (point: SentimentPoint): string => {
-  const cat = getDayCategory(point);
-  return CAT_COLORS[cat as keyof typeof CAT_COLORS] || CAT_COLORS.neutral;
+function makeGradientRing(size = 22, thickness = 7) {
+  const dpr = window.devicePixelRatio || 1;
+  const c = document.createElement("canvas");
+  c.width = c.height = size * dpr;
+  const ctx = c.getContext("2d");
+  if (!ctx) return c;
+  ctx.scale(dpr, dpr);
+
+  const r = size / 2;
+  const cx = r,
+    cy = r;
+
+  let g: CanvasGradient;
+  if (typeof ctx.createConicGradient === "function") {
+    g = ctx.createConicGradient(-Math.PI / 2, cx, cy);
+  } else {
+    g = ctx.createLinearGradient(0, 0, size, 0);
+  }
+  g.addColorStop(0.0, CAT_COLORS.positive);
+  g.addColorStop(0.2, CAT_COLORS.positive);
+  g.addColorStop(0.3, CAT_COLORS.neutral);
+  g.addColorStop(0.4, CAT_COLORS.neutral);
+  g.addColorStop(0.6, CAT_COLORS.negative);
+  g.addColorStop(0.9, CAT_COLORS.mixed);
+  g.addColorStop(1.0, CAT_COLORS.mixed);
+
+  ctx.lineWidth = thickness;
+  ctx.strokeStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - thickness / 2, 0, Math.PI * 2);
+  ctx.stroke();
+
+  return c;
+}
+
+const HaloPointsPlugin = {
+  id: "haloPoints",
+  afterDatasetsDraw(chart: ChartJS) {
+    const { ctx } = chart;
+
+    chart.data.datasets.forEach((ds: any, i: number) => {
+      if (!ds._drawHalo) return;
+
+      const meta = chart.getDatasetMeta(i);
+      if (!meta?.data?.length) return;
+
+      meta.data.forEach((pt: any, idx: number) => {
+        if (!pt?.x || !pt?.y) return;
+
+        const pr =
+          typeof ds.pointRadius === "function"
+            ? ds.pointRadius({ chart, dataset: ds, dataIndex: idx })
+            : ds.pointRadius || 3;
+
+        const prev = meta.data[idx - 1];
+        const next = meta.data[idx + 1];
+        const dxPrev = Number.isFinite((prev as any)?.x) ? Math.abs(pt.x - (prev as any).x) : Infinity;
+        const dxNext = Number.isFinite((next as any)?.x) ? Math.abs(pt.x - (next as any).x) : Infinity;
+        const nearestDx = Math.min(dxPrev, dxNext);
+
+        const spacing = nearestDx / (pr * 3);
+        const ease = smoothstep(clamp1(spacing, 0, 1));
+
+        const minScale = 1.6;
+        const maxScale = 4.2;
+        const scale = minScale + (maxScale - minScale) * ease;
+
+        const haloR = Math.max(3, pr * scale);
+
+        const baseAlpha = 0.25;
+        const alpha = 0.25 * baseAlpha + 0.75 * baseAlpha * ease;
+
+        const fillCol = (pt.options as any)?.backgroundColor || "#0bb37b";
+
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, haloR, 0, Math.PI * 2);
+        ctx.fillStyle = fillCol;
+        ctx.fill();
+        ctx.restore();
+      });
+    });
+  },
 };
+
+ChartJS.register(HaloPointsPlugin);
 
 export function SentimentTrend({
   data,
   annotations = [],
 }: SentimentTrendProps) {
+  const sentimentChartRef = useRef<ChartJS | null>(null);
+  const volumeChartRef = useRef<ChartJS | null>(null);
+  const sentimentCanvasRef = useRef<HTMLCanvasElement>(null);
+  const volumeCanvasRef = useRef<HTMLCanvasElement>(null);
+
   const hasIndustryTrend = useMemo(
     () =>
       data?.some(
@@ -70,130 +214,333 @@ export function SentimentTrend({
     [data]
   );
 
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    const labels = data.map((d) => d.date);
+    const numOrNull = (v: number) => (Number.isFinite(v) ? v : null);
+    const safe = (v: number) => (v === 0.25 ? null : numOrNull(v));
+
+    const dailySent = data.map((d) => safe(d.sentiment));
+    const smoothSent = data.map((d) => safe(d.rolling));
+    const industry = data.map((d) => safe(d.industryTrend ?? 0));
+
+    const dayCats = data.map((d) => getDayCategory(d));
+    const colorAt = (i: number) => CAT_COLORS[dayCats[i] as keyof typeof CAT_COLORS] || CAT_COLORS.positive;
+
+    const industryColor = "rgba(254, 254, 254, 0.9)";
+
+    // Sentiment chart
+    if (sentimentCanvasRef.current) {
+      if (sentimentChartRef.current) {
+        sentimentChartRef.current.destroy();
+      }
+
+      const ctx = sentimentCanvasRef.current.getContext("2d");
+      if (ctx) {
+        sentimentChartRef.current = new ChartJS(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              ...(hasIndustryTrend
+                ? [
+                    {
+                      type: "line" as const,
+                      label: "Industry Trend",
+                      data: industry as any,
+                      borderColor: industryColor,
+                      borderWidth: 2,
+                      pointRadius: 0,
+                      yAxisID: "y1",
+                      tension: 0.25,
+                      spanGaps: true,
+                      cubicInterpolationMode: "monotone" as const,
+                      datalabels: { display: false },
+                      order: 0,
+                    },
+                  ]
+                : []),
+              {
+                type: "line" as const,
+                label: "Sentiment Trend",
+                data: smoothSent as any,
+                borderWidth: (ctx: any) => Math.max(2, dynamicPointRadius(ctx.chart) * 0.6),
+                borderColor: "#e0c80c",
+                backgroundColor: "rgba(214,191,21,0.05)",
+                pointRadius: 0,
+                yAxisID: "y1",
+                tension: 0.35,
+                spanGaps: true,
+                cubicInterpolationMode: "monotone" as const,
+                datalabels: { display: false },
+                order: 1,
+              },
+              {
+                type: "line" as const,
+                label: "Sentiment",
+                data: dailySent as any,
+                yAxisID: "y1",
+                tension: 0.35,
+                spanGaps: true,
+                cubicInterpolationMode: "monotone" as const,
+                borderWidth: (ctx: any) => Math.max(1, dynamicPointRadius(ctx.chart) * 0.75),
+                segment: {
+                  borderColor: (ctx: any) => {
+                    const i = ctx.p0DataIndex ?? 0;
+                    return colorAt(i);
+                  },
+                },
+                pointRadius: (ctx: any) => dynamicPointRadius(ctx.chart),
+                pointHoverRadius: (ctx: any) => Math.max(4, dynamicPointRadius(ctx.chart) * 1.6),
+                hitRadius: (ctx: any) => Math.max(6, dynamicPointRadius(ctx.chart) * 2),
+                pointBackgroundColor: (ctx: any) => colorAt(ctx.dataIndex),
+                pointBorderColor: (ctx: any) => colorAt(ctx.dataIndex),
+                fill: {
+                  target: "origin",
+                  above: "rgba(11,179,123,0.08)",
+                  below: "rgba(239,68,68,0.10)",
+                },
+                _drawHalo: true,
+                datalabels: { display: false },
+                order: 2,
+              } as any,
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            layout: { padding: { right: 8 } },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 0,
+                  font: { family: "Raleway", size: 12 },
+                  color: "#eee",
+                  callback: fourDayTickCallback(labels),
+                },
+              },
+              y1: {
+                position: "left",
+                min: -100,
+                max: 100,
+                grid: { color: "rgba(180,180,180,0.2)" },
+                ticks: {
+                  stepSize: 20,
+                  font: { family: "Raleway", size: 12 },
+                  color: "#eee",
+                },
+                title: {
+                  display: true,
+                  text: "Sentiment*",
+                  font: { family: "Raleway", size: 12, weight: "600" },
+                  color: "#eee",
+                },
+              },
+            },
+            plugins: {
+              decimation: { enabled: true, algorithm: "lttb", samples: 500 },
+              legend: {
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  boxWidth: 22,
+                  boxHeight: 22,
+                  padding: 16,
+                  color: "#eee",
+                  font: { family: "Raleway", size: 13 },
+                  generateLabels(chart) {
+                    const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
+                    labels.forEach((l) => {
+                      if (l.text === "Sentiment") {
+                        l.pointStyle = makeGradientRing(11, 3);
+                        l.fillStyle = "transparent";
+                        l.strokeStyle = "transparent";
+                      }
+                    });
+                    return labels;
+                  },
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(0,0,0,0.85)",
+                titleFont: { family: "Raleway", size: 12, weight: "700" },
+                bodyFont: { family: "Raleway", size: 12 },
+                callbacks: {
+                  label: (ctx) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
+                },
+              },
+              subtitle: {
+                display: true,
+                text: "*Scale -100 to 100 (0 = neutral).",
+                align: "start",
+                padding: { top: 6 },
+                font: { family: "Raleway", size: 11 },
+                color: "#bbb",
+              },
+              annotation: annotations.length
+                ? {
+                    annotations: Object.fromEntries(
+                      annotations
+                        .filter((a) => a.date && labels.includes(a.date))
+                        .map((a, i) => [
+                          `v_${i}`,
+                          {
+                            type: "line" as const,
+                            xMin: a.date,
+                            xMax: a.date,
+                            borderColor: getSpikeColor(a.type) || "rgba(11, 179, 123, 0.17)",
+                            borderDash: [4, 4],
+                            borderWidth: 1,
+                            scaleID: "x",
+                          },
+                        ])
+                    ),
+                  }
+                : undefined,
+            } as any,
+          },
+          plugins: [HaloPointsPlugin],
+        });
+      }
+    }
+
+    // Volume chart
+    if (volumeCanvasRef.current) {
+      if (volumeChartRef.current) {
+        volumeChartRef.current.destroy();
+      }
+
+      const ctx = volumeCanvasRef.current.getContext("2d");
+      if (ctx) {
+        volumeChartRef.current = new ChartJS(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                type: "bar" as const,
+                label: "Positive",
+                data: data.map((d) => d.positive ?? 0),
+                backgroundColor: "rgb(52, 209, 57)",
+                borderWidth: 1,
+                stack: "volume",
+                borderRadius: 3,
+              },
+              {
+                type: "bar" as const,
+                label: "Neutral",
+                data: data.map((d) => d.neutral ?? 0),
+                backgroundColor: "rgb(187, 187, 187)",
+                borderWidth: 1,
+                stack: "volume",
+                borderRadius: 3,
+              },
+              {
+                type: "bar" as const,
+                label: "Negative",
+                data: data.map((d) => d.negative ?? 0),
+                backgroundColor: "rgb(255, 27, 11)",
+                borderWidth: 1,
+                stack: "volume",
+                borderRadius: 3,
+              },
+              ...(hasMixed
+                ? [
+                    {
+                      type: "bar" as const,
+                      label: "Mixed",
+                      data: data.map((d) => d.mixed ?? 0),
+                      backgroundColor: "rgb(93, 152, 255)",
+                      borderWidth: 1,
+                      stack: "volume",
+                      borderRadius: 3,
+                    },
+                  ]
+                : []),
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 0,
+                  font: { family: "Raleway", size: 12 },
+                  color: "#eee",
+                  callback: fourDayTickCallback(labels),
+                },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(200,200,200,0.18)" },
+                ticks: {
+                  font: { family: "Raleway", size: 12 },
+                  color: "#ddd",
+                  callback: (v: any) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v),
+                },
+                title: {
+                  display: true,
+                  text: "Volume",
+                  font: { family: "Raleway", size: 12, weight: "600" },
+                  color: "#ddd",
+                },
+                stacked: true,
+              },
+            },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: "circle",
+                  font: { family: "Raleway", size: 12 },
+                  color: "#eee",
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} mentions`,
+                },
+              },
+              datalabels: { display: false },
+            },
+          },
+        });
+      }
+    }
+
+    return () => {
+      if (sentimentChartRef.current) {
+        sentimentChartRef.current.destroy();
+      }
+      if (volumeChartRef.current) {
+        volumeChartRef.current.destroy();
+      }
+    };
+  }, [data, annotations, hasIndustryTrend, hasMixed]);
+
   if (!data || data.length === 0) return null;
 
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <ResponsiveContainer width="100%" height={320}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} interval={0} />
-            <YAxis
-              domain={[-100, 100]}
-              ticks={[-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100]}
-              tick={{ fontSize: 12 }}
-            >
-              <Label
-                value="Sentiment*"
-                angle={-90}
-                position="insideLeft"
-                style={{ fontSize: 12 }}
-              />
-            </YAxis>
-            <Tooltip />
-            <ReferenceLine y={0} stroke="#000" strokeWidth={1} />
-
-            {hasIndustryTrend && (
-              <Line
-                type="monotone"
-                dataKey="industryTrend"
-                stroke="#fff"
-                strokeWidth={2}
-                dot={false}
-                name="Industry Trend"
-              />
-            )}
-
-            <Line
-              type="monotone"
-              dataKey="rolling"
-              stroke="#e0c80c"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={false}
-              name="Sentiment Trend"
-            />
-
-            <Line
-              type="monotone"
-              dataKey="sentiment"
-              stroke="transparent"
-              strokeWidth={2}
-              dot={(p: DotProps) => {
-                if (!p.cx || !p.cy || !p.payload) return null;
-                const { cx, cy, payload } = p;
-                const color = getPointColor(payload);
-                const r = 7;
-                const haloR = r + 4;
-                
-                return (
-                  <g>
-                    {/* Outer halo/glow */}
-                    <circle 
-                      cx={cx} 
-                      cy={cy} 
-                      r={haloR} 
-                      fill={color}
-                      opacity={0.2}
-                    />
-                    {/* Ring */}
-                    <circle 
-                      cx={cx} 
-                      cy={cy} 
-                      r={r} 
-                      fill="none"
-                      stroke={color}
-                      strokeWidth={3}
-                      opacity={0.8}
-                    />
-                    {/* Inner fill */}
-                    <circle 
-                      cx={cx} 
-                      cy={cy} 
-                      r={r - 2} 
-                      fill={color}
-                      opacity={0.3}
-                    />
-                  </g>
-                );
-              }}
-              name="Sentiment"
-            />
-
-            {annotations.map((ann, idx) => (
-              <ReferenceLine
-                key={idx}
-                x={ann.date}
-                stroke={getSpikeColor(ann.type)}
-                strokeDasharray="4 4"
-                strokeWidth={1}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ width: "100%", height: 320 }}>
+          <canvas ref={sentimentCanvasRef} />
+        </div>
       </Card>
 
       <Card className="p-6">
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} interval={0} />
-            <YAxis tick={{ fontSize: 12 }}>
-              <Label
-                value="Volume"
-                angle={-90}
-                position="insideLeft"
-                style={{ fontSize: 12 }}
-              />
-            </YAxis>
-            <Tooltip />
-            <Bar dataKey="negative" stackId="a" fill="#ff1b0b" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="neutral" stackId="a" fill="#bbbbbb" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="positive" stackId="a" fill="#34d139" radius={[3, 3, 0, 0]} />
-            {hasMixed && <Bar dataKey="mixed" stackId="a" fill="#5d98ff" radius={[3, 3, 0, 0]} />}
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ width: "100%", height: 240 }}>
+          <canvas ref={volumeCanvasRef} />
+        </div>
       </Card>
 
       <p className="text-xs text-muted-foreground italic text-center">

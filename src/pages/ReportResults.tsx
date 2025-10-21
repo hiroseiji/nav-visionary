@@ -76,17 +76,17 @@ export default function ReportResults() {
   // Build modules & pages with safe fallbacks so hooks run even while loading
   const modulesData = useMemo<ModulesByMedia>(() => {
     // First try to get modules from formData.mediaSelections (old API format)
-    const formDataUnknown = (reportData as any)?.formData;
-    if (formDataUnknown?.mediaSelections && Array.isArray(formDataUnknown.mediaSelections)) {
-      const result: ModulesByMedia = {};
-      formDataUnknown.mediaSelections.forEach((entry: any) => {
-        if (entry.mediaType && Array.isArray(entry.selectedModules)) {
-          result[entry.mediaType] = {};
-          entry.selectedModules.forEach((mod: string) => {
-            result[entry.mediaType][mod] = true;
-          });
-        }
+const formData = reportData?.formData as { mediaSelections?: Array<{ mediaType?: string; selectedModules?: string[] }> } | undefined;
+if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
+  const result: ModulesByMedia = {};
+  formData.mediaSelections.forEach((entry) => {
+    if (entry.mediaType && Array.isArray(entry.selectedModules)) {
+      result[entry.mediaType] = {};
+      entry.selectedModules.forEach((mod: string) => {
+        result[entry.mediaType][mod] = true;
       });
+    }
+  });
       // Always ensure executiveSummary and sentimentTrend for articles
       if (!result.articles) result.articles = {};
       result.articles.executiveSummary = true;

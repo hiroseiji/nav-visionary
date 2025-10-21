@@ -13,7 +13,7 @@ interface KPIItem {
 }
 
 interface KPIPerformanceProps {
-  data?: KPIItem[] | { points?: KPIItem[]; [key: string]: any };
+  data?: KPIItem[] | { points?: KPIItem[]; [key: string]: unknown };
 }
 
 // Helper: convert to array

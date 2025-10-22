@@ -7,6 +7,7 @@ import {
   Filler,
   Tooltip,
   Legend,
+  Plugin,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -269,11 +270,11 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
   const axisValueLabelsPlugin: Plugin<"radar", AxisValueLabelsOptions> = {
     id: "axisValueLabels",
-    afterDraw(chart: Chart<"radar">, _args, opts) {
+    afterDraw(chart: ChartJS<"radar">, _args: unknown, opts: AxisValueLabelsOptions) {
       const scale = chart.scales?.r as RadialLinearScale | undefined;
       if (!scale) return;
 
-      const s = scale as unknown as RadialLike; // cast once to our narrow interface
+      const s = scale as unknown as RadialLike;
 
       const target = opts?.datasetLabel ?? "Sentiment";
       const dsIndex = chart.data.datasets.findIndex((d) => d.label === target);
@@ -281,27 +282,31 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
       const data = chart.data.datasets[dsIndex].data as number[];
       const labels = (chart.data.labels as string[]) ?? [];
-      const offset = opts?.offset ?? 14;
       const fontSize = opts?.fontSize ?? 13;
 
       const ctx = chart.ctx;
       ctx.save();
       ctx.font = `600 ${fontSize}px Raleway, sans-serif`;
 
-      const pad = (s.options.pointLabels?.padding ?? 5) + offset;
-      const baseR = s.drawingArea + pad;
+      // Position numbers just below the point labels
+      const labelDistance = s.drawingArea + (s.options.pointLabels?.padding ?? 10);
+      const numberOffset = 18; // Distance below the label
 
       for (let i = 0; i < labels.length; i++) {
         const angle = s.getIndexAngle(i);
-        const x = s.xCenter + Math.cos(angle) * baseR;
-        const y = s.yCenter + Math.sin(angle) * baseR;
+        const labelX = s.xCenter + Math.cos(angle) * labelDistance;
+        const labelY = s.yCenter + Math.sin(angle) * labelDistance;
+        
+        // Position number below the label
+        const x = labelX;
+        const y = labelY + numberOffset;
 
         const v = Math.round((data[i] ?? 0) as number);
-        const col = edgeColor(v); // your existing helper
+        const col = edgeColor(v);
 
         ctx.fillStyle = col as string;
         ctx.textAlign = "center";
-        ctx.textBaseline = Math.sin(angle) >= 0 ? "top" : "bottom";
+        ctx.textBaseline = "top";
         ctx.fillText(String(v), x, y);
       }
 
@@ -346,7 +351,6 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
       // 2) Draw numbers under axis labels (outside the chart)
       axisValueLabels: {
         datasetLabel: "Sentiment",
-        offset: 14, 
         fontSize: 13,
       },
 

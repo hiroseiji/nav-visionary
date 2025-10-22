@@ -52,14 +52,16 @@ interface StakeholderItem {
   mentions?: string[];
 }
 
-export type SectorialStakeholderData = {
-  items?: StakeholderItem[];
-  radar?: {
-    labels: string[];
-    periodScores: number[];
-    ytdScores: number[];
-  };
-};
+export type SectorialStakeholderData = 
+  | StakeholderItem[]
+  | {
+      items?: StakeholderItem[];
+      radar?: {
+        labels: string[];
+        periodScores: number[];
+        ytdScores: number[];
+      };
+    };
 
 export type SectorialStakeholderProps = {
   data?: SectorialStakeholderData;
@@ -106,11 +108,13 @@ const lightBg = (color: string): string => {
 export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
   const { theme } = useTheme();
   
-  if (!data || (!data.items?.length && !data.radar)) {
+  // Adapt data - handle both array format and object format
+  const items = Array.isArray(data) ? data : (data?.items || []);
+  const radarPayload = Array.isArray(data) ? undefined : data?.radar;
+  
+  if (!items.length && !radarPayload) {
     return <p className="text-muted-foreground">No stakeholder data available.</p>;
   }
-
-  const items = data.items || [];
 
   // Helper: normalize payload to ORDER, zero-fill missing
   const alignPayloadToOrder = (payload?: { labels: string[]; periodScores: number[]; ytdScores: number[] }) => {
@@ -141,7 +145,7 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
   );
   const computedYtd = ORDER.map(n => toScore100(by[n]?.ytdScore ?? 0));
 
-  const normalized = alignPayloadToOrder(data.radar);
+  const normalized = alignPayloadToOrder(radarPayload);
   const labels = ORDER;
   const periodScores = normalized?.period ?? computedPeriod;
   const ytdScores = normalized?.ytd ?? computedYtd;

@@ -13,6 +13,7 @@ import { WordCloud } from "@/components/report-modules/WordCloud";
 import { KPIPerformance } from "@/components/report-modules/KPIPerformance";
 import { TopJournalists } from "@/components/report-modules/TopJournalists";
 import { SectorRanking } from "@/components/report-modules/SectorRanking";
+import { SectorialCompetitor } from "@/components/report-modules/SectorialCompetitor";
 import { moduleLabels, mediaTypeLabels } from "@/utils/reportConstants";
 import type { Report } from "@/hooks/useReportData";
 import type {
@@ -37,6 +38,7 @@ type VolumeAndSentimentData = ComponentProps<typeof VolumeAndSentiment>["data"];
 type WordCloudData = ComponentProps<typeof WordCloud>["data"];
 type KPIPerformanceData = ComponentProps<typeof KPIPerformance>["data"];
 type SectorRankingData = ComponentProps<typeof SectorRanking>["data"];
+type SectorialCompetitorData = ComponentProps<typeof SectorialCompetitor>["data"];
 type IssueImpactData = ComponentProps<typeof IssueImpact>["data"];
 type ReputationalRisksData = ComponentProps<typeof ReputationalRisks>["data"];
 type ReputationalOpportunitiesData = ComponentProps<
@@ -58,6 +60,7 @@ type ModuleName =
   | "wordCloud"
   | "kpiPerformance"
   | "sectorRanking"
+  | "sectorialCompetitor"
   | "issueImpact"
   | "reputationalRisks"
   | "reputationalOpportunities";
@@ -76,6 +79,7 @@ interface MediaBucket {
   wordCloud?: WordCloudData;
   kpiPerformance?: KPIPerformanceData;
   sectorRanking?: SectorRankingData;
+  sectorialCompetitor?: SectorialCompetitorData;
   issueImpact?: IssueImpactData;
   reputationalRisks?: ReputationalRisksData;
   reputationalOpportunities?: ReputationalOpportunitiesData;
@@ -230,6 +234,11 @@ export const ReportModulePage = ({
       case "sectorRanking": {
         const data = mediaBucket?.sectorRanking;
         return <SectorRanking data={data} />;
+      }
+
+      case "sectorialCompetitor": {
+        const data = mediaBucket?.sectorialCompetitor;
+        return <SectorialCompetitor data={data} />;
       }
 
       case "issueImpact": {

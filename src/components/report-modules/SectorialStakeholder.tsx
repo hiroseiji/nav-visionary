@@ -91,18 +91,50 @@ const toScore100 = (v: number) => {
 
 const colorForScore = (score: number): string => {
   const THRESH = 5;
-  if (score > THRESH) return "#16a34a";
+  if (score > THRESH) return "#22c55e";
   if (score < -THRESH) return "#dc2626";
   return "#9CA3AF";
 };
 
 const lightBg = (color: string): string => {
   const colorMap: Record<string, string> = {
-    "#16a34a": "#16a34a15",
+    "#22c55e": "#22c55e15",
     "#dc2626": "#dc262615",
     "#9CA3AF": "#9CA3AF15",
   };
   return colorMap[color] || "#9CA3AF15";
+};
+
+// Create gradient ring for legend
+const makeGradientRing = (size = 22, thickness = 7) => {
+  const dpr = window.devicePixelRatio || 1;
+  const c = document.createElement("canvas");
+  c.width = c.height = size * dpr;
+  const ctx = c.getContext("2d");
+  if (!ctx) return c;
+  ctx.scale(dpr, dpr);
+
+  const r = size / 2;
+  const cx = r, cy = r;
+
+  let g: CanvasGradient;
+  if (typeof ctx.createConicGradient === "function") {
+    g = ctx.createConicGradient(-Math.PI / 2, cx, cy);
+  } else {
+    g = ctx.createLinearGradient(0, 0, size, 0);
+  }
+  g.addColorStop(0.0, "#22c55e");
+  g.addColorStop(0.33, "#9CA3AF");
+  g.addColorStop(0.66, "#dc2626");
+  g.addColorStop(1.0, "#22c55e");
+
+  ctx.lineWidth = thickness;
+  ctx.strokeStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - thickness / 2, 0, Math.PI * 2);
+  ctx.stroke();
+
+  return c;
 };
 
 export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
@@ -152,7 +184,7 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
   const zeroes = labels.map(() => 0);
   const THRESH = 5;
-  const edgeColor = (v: number) => (v > THRESH ? "#16a34a" : v < -THRESH ? "#dc2626" : "#9CA3AF");
+  const edgeColor = (v: number) => (v > THRESH ? "#22c55e" : v < -THRESH ? "#dc2626" : "#9CA3AF");
 
   const radarData = {
     labels,
@@ -175,7 +207,7 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
         backgroundColor: "rgba(17, 17, 17, 0.05)",
         borderColor: "#111",
         borderWidth: 1,
-        borderDash: [8, 6],
+        borderDash: [2, 2],
         pointRadius: 0,
       },
       {
@@ -183,8 +215,8 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
         data: zeroes,
         fill: false,
         borderColor: "#9CA3AF",
-        borderWidth: 1,
-        borderDash: [4, 6],
+        borderWidth: 1.5,
+        borderDash: [5, 5],
         pointRadius: 0,
       },
     ],
@@ -194,7 +226,29 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: true,
+        position: "bottom" as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 22,
+          boxHeight: 22,
+          padding: 16,
+          color: theme === "light" ? "#333" : "#eee",
+          font: { family: "Raleway, sans-serif", size: 13 },
+          generateLabels(chart: ChartJS) {
+            const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
+            labels.forEach((l) => {
+              if (l.text === "Sentiment") {
+                l.pointStyle = makeGradientRing(11, 3);
+                l.fillStyle = "transparent";
+                l.strokeStyle = "transparent";
+              }
+            });
+            return labels;
+          },
+        },
+      },
       datalabels: {
         display: (ctx: { dataset: { label?: string } }) => ctx.dataset.label === "Sentiment",
         formatter: (v: number) => Math.round(v),
@@ -272,11 +326,6 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
         <div className="stakeholder-radar card">
           <div className="radar-wrap">
             <Radar data={radarData} options={radarOpts} />
-          </div>
-          <div className="legend-row">
-            <span className="legend-dot legend-sentiment" /> <span>Sentiment*</span>
-            <span className="legend-dot legend-neutral" /> <span>Neutral</span>
-            <span className="legend-dot legend-ytd" /> <span>YTD</span>
           </div>
         </div>
 

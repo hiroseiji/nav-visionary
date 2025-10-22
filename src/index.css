@@ -328,10 +328,10 @@ All colors MUST be HSL.
 }
 
 .stakeholder-layout {
-  display: grid;
-  grid-template-columns: 500px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 30px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .stakeholder-radar {
@@ -343,7 +343,7 @@ All colors MUST be HSL.
 }
 
 .radar-wrap {
-  height: 450px;
+  height: 500px;
   margin-bottom: 20px;
 }
 
@@ -380,8 +380,8 @@ All colors MUST be HSL.
 }
 
 .stakeholder-cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 16px;
 }
 

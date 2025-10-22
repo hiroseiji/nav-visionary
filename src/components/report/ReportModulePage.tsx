@@ -14,6 +14,7 @@ import { KPIPerformance } from "@/components/report-modules/KPIPerformance";
 import { TopJournalists } from "@/components/report-modules/TopJournalists";
 import { SectorRanking } from "@/components/report-modules/SectorRanking";
 import { SectorialCompetitor } from "@/components/report-modules/SectorialCompetitor";
+import { SectorialStakeholder } from "@/components/report-modules/SectorialStakeholder";
 import { moduleLabels, mediaTypeLabels } from "@/utils/reportConstants";
 import type { Report } from "@/hooks/useReportData";
 import type {
@@ -39,6 +40,7 @@ type WordCloudData = ComponentProps<typeof WordCloud>["data"];
 type KPIPerformanceData = ComponentProps<typeof KPIPerformance>["data"];
 type SectorRankingData = ComponentProps<typeof SectorRanking>["data"];
 type SectorialCompetitorData = ComponentProps<typeof SectorialCompetitor>["data"];
+type SectorialStakeholderData = ComponentProps<typeof SectorialStakeholder>["data"];
 type IssueImpactData = ComponentProps<typeof IssueImpact>["data"];
 type ReputationalRisksData = ComponentProps<typeof ReputationalRisks>["data"];
 type ReputationalOpportunitiesData = ComponentProps<
@@ -61,6 +63,7 @@ type ModuleName =
   | "kpiPerformance"
   | "sectorRanking"
   | "sectorialCompetitor"
+  | "sectorialStakeholder"
   | "issueImpact"
   | "reputationalRisks"
   | "reputationalOpportunities";
@@ -80,6 +83,7 @@ interface MediaBucket {
   kpiPerformance?: KPIPerformanceData;
   sectorRanking?: SectorRankingData;
   sectorialCompetitor?: SectorialCompetitorData;
+  sectorialStakeholder?: SectorialStakeholderData;
   issueImpact?: IssueImpactData;
   reputationalRisks?: ReputationalRisksData;
   reputationalOpportunities?: ReputationalOpportunitiesData;
@@ -239,6 +243,11 @@ export const ReportModulePage = ({
       case "sectorialCompetitor": {
         const data = mediaBucket?.sectorialCompetitor;
         return <SectorialCompetitor data={data} />;
+      }
+
+      case "sectorialStakeholder": {
+        const data = mediaBucket?.sectorialStakeholder;
+        return <SectorialStakeholder data={data} />;
       }
 
       case "issueImpact": {

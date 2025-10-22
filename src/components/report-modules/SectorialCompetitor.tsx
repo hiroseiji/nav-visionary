@@ -21,7 +21,7 @@ const getDotPosition = (score: number): string => {
 };
 
 export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
-  if (!data || data.length === 0) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return <p className="text-muted-foreground">No competitor analysis data available.</p>;
   }
 

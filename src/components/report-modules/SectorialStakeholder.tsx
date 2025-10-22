@@ -1,15 +1,35 @@
 import { useEffect, useRef } from "react";
-import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { Radar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { useTheme } from "@/components/ThemeContext";
 
-ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
 
 // Custom plugin for point halos
 const pointHaloPlugin = {
   id: "pointHalo",
-  afterDatasetsDraw(chart: ChartJS, _args: unknown, options: { label?: string; radius?: number; alpha?: number }) {
+  afterDatasetsDraw(
+    chart: ChartJS,
+    _args: unknown,
+    options: { label?: string; radius?: number; alpha?: number }
+  ) {
     const { ctx } = chart;
     const targetLabel = options.label || "Sentiment";
     const radius = options.radius || 14;
@@ -18,13 +38,15 @@ const pointHaloPlugin = {
     chart.data.datasets.forEach((dataset, datasetIndex: number) => {
       if (dataset.label !== targetLabel) return;
       const meta = chart.getDatasetMeta(datasetIndex);
-      
+
       meta.data.forEach((point, index: number) => {
-        const datasetWithColor = dataset as typeof dataset & { pointBackgroundColor?: string | string[] };
-        const color = Array.isArray(datasetWithColor.pointBackgroundColor) 
-          ? datasetWithColor.pointBackgroundColor[index] 
+        const datasetWithColor = dataset as typeof dataset & {
+          pointBackgroundColor?: string | string[];
+        };
+        const color = Array.isArray(datasetWithColor.pointBackgroundColor)
+          ? datasetWithColor.pointBackgroundColor[index]
           : datasetWithColor.pointBackgroundColor;
-        
+
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = color as string;
@@ -52,7 +74,13 @@ interface StakeholderItem {
   mentions?: string[];
 }
 
-export type SectorialStakeholderData = 
+interface AxisValueLabelsOptions {
+  datasetLabel?: string;
+  offset?: number;
+  fontSize?: number;
+}
+
+export type SectorialStakeholderData =
   | StakeholderItem[]
   | {
       items?: StakeholderItem[];
@@ -76,10 +104,10 @@ const ORDER = [
 ];
 
 const ALIAS: Record<string, string> = {
-  "Communities": "Local Communities",
-  "Community": "Local Communities",
+  Communities: "Local Communities",
+  Community: "Local Communities",
   "Govt/Politicians": "Government/Politicians",
-  "Industry": "Industry/Peers",
+  Industry: "Industry/Peers",
 };
 
 const canon = (s: string) => ALIAS[s] || s;
@@ -115,7 +143,8 @@ const makeGradientRing = (size = 22, thickness = 7) => {
   ctx.scale(dpr, dpr);
 
   const r = size / 2;
-  const cx = r, cy = r;
+  const cx = r,
+    cy = r;
 
   let g: CanvasGradient;
   if (typeof ctx.createConicGradient === "function") {
@@ -139,21 +168,28 @@ const makeGradientRing = (size = 22, thickness = 7) => {
 
 export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
   const { theme } = useTheme();
-  
+
   // Adapt data - handle both array format and object format
-  const items = Array.isArray(data) ? data : (data?.items || []);
+  const items = Array.isArray(data) ? data : data?.items || [];
   const radarPayload = Array.isArray(data) ? undefined : data?.radar;
-  
+
   if (!items.length && !radarPayload) {
-    return <p className="text-muted-foreground">No stakeholder data available.</p>;
+    return (
+      <p className="text-muted-foreground">No stakeholder data available.</p>
+    );
   }
 
   // Helper: normalize payload to ORDER, zero-fill missing
-  const alignPayloadToOrder = (payload?: { labels: string[]; periodScores: number[]; ytdScores: number[] }) => {
+  const alignPayloadToOrder = (payload?: {
+    labels: string[];
+    periodScores: number[];
+    ytdScores: number[];
+  }) => {
     if (!payload?.labels?.length) return null;
 
     const pos = new Map(ORDER.map((n, i) => [n, i]));
-    const to100 = (v: number) => (Math.abs(v) <= 1 ? Math.round(v * 100) : Math.round(v || 0));
+    const to100 = (v: number) =>
+      Math.abs(v) <= 1 ? Math.round(v * 100) : Math.round(v || 0);
 
     const period = Array(ORDER.length).fill(0);
     const ytd = Array(ORDER.length).fill(0);
@@ -171,11 +207,11 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
   };
 
   // Build from items (fallback)
-  const by = Object.fromEntries(items.map(i => [canon(i.stakeholder), i]));
-  const computedPeriod = ORDER.map(n =>
+  const by = Object.fromEntries(items.map((i) => [canon(i.stakeholder), i]));
+  const computedPeriod = ORDER.map((n) =>
     toScore100(by[n]?.score ?? by[n]?.scoreUnit ?? by[n]?.averageSentiment ?? 0)
   );
-  const computedYtd = ORDER.map(n => toScore100(by[n]?.ytdScore ?? 0));
+  const computedYtd = ORDER.map((n) => toScore100(by[n]?.ytdScore ?? 0));
 
   const normalized = alignPayloadToOrder(radarPayload);
   const labels = ORDER;
@@ -184,7 +220,8 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
   const zeroes = labels.map(() => 0);
   const THRESH = 5;
-  const edgeColor = (v: number) => (v > THRESH ? "#22c55e" : v < -THRESH ? "#dc2626" : "#9CA3AF");
+  const edgeColor = (v: number) =>
+    v > THRESH ? "#22c55e" : v < -THRESH ? "#dc2626" : "#9CA3AF";
 
   const radarData = {
     labels,
@@ -222,6 +259,58 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
     ],
   };
 
+  interface RadialLike {
+    xCenter: number;
+    yCenter: number;
+    drawingArea: number;
+    getIndexAngle: (i: number) => number;
+    options: { pointLabels?: { padding?: number } };
+  }
+
+  const axisValueLabelsPlugin: Plugin<"radar", AxisValueLabelsOptions> = {
+    id: "axisValueLabels",
+    afterDraw(chart: Chart<"radar">, _args, opts) {
+      const scale = chart.scales?.r as RadialLinearScale | undefined;
+      if (!scale) return;
+
+      const s = scale as unknown as RadialLike; // cast once to our narrow interface
+
+      const target = opts?.datasetLabel ?? "Sentiment";
+      const dsIndex = chart.data.datasets.findIndex((d) => d.label === target);
+      if (dsIndex === -1) return;
+
+      const data = chart.data.datasets[dsIndex].data as number[];
+      const labels = (chart.data.labels as string[]) ?? [];
+      const offset = opts?.offset ?? 14;
+      const fontSize = opts?.fontSize ?? 13;
+
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = `600 ${fontSize}px Raleway, sans-serif`;
+
+      const pad = (s.options.pointLabels?.padding ?? 5) + offset;
+      const baseR = s.drawingArea + pad;
+
+      for (let i = 0; i < labels.length; i++) {
+        const angle = s.getIndexAngle(i);
+        const x = s.xCenter + Math.cos(angle) * baseR;
+        const y = s.yCenter + Math.sin(angle) * baseR;
+
+        const v = Math.round((data[i] ?? 0) as number);
+        const col = edgeColor(v); // your existing helper
+
+        ctx.fillStyle = col as string;
+        ctx.textAlign = "center";
+        ctx.textBaseline = Math.sin(angle) >= 0 ? "top" : "bottom";
+        ctx.fillText(String(v), x, y);
+      }
+
+      ctx.restore();
+    },
+  };
+
+  ChartJS.register(axisValueLabelsPlugin);
+
   const radarOpts = {
     responsive: true,
     maintainAspectRatio: false,
@@ -237,7 +326,8 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
           color: theme === "light" ? "#333" : "#eee",
           font: { family: "Raleway, sans-serif", size: 13 },
           generateLabels(chart: ChartJS) {
-            const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
+            const labels =
+              ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
             labels.forEach((l) => {
               if (l.text === "Sentiment") {
                 l.pointStyle = makeGradientRing(11, 3);
@@ -249,23 +339,20 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
           },
         },
       },
-      datalabels: {
-        display: (ctx: { dataset: { label?: string } }) => ctx.dataset.label === "Sentiment",
-        formatter: (v: number) => Math.round(v),
-        color: (ctx: { raw: number }) => edgeColor(ctx.raw) as string,
-        font: { weight: 600, size: 12 },
-        anchor: "end" as const,
-        align: "end" as const,
-        offset: 6,
-        clamp: true,
+
+      // 1) Disable dataset datalabels inside the chart
+      datalabels: { display: false },
+
+      // 2) Draw numbers under axis labels (outside the chart)
+      axisValueLabels: {
+        datasetLabel: "Sentiment",
+        offset: 14, 
+        fontSize: 13,
       },
-      pointHalo: {
-        label: "Sentiment",
-        radius: 14,
-        alpha: 0.24,
-        blur: 0,
-      },
+
+      pointHalo: { label: "Sentiment", radius: 14, alpha: 0.24, blur: 0 },
     },
+
     scales: {
       r: {
         min: -100,
@@ -276,9 +363,13 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
           color: theme === "light" ? "#333" : "#999",
           font: { family: "Raleway, sans-serif" },
         },
-        grid: { color: theme === "light" ? "#7a7a7a30" : "#7a7a7a80", circular: false },
+        grid: {
+          color: theme === "light" ? "#7a7a7a30" : "#7a7a7a80",
+          circular: false,
+        },
         angleLines: { color: theme === "light" ? "#7a7a7a30" : "#7a7a7a80" },
         pointLabels: {
+          padding: 10, // give a little breathing room for the second line
           color: theme === "light" ? "#7a7a7a" : "#fff",
           font: { size: 14, weight: 500, family: "Raleway, sans-serif" },
         },
@@ -295,16 +386,17 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
   // Build 5 canonical cards to match the radar
   const byCanon = Object.fromEntries(
-    items.map(i => [canon(i.stakeholder), i])
+    items.map((i) => [canon(i.stakeholder), i])
   );
 
-  const cards = ORDER.map(name => {
-    const src: StakeholderItem = byCanon[name] || {} as StakeholderItem;
+  const cards = ORDER.map((name) => {
+    const src: StakeholderItem = byCanon[name] || ({} as StakeholderItem);
     const avg = src.score ?? src.scoreUnit ?? src.averageSentiment ?? 0;
     const score100 = toScore100(avg);
-    const scoreLabel = (src.scorePct ?? score100) >= 0
-      ? `+${src.scorePct ?? score100}`
-      : `${src.scorePct ?? score100}`;
+    const scoreLabel =
+      (src.scorePct ?? score100) >= 0
+        ? `+${src.scorePct ?? score100}`
+        : `${src.scorePct ?? score100}`;
 
     return {
       name,
@@ -320,7 +412,9 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
 
   return (
     <div className="sectorial-stakeholder-section">
-      <h4 className="text-xl font-semibold mb-6">Stakeholder Sentiment Analysis</h4>
+      <h4 className="text-xl font-semibold mb-6">
+        Stakeholder Sentiment Analysis
+      </h4>
       <div className="stakeholder-layout">
         {/* Left: Radar */}
         <div className="stakeholder-radar card">
@@ -332,22 +426,30 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
         {/* Right: Cards */}
         <div className="stakeholder-cards">
           {cards.map((c, idx) => {
-            const color = c.volume === 0 ? "#9ca3af" : colorForScore(c.score100);
+            const color =
+              c.volume === 0 ? "#9ca3af" : colorForScore(c.score100);
             return (
-              <div 
-                key={idx} 
-                className="bubble-card" 
-                style={{ 
-                  '--accent': color, 
-                  '--accent-bg': lightBg(color) 
-                } as React.CSSProperties}
+              <div
+                key={idx}
+                className="bubble-card"
+                style={
+                  {
+                    "--accent": color,
+                    "--accent-bg": lightBg(color),
+                  } as React.CSSProperties
+                }
               >
                 <div className="bubble-head">
                   <span className="group-pill">{c.name}</span>
                   <span className="meta-pill">
                     Volume: <strong>{c.volume}</strong>
-                    &nbsp;&nbsp;Score: <strong className="score-val">{c.scoreLabel}</strong>
-                    {c.delta != null && <span>&nbsp;(<strong className="score-val">{c.delta}</strong>)</span>}
+                    &nbsp;&nbsp;Score:{" "}
+                    <strong className="score-val">{c.scoreLabel}</strong>
+                    {c.delta != null && (
+                      <span>
+                        &nbsp;(<strong className="score-val">{c.delta}</strong>)
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -361,7 +463,9 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
                     <ul className="bullet-list">
                       {c.bullets.slice(0, 3).map((t, i) => (
                         <li key={i}>
-                          <span className="tri">{c.score100 >= 0 ? '▲' : '▼'}</span>
+                          <span className="tri">
+                            {c.score100 >= 0 ? "▲" : "▼"}
+                          </span>
                           {t}
                         </li>
                       ))}
@@ -373,9 +477,12 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
           })}
         </div>
       </div>
-      <div className="metrics-note" style={{ textAlign: "center", marginTop: "20px" }}>
-        *Sentiment is scored on a scale between -100 and 100. <b>YTD</b> (Year To Date)
-        begins January {currentYear}.
+      <div
+        className="metrics-note"
+        style={{ textAlign: "center", marginTop: "20px" }}
+      >
+        *Sentiment is scored on a scale between -100 and 100. <b>YTD</b> (Year
+        To Date) begins January {currentYear}.
       </div>
     </div>
   );

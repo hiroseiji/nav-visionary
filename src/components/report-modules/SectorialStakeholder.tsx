@@ -9,23 +9,25 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 // Custom plugin for point halos
 const pointHaloPlugin = {
   id: "pointHalo",
-  afterDatasetsDraw(chart: any, args: any, options: any) {
+  afterDatasetsDraw(chart: ChartJS, _args: unknown, options: { label?: string; radius?: number; alpha?: number }) {
     const { ctx } = chart;
     const targetLabel = options.label || "Sentiment";
     const radius = options.radius || 14;
     const alpha = options.alpha || 0.24;
 
-    chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+    chart.data.datasets.forEach((dataset, datasetIndex: number) => {
       if (dataset.label !== targetLabel) return;
       const meta = chart.getDatasetMeta(datasetIndex);
       
-      meta.data.forEach((point: any, index: number) => {
-        const value = dataset.data[index];
-        const color = dataset.pointBackgroundColor[index];
+      meta.data.forEach((point, index: number) => {
+        const datasetWithColor = dataset as typeof dataset & { pointBackgroundColor?: string | string[] };
+        const color = Array.isArray(datasetWithColor.pointBackgroundColor) 
+          ? datasetWithColor.pointBackgroundColor[index] 
+          : datasetWithColor.pointBackgroundColor;
         
         ctx.save();
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = color;
+        ctx.fillStyle = color as string;
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
         ctx.fill();
@@ -157,9 +159,6 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
         fill: false,
         borderWidth: 2,
         borderDash: [8, 6],
-        segment: {
-          borderColor: (ctx: any) => colorForScore(ctx.p1.parsed?.r ?? 0),
-        },
         pointRadius: 6,
         pointBackgroundColor: periodScores.map(colorForScore),
         pointBorderColor: "#fff",
@@ -187,18 +186,18 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
     ],
   };
 
-  const radarOpts: any = {
+  const radarOpts = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       datalabels: {
-        display: (ctx: any) => ctx.dataset.label === "Sentiment",
+        display: (ctx: { dataset: { label?: string } }) => ctx.dataset.label === "Sentiment",
         formatter: (v: number) => Math.round(v),
-        color: (ctx: any) => edgeColor(ctx.raw),
+        color: (ctx: { raw: number }) => edgeColor(ctx.raw) as string,
         font: { weight: 600, size: 12 },
-        anchor: "end",
-        align: "end",
+        anchor: "end" as const,
+        align: "end" as const,
         offset: 6,
         clamp: true,
       },
@@ -230,11 +229,11 @@ export const SectorialStakeholder = ({ data }: SectorialStakeholderProps) => {
     elements: {
       line: {
         tension: 0,
-        borderCapStyle: "butt",
-        borderJoinStyle: "miter",
+        borderCapStyle: "butt" as const,
+        borderJoinStyle: "miter" as const,
       },
     },
-  };
+  } as Record<string, unknown>;
 
   // Build 5 canonical cards to match the radar
   const byCanon = Object.fromEntries(

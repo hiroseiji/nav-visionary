@@ -51,6 +51,28 @@ interface ZeroAxisLabelProps {
   payload: ChartDataPoint;
 }
 
+interface RechartsAxisMap {
+  scale: ((value: string | number) => number) & { bandwidth?: () => number };
+}
+
+interface RechartsProps {
+  offset: { left: number; top: number };
+  xAxisMap: Record<string, RechartsAxisMap>;
+  yAxisMap: Record<string, RechartsAxisMap>;
+}
+
+interface CalloutsOverlayProps extends RechartsProps {
+  data?: ChartDataPoint[];
+  highlightIdx?: Set<number>;
+}
+
+interface DataContainer {
+  items?: unknown[];
+  data?: unknown[];
+  issues?: unknown[];
+  list?: unknown[];
+}
+
 export function IssueImpact({ data }: IssueImpactProps) {
   // Handle different data structures: array, object with items/data property, or undefined
   let dataArray: Array<Record<string, unknown>> = [];
@@ -59,16 +81,18 @@ export function IssueImpact({ data }: IssueImpactProps) {
     dataArray = data;
   } else if (data && typeof data === 'object') {
     // Check for common array property names
+    const container = data as unknown as DataContainer;
     const possibleArrays = [
-      (data as any).items,
-      (data as any).data,
-      (data as any).issues,
-      (data as any).list
+      container.items,
+      container.data,
+      container.issues,
+      container.list
     ];
-    dataArray = possibleArrays.find(arr => Array.isArray(arr)) || [];
+    const foundArray = possibleArrays.find(arr => Array.isArray(arr));
+    dataArray = (foundArray || []) as Array<Record<string, unknown>>;
   }
 
-  const issues = dataArray.map((item: any) => ({
+  const issues = dataArray.map((item: Record<string, unknown>) => ({
     title: String(item.title || item.issue || "Unknown Issue"),
     description: String(item.description || item.summary || ""),
     impactScore: item.impactScore !== undefined ? Number(item.impactScore) :
@@ -247,7 +271,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  const CalloutsOverlay = (props: { offset: { left: number; top: number }; xAxisMap: Record<string, any>; yAxisMap: Record<string, any>; data?: ChartDataPoint[]; highlightIdx?: Set<number> }) => {
+  const CalloutsOverlay = (props: CalloutsOverlayProps) => {
     const { offset, xAxisMap, yAxisMap } = props;
     const xAxis = xAxisMap?.[Object.keys(xAxisMap || {})[0]];
     const yAxis = yAxisMap?.[Object.keys(yAxisMap || {})[0]];
@@ -329,9 +353,10 @@ export function IssueImpact({ data }: IssueImpactProps) {
 
             {/* Labels at zero line */}
             <Customized
-              component={(props: any) => {
-                const xAxis = props.xAxisMap[Object.keys(props.xAxisMap)[0]];
-                const yAxis = props.yAxisMap[Object.keys(props.yAxisMap)[0]];
+              component={(props: Record<string, unknown>) => {
+                const rechartsProps = props as unknown as RechartsProps;
+                const xAxis = rechartsProps.xAxisMap[Object.keys(rechartsProps.xAxisMap)[0]];
+                const yAxis = rechartsProps.yAxisMap[Object.keys(rechartsProps.yAxisMap)[0]];
                 const xScale = xAxis.scale;
                 const yScale = yAxis.scale;
 
@@ -372,8 +397,8 @@ export function IssueImpact({ data }: IssueImpactProps) {
             />
 
             {/* Callouts overlay */}
-            <Customized component={(rechartsProps: any) => (
-              <CalloutsOverlay {...rechartsProps} data={chartData} highlightIdx={highlightIdx} />
+            <Customized component={(rechartsProps: Record<string, unknown>) => (
+              <CalloutsOverlay {...(rechartsProps as unknown as RechartsProps)} data={chartData} highlightIdx={highlightIdx} />
             )} />
           </BarChart>
         </ResponsiveContainer>

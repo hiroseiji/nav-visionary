@@ -10,8 +10,16 @@ type ESGIssueData = {
   analysis: string;
 };
 
+interface DataContainer {
+  items?: unknown[];
+  data?: unknown[];
+  issues?: unknown[];
+  esgAnalysis?: unknown[];
+  list?: unknown[];
+}
+
 interface ESGAnalysisProps {
-  data?: ESGIssueData[];
+  data?: ESGIssueData[] | DataContainer;
 }
 
 interface CircularSentimentProps {
@@ -71,7 +79,24 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
 };
 
 export function ESGAnalysis({ data }: ESGAnalysisProps) {
-  if (!data || data.length === 0) {
+  // Normalize input: accept array directly, or object with common array keys
+  let dataArray: ESGIssueData[] = [];
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const container = data as unknown as DataContainer;
+    const candidates = [
+      container.items,
+      container.data,
+      container.issues,
+      container.esgAnalysis,
+      container.list,
+    ];
+    const foundArray = candidates.find((c) => Array.isArray(c));
+    dataArray = (foundArray || []) as ESGIssueData[];
+  }
+
+  if (dataArray.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         No ESG analysis data available
@@ -93,7 +118,7 @@ export function ESGAnalysis({ data }: ESGAnalysisProps) {
         </div>
 
         {/* Rows */}
-        {data.map((item, index) => {
+        {dataArray.map((item, index) => {
           // Highlight row if any stakeholder has non-zero value
           const isHighlighted = 
             item.Government !== 0 || 

@@ -2,33 +2,45 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 
+type RankingItem = {
+  rank?: number;
+  company?: string;
+  name?: string;
+  score?: number;
+  averageSentiment?: number;
+  scorePct?: number;
+  change?: number;
+  volume?: number;
+};
+
+interface DataContainer {
+  items?: unknown[];
+  data?: unknown[];
+  rankings?: unknown[];
+  companies?: unknown[];
+  list?: unknown[];
+}
+
 interface SectorRankingProps {
-  data?: Array<{
-    rank?: number;
-    company?: string;
-    name?: string;
-    score?: number;
-    averageSentiment?: number;
-    scorePct?: number;
-    change?: number;
-    volume?: number;
-  }>;
+  data?: RankingItem[];
 }
 
 export function SectorRanking({ data }: SectorRankingProps) {
   // Normalize input: accept array directly, or object with common array keys
-  let dataArray: Array<any> = [];
+  let dataArray: RankingItem[] = [];
   if (Array.isArray(data)) {
     dataArray = data;
   } else if (data && typeof data === "object") {
+    const container = data as unknown as DataContainer;
     const candidates = [
-      (data as any).items,
-      (data as any).data,
-      (data as any).rankings,
-      (data as any).companies,
-      (data as any).list,
+      container.items,
+      container.data,
+      container.rankings,
+      container.companies,
+      container.list,
     ];
-    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+    const foundArray = candidates.find((c) => Array.isArray(c));
+    dataArray = (foundArray || []) as RankingItem[];
   }
 
   const rankings = dataArray.map((item, index) => ({

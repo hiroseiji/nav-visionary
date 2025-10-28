@@ -8,22 +8,31 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+type JournalistItem = {
+  name?: string;
+  journalist?: string;
+  outlet?: string;
+  source?: string;
+  articles?: number;
+  count?: number;
+  volume?: number;
+  sentiment?: number;
+  averageSentiment?: number;
+  positive?: number;
+  negative?: number;
+  neutral?: number;
+  mixed?: number;
+};
+
+interface DataContainer {
+  items?: unknown[];
+  data?: unknown[];
+  journalists?: unknown[];
+  list?: unknown[];
+}
+
 interface TopJournalistsProps {
-  data?: Array<{
-    name?: string;
-    journalist?: string;
-    outlet?: string;
-    source?: string;
-    articles?: number;
-    count?: number;
-    volume?: number;
-    sentiment?: number;
-    averageSentiment?: number;
-    positive?: number;
-    negative?: number;
-    neutral?: number;
-    mixed?: number;
-  }>;
+  data?: JournalistItem[];
 }
 
 interface SentimentCircleProps {
@@ -53,17 +62,19 @@ function SentimentCircle({ count, type }: SentimentCircleProps) {
 
 export function TopJournalists({ data }: TopJournalistsProps) {
   // Normalize input: accept array directly, or object with common array keys
-  let dataArray: Array<any> = [];
+  let dataArray: JournalistItem[] = [];
   if (Array.isArray(data)) {
     dataArray = data;
   } else if (data && typeof data === "object") {
+    const container = data as unknown as DataContainer;
     const candidates = [
-      (data as any).items,
-      (data as any).data,
-      (data as any).journalists,
-      (data as any).list,
+      container.items,
+      container.data,
+      container.journalists,
+      container.list,
     ];
-    dataArray = candidates.find((c) => Array.isArray(c)) || [];
+    const foundArray = candidates.find((c) => Array.isArray(c));
+    dataArray = (foundArray || []) as JournalistItem[];
   }
 
   const journalists = dataArray

@@ -35,9 +35,17 @@ const colors = [
   "#F4A261", "#2A9D8F", "#E76F51", "#8AC926", "#FF006E",
 ];
 
+type KeywordItem = {
+  word?: string;
+  text?: string;
+  frequency?: number;
+  count?: number;
+  value?: number;
+};
+
 export function WordCloud({ data }: WordCloudProps) {
   // Normalize input
-  let keywords: Array<any> = [];
+  let keywords: KeywordItem[] = [];
   let industry = "";
 
   if (Array.isArray(data)) {

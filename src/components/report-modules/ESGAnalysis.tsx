@@ -32,14 +32,19 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
   const normalizedValue = Math.abs(value);
   const percentage = Math.min(100, Math.max(0, normalizedValue));
   
-  // Determine color based on value
-  const getColor = () => {
-    if (value === 0) return "#E5E7EB"; // gray-200
-    if (value > 0) return "#10B981"; // green (positive)
-    return "#EF4444"; // red (negative)
+  // Determine color based on value - use design system tokens
+  const getColorClass = () => {
+    if (value === 0) return "stroke-muted";
+    if (value > 0) return "stroke-sentiment-positive";
+    return "stroke-sentiment-negative";
   };
 
-  const color = getColor();
+  const getTextColorClass = () => {
+    if (value === 0) return "text-muted-foreground";
+    if (value > 0) return "text-sentiment-positive";
+    return "text-sentiment-negative";
+  };
+
   const radius = 20;
   const strokeWidth = 4;
   const normalizedRadius = radius - strokeWidth / 2;
@@ -51,7 +56,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
       <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
         {/* Background circle */}
         <circle
-          stroke="#F3F4F6"
+          className="stroke-muted"
           fill="transparent"
           strokeWidth={strokeWidth}
           r={normalizedRadius}
@@ -60,7 +65,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
         />
         {/* Progress circle */}
         <circle
-          stroke={color}
+          className={getColorClass()}
           fill="transparent"
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
@@ -71,7 +76,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
           strokeLinecap="round"
         />
       </svg>
-      <span className="text-xs font-medium mt-1" style={{ color: value === 0 ? "#9CA3AF" : color }}>
+      <span className={`text-xs font-medium mt-1 ${getTextColorClass()}`}>
         {value}
       </span>
     </div>
@@ -168,15 +173,15 @@ export function ESGAnalysis({ data }: ESGAnalysisProps) {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_3fr] gap-4 p-4 bg-gray-50 border-b border-gray-200">
-          <div className="font-semibold text-sm text-gray-700">SASB ESG Issues</div>
-          <div className="font-semibold text-xs text-gray-700 text-center">Government/<br/>Politicians</div>
-          <div className="font-semibold text-xs text-gray-700 text-center">Regulators</div>
-          <div className="font-semibold text-xs text-gray-700 text-center">Customers</div>
-          <div className="font-semibold text-xs text-gray-700 text-center">Communities</div>
-          <div className="font-semibold text-sm text-gray-700">Analysis</div>
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_3fr] gap-4 p-4 bg-muted border-b border-border">
+          <div className="font-semibold text-sm text-foreground">SASB ESG Issues</div>
+          <div className="font-semibold text-xs text-foreground text-center">Government/<br/>Politicians</div>
+          <div className="font-semibold text-xs text-foreground text-center">Regulators</div>
+          <div className="font-semibold text-xs text-foreground text-center">Customers</div>
+          <div className="font-semibold text-xs text-foreground text-center">Communities</div>
+          <div className="font-semibold text-sm text-foreground">Analysis</div>
         </div>
 
         {/* Rows */}
@@ -191,12 +196,12 @@ export function ESGAnalysis({ data }: ESGAnalysisProps) {
           return (
             <div
               key={index}
-              className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_3fr] gap-4 p-4 border-b border-gray-200 last:border-b-0 ${
-                isHighlighted ? "bg-green-50/30" : ""
+              className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_3fr] gap-4 p-4 border-b border-border last:border-b-0 ${
+                isHighlighted ? "bg-sentiment-positive-light" : ""
               }`}
             >
               {/* Issue name */}
-              <div className={`text-sm font-medium ${isHighlighted ? "text-teal-600" : "text-gray-600"}`}>
+              <div className={`text-sm font-medium ${isHighlighted ? "text-sentiment-positive" : "text-muted-foreground"}`}>
                 {item.issue}
               </div>
 
@@ -215,7 +220,7 @@ export function ESGAnalysis({ data }: ESGAnalysisProps) {
               </div>
 
               {/* Analysis text */}
-              <div className="text-sm text-gray-700 leading-relaxed">
+              <div className="text-sm text-foreground leading-relaxed">
                 {item.analysis}
               </div>
             </div>
@@ -224,7 +229,7 @@ export function ESGAnalysis({ data }: ESGAnalysisProps) {
       </div>
 
       {/* Footer note */}
-      <div className="text-xs text-gray-500 text-center mt-4">
+      <div className="text-xs text-muted-foreground text-center mt-4">
         Sentiment is scored on a scale between -100 and 100.
       </div>
     </div>

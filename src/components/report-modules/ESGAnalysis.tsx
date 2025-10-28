@@ -32,19 +32,21 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
   const normalizedValue = Math.abs(value);
   const percentage = Math.min(100, Math.max(0, normalizedValue));
   
-  // Determine color based on value - use design system tokens
-  const getColorClass = () => {
-    if (value === 0) return "stroke-muted";
-    if (value > 0) return "stroke-sentiment-positive";
-    return "stroke-sentiment-negative";
+  // Determine color based on value - use HSL from design system
+  const getStrokeColor = () => {
+    if (value === 0) return "hsl(220 9% 46%)"; // muted
+    if (value > 0) return "hsl(160 84% 39%)"; // sentiment-positive (green)
+    return "hsl(0 84% 60%)"; // sentiment-negative (red)
   };
 
-  const getTextColorClass = () => {
-    if (value === 0) return "text-muted-foreground";
-    if (value > 0) return "text-sentiment-positive";
-    return "text-sentiment-negative";
+  const getTextColor = () => {
+    if (value === 0) return "hsl(220 9% 46%)"; // muted-foreground
+    if (value > 0) return "hsl(160 84% 39%)"; // sentiment-positive
+    return "hsl(0 84% 60%)"; // sentiment-negative
   };
 
+  const strokeColor = getStrokeColor();
+  const textColor = getTextColor();
   const radius = 20;
   const strokeWidth = 4;
   const normalizedRadius = radius - strokeWidth / 2;
@@ -56,7 +58,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
       <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
         {/* Background circle */}
         <circle
-          className="stroke-muted"
+          stroke="hsl(220 13% 91%)"
           fill="transparent"
           strokeWidth={strokeWidth}
           r={normalizedRadius}
@@ -65,7 +67,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
         />
         {/* Progress circle */}
         <circle
-          className={getColorClass()}
+          stroke={strokeColor}
           fill="transparent"
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
@@ -76,7 +78,7 @@ const CircularSentiment: React.FC<CircularSentimentProps> = ({ value }) => {
           strokeLinecap="round"
         />
       </svg>
-      <span className={`text-xs font-medium mt-1 ${getTextColorClass()}`}>
+      <span className="text-xs font-medium mt-1" style={{ color: textColor }}>
         {value}
       </span>
     </div>

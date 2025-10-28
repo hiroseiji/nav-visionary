@@ -16,6 +16,7 @@ import { SectorRanking } from "@/components/report-modules/SectorRanking";
 import { SectorialCompetitor } from "@/components/report-modules/SectorialCompetitor";
 import { SectorialStakeholder } from "@/components/report-modules/SectorialStakeholder";
 import { IssueVisibility } from "@/components/report-modules/IssueVisibility";
+import { ESGAnalysis } from "@/components/report-modules/ESGAnalysis";
 import { moduleLabels, mediaTypeLabels } from "@/utils/reportConstants";
 import type { Report } from "@/hooks/useReportData";
 import type {
@@ -44,6 +45,7 @@ type SectorialCompetitorData = ComponentProps<typeof SectorialCompetitor>["data"
 type SectorialStakeholderData = ComponentProps<typeof SectorialStakeholder>["data"];
 type IssueVisibilityData = ComponentProps<typeof IssueVisibility>["data"];
 type IssueImpactData = ComponentProps<typeof IssueImpact>["data"];
+type ESGAnalysisData = ComponentProps<typeof ESGAnalysis>["data"];
 type ReputationalRisksData = ComponentProps<typeof ReputationalRisks>["data"];
 type ReputationalOpportunitiesData = ComponentProps<
   typeof ReputationalOpportunities
@@ -69,7 +71,8 @@ type ModuleName =
   | "issueVisibility"
   | "issueImpact"
   | "reputationalRisks"
-  | "reputationalOpportunities";
+  | "reputationalOpportunities"
+  | "esgAnalysis";
 
 /* -------------------------------------------------------
    Strongly-typed data buckets
@@ -91,6 +94,7 @@ interface MediaBucket {
   issueImpact?: IssueImpactData;
   reputationalRisks?: ReputationalRisksData;
   reputationalOpportunities?: ReputationalOpportunitiesData;
+  esgAnalysis?: ESGAnalysisData;
 }
 
 interface ReportWithMedia extends Report {
@@ -272,6 +276,11 @@ export const ReportModulePage = ({
       case "reputationalOpportunities": {
         const data = mediaBucket?.reputationalOpportunities;
         return <ReputationalOpportunities data={data} />;
+      }
+
+      case "esgAnalysis": {
+        const data = mediaBucket?.esgAnalysis;
+        return <ESGAnalysis data={data} />;
       }
     }
   };

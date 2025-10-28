@@ -33,6 +33,7 @@ export interface MediaBucket {
   issueVisibility?: unknown;
   reputationalRisks?: unknown;
   reputationalOpportunities?: unknown;
+  esgAnalysis?: unknown;
 }
 
 export interface Organization {

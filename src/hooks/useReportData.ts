@@ -30,6 +30,7 @@ export interface MediaBucket {
   kpiPerformance?: unknown;
   sectorRanking?: unknown;
   issueImpact?: unknown;
+  issueVisibility?: unknown;
   reputationalRisks?: unknown;
   reputationalOpportunities?: unknown;
 }

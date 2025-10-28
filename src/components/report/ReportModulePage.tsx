@@ -15,6 +15,7 @@ import { TopJournalists } from "@/components/report-modules/TopJournalists";
 import { SectorRanking } from "@/components/report-modules/SectorRanking";
 import { SectorialCompetitor } from "@/components/report-modules/SectorialCompetitor";
 import { SectorialStakeholder } from "@/components/report-modules/SectorialStakeholder";
+import { IssueVisibility } from "@/components/report-modules/IssueVisibility";
 import { moduleLabels, mediaTypeLabels } from "@/utils/reportConstants";
 import type { Report } from "@/hooks/useReportData";
 import type {
@@ -41,6 +42,7 @@ type KPIPerformanceData = ComponentProps<typeof KPIPerformance>["data"];
 type SectorRankingData = ComponentProps<typeof SectorRanking>["data"];
 type SectorialCompetitorData = ComponentProps<typeof SectorialCompetitor>["data"];
 type SectorialStakeholderData = ComponentProps<typeof SectorialStakeholder>["data"];
+type IssueVisibilityData = ComponentProps<typeof IssueVisibility>["data"];
 type IssueImpactData = ComponentProps<typeof IssueImpact>["data"];
 type ReputationalRisksData = ComponentProps<typeof ReputationalRisks>["data"];
 type ReputationalOpportunitiesData = ComponentProps<
@@ -64,6 +66,7 @@ type ModuleName =
   | "sectorRanking"
   | "sectorialCompetitor"
   | "sectorialStakeholder"
+  | "issueVisibility"
   | "issueImpact"
   | "reputationalRisks"
   | "reputationalOpportunities";
@@ -84,6 +87,7 @@ interface MediaBucket {
   sectorRanking?: SectorRankingData;
   sectorialCompetitor?: SectorialCompetitorData;
   sectorialStakeholder?: SectorialStakeholderData;
+  issueVisibility?: IssueVisibilityData;
   issueImpact?: IssueImpactData;
   reputationalRisks?: ReputationalRisksData;
   reputationalOpportunities?: ReputationalOpportunitiesData;
@@ -253,6 +257,11 @@ export const ReportModulePage = ({
       case "issueImpact": {
         const data = mediaBucket?.issueImpact;
         return <IssueImpact data={data} />;
+      }
+
+      case "issueVisibility": {
+        const data = mediaBucket?.issueVisibility;
+        return <IssueVisibility data={data} />;
       }
 
       case "reputationalRisks": {

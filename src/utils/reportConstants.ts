@@ -13,6 +13,7 @@ export const moduleLabels: Record<string, string> = {
   sectorialCompetitor: "Sectorial Competitor",
   sectorialStakeholder: "Sectorial Stakeholder",
   sectorRanking: "Sector Ranking",
+  issueVisibility: "Issue Visibility",
   esgAnalysis: "ESG Analysis"
 };
 

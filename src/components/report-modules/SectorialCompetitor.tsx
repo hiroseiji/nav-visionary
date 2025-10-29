@@ -96,16 +96,16 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
     <div className="space-y-6">
       <div className="flex gap-6">
         {/* Left sentiment scale */}
-        <div className="relative w-20 flex-shrink-0" style={{ height: '900px' }}>
+        <div className="relative w-32 flex-shrink-0" style={{ height: '900px' }}>
           {/* Gradient bar */}
-          <div className="absolute left-6 top-0 bottom-0 w-3 rounded-full bg-gradient-to-b from-[hsl(158_64%_52%)] via-[hsl(25_95%_53%)] via-50% via-[hsl(0_0%_60%)] to-[hsl(330_81%_60%)]" />
+          <div className="absolute left-8 top-0 bottom-0 w-12 rounded-full bg-gradient-to-b from-[hsl(158_64%_52%)] via-[hsl(25_95%_53%)] via-50% via-[hsl(0_0%_60%)] to-[hsl(330_81%_60%)]" />
           
           {/* Dotted line connecting all dots */}
-          <svg className="absolute left-6 top-0 bottom-0 w-3 pointer-events-none" style={{ height: '900px' }}>
+          <svg className="absolute left-8 top-0 bottom-0 w-12 pointer-events-none" style={{ height: '900px' }}>
             <line 
-              x1="6" 
+              x1="24" 
               y1={getScalePosition(sortedItems[0]?.score || 0)}
-              x2="6" 
+              x2="24" 
               y2={getScalePosition(sortedItems[sortedItems.length - 1]?.score || 0)}
               stroke="white"
               strokeWidth="2"
@@ -117,7 +117,7 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
           {sortedItems.map((item, idx) => (
             <div
               key={idx}
-              className="absolute left-[21px] w-5 h-5 rounded-full bg-white border-2 border-white shadow-lg"
+              className="absolute left-[56px] w-5 h-5 rounded-full bg-white border-2 border-white shadow-lg"
               style={{ 
                 top: `${getScalePosition(item.score)}px`,
                 transform: 'translate(-50%, -50%)'

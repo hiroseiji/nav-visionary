@@ -29,13 +29,6 @@ const getSentimentArrow = (score: number) => {
   return '►'; // neutral
 };
 
-const getYPosition = (score: number) => {
-  // Map score from 80 to -40 range to 0% to 100% position
-  // 80 -> 0%, -40 -> 100%
-  const position = ((80 - score) / 120) * 100;
-  return Math.max(0, Math.min(100, position));
-};
-
 export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
   // Dummy data to match the image
   const dummyData: CompetitorItem[] = [
@@ -91,9 +84,9 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="relative flex gap-6" style={{ height: '900px' }}>
+      <div className="flex gap-6">
         {/* Left sentiment scale */}
-        <div className="relative w-20 flex-shrink-0 h-full">
+        <div className="relative w-20 flex-shrink-0" style={{ height: '900px' }}>
           {/* Gradient bar */}
           <div className="absolute left-6 top-0 bottom-0 w-3 rounded-full bg-gradient-to-b from-[hsl(158_64%_52%)] via-[hsl(25_95%_53%)] via-50% via-[hsl(0_0%_60%)] to-[hsl(330_81%_60%)]" />
           
@@ -122,25 +115,16 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
         </div>
 
         {/* Right content area */}
-        <div className="flex-1 relative h-full">
-          {displayData.map((item, idx) => {
-            // Find rank based on score, not array position
-            const rank = sortedItems.findIndex(si => si.competitor === item.competitor) + 1;
+        <div className="flex-1 space-y-3">
+          {sortedItems.map((item, idx) => {
+            const rank = idx + 1;
             const ordinalRank = getOrdinal(rank);
             const isUserOrg = item.competitor === "Debswana";
             const sentimentColor = getSentimentColor(item.score, isUserOrg);
-            const yPosition = getYPosition(item.score);
             const arrow = getSentimentArrow(item.score);
 
             return (
-              <div 
-                key={idx}
-                className="absolute w-full transition-all"
-                style={{ 
-                  top: `${yPosition}%`,
-                  transform: 'translateY(-50%)'
-                }}
-              >
+              <div key={idx} className="w-full transition-all">
                 {/* Unified pill with gradient */}
                 <div 
                   className="rounded-full px-4 py-2 flex items-center gap-2 relative overflow-hidden"

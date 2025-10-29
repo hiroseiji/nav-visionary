@@ -17,10 +17,10 @@ const getOrdinal = (n: number) => {
 };
 
 const getSentimentColor = (score: number, isUserOrg: boolean = false) => {
-  if (isUserOrg) return 'hsl(25 95% 53%)'; // orange for user's org only
+  if (isUserOrg) return 'hsla(25, 100%, 65%, 1.00)'; // orange for user's org only
   if (score >= 20) return 'hsl(158 64% 52%)'; // green - positive
   if (score >= -5) return 'hsl(0 0% 60%)'; // gray - neutral
-  return 'hsl(330 81% 60%)'; // pink - negative
+  return 'hsla(0, 100%, 60%, 1.00)'; // pink - negative
 };
 
 const getSentimentArrow = (score: number) => {
@@ -157,7 +157,7 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
             const isUserOrg = item.competitor === "Debswana";
             const sentimentColor = getSentimentColor(item.score, isUserOrg);
             const arrow = getSentimentArrow(item.score);
-            const leftWidth = 200; // keep in sync with w-[200px]
+            const leftWidth = 300; // keep in sync with w-[200px]
 
             return (
               <div key={idx} className="w-full transition-all">
@@ -170,7 +170,7 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
                   }}
                 >
                   {/* Left section: rank and name */}
-                  <div className="flex items-center gap-2 w-[200px] flex-shrink-0">
+                  <div className="flex items-center gap-2 w-[300px] flex-shrink-0">
                     <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25 text-white font-bold text-[10px]">
                       {ordinalRank}
                     </div>

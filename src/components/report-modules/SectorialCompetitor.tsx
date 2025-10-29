@@ -23,6 +23,12 @@ const getSentimentColor = (score: number, isUserOrg: boolean = false) => {
   return 'hsl(330 81% 60%)'; // pink - negative
 };
 
+const getSentimentArrow = (score: number) => {
+  if (score >= 20) return '▲'; // positive
+  if (score < -5) return '▼'; // negative
+  return '►'; // neutral
+};
+
 const getYPosition = (score: number) => {
   // Map score from 80 to -40 range to 0% to 100% position
   // 80 -> 0%, -40 -> 100%
@@ -124,38 +130,45 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
             const isUserOrg = item.competitor === "Debswana";
             const sentimentColor = getSentimentColor(item.score, isUserOrg);
             const yPosition = getYPosition(item.score);
+            const arrow = getSentimentArrow(item.score);
 
             return (
               <div 
                 key={idx}
-                className="absolute w-full flex items-center gap-3 transition-all"
+                className="absolute w-full transition-all"
                 style={{ 
                   top: `${yPosition}%`,
                   transform: 'translateY(-50%)'
                 }}
               >
-                {/* Left colored pill with rank and name */}
+                {/* Unified pill with gradient */}
                 <div 
-                  className="rounded-full px-4 py-2 flex items-center gap-2 min-w-[220px] max-w-[220px]"
-                  style={{ backgroundColor: sentimentColor }}
+                  className="rounded-full px-4 py-2 flex items-center gap-2 relative overflow-hidden"
+                  style={{ 
+                    background: `linear-gradient(to right, ${sentimentColor} 0%, ${sentimentColor} 25%, hsl(var(--background)) 25%, hsl(var(--background)) 100%)`,
+                    border: `2px solid ${sentimentColor}`
+                  }}
                 >
-                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25 text-white font-bold text-[10px]">
-                    {ordinalRank}
+                  {/* Left section: rank and name */}
+                  <div className="flex items-center gap-2 min-w-[200px] max-w-[200px]">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25 text-white font-bold text-[10px]">
+                      {ordinalRank}
+                    </div>
+                    <span className="font-bold text-white text-xs truncate">{item.competitor}</span>
                   </div>
-                  <span className="font-bold text-white text-xs truncate">{item.competitor}</span>
-                </div>
 
-                {/* Right section with description and score */}
-                <div className="flex-1 flex items-center gap-3 bg-background border-2 rounded-full px-4 py-2" style={{ borderColor: sentimentColor }}>
-                  <div className="flex-1 flex items-center gap-1.5">
-                    <span className="text-foreground text-[10px] flex-shrink-0">▲</span>
-                    <span className="text-foreground text-[10px] leading-tight">{item.summary}</span>
-                  </div>
-                  <div 
-                    className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: sentimentColor }}
-                  >
-                    {item.score}
+                  {/* Right section: arrow, summary and score */}
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-[11px] flex-shrink-0 font-bold" style={{ color: sentimentColor }}>
+                      {arrow}
+                    </span>
+                    <span className="text-foreground text-[10px] leading-tight flex-1">{item.summary}</span>
+                    <div 
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm flex-shrink-0"
+                      style={{ backgroundColor: sentimentColor }}
+                    >
+                      {item.score}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -74,43 +74,62 @@ export function SectorRanking({ data }: SectorRankingProps) {
     );
   }
 
+  // Get sentiment-based color
+  const getSentimentColor = (score: number) => {
+    if (score >= 50) return 'hsl(160 84% 39%)'; // green - positive
+    if (score >= 30) return 'hsl(38 92% 50%)'; // orange - mixed
+    if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
+    return 'hsl(0 84% 60%)'; // red - negative
+  };
+
   return (
     <div className="space-y-4">
-      {displayRankings.map((item, idx) => (
-        <Card key={idx} className={`p-6 ${item.rank === 2 ? 'border-2 border-primary' : ''}`}>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-              {item.rank === 1 ? (
-                <Trophy className="h-6 w-6 text-yellow-500" />
-              ) : (
-                <span className="text-xl font-bold">{item.rank}</span>
-              )}
-            </div>
-              <div className="flex-1">
+      {displayRankings.map((item, idx) => {
+        const sentimentColor = getSentimentColor(item.score);
+        
+        return (
+          <Card key={idx} className={`p-0 overflow-hidden ${item.rank === 2 ? 'ring-2 ring-primary' : ''}`}>
+            <div className="flex items-center">
+              <div 
+                className="flex items-center gap-3 px-4 py-6 min-w-[200px]"
+                style={{ backgroundColor: sentimentColor }}
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 text-white font-bold">
+                  {item.rank === 1 ? (
+                    <Trophy className="h-5 w-5" />
+                  ) : (
+                    <span className="text-lg">{item.rank}</span>
+                  )}
+                </div>
+                <span className="font-semibold text-white">{item.company}</span>
+              </div>
+              <div className="flex-1 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-semibold">{item.company}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Sentiment Score: <span className="font-semibold text-foreground">{item.score}</span> ({item.change > 0 ? '+' : ''}{item.change})
+                  </p>
                   {item.rank === 2 && <Badge variant="default">You</Badge>}
                 </div>
-              <p className="text-sm text-muted-foreground">Reputation Score: {item.score}/100</p>
+                <div className="flex items-center gap-2">
+                  {item.change > 0 ? (
+                    <>
+                      <TrendingUp className="h-5 w-5" style={{ color: 'hsl(160 84% 39%)' }} />
+                      <span className="font-medium" style={{ color: 'hsl(160 84% 39%)' }}>+{item.change}</span>
+                    </>
+                  ) : item.change < 0 ? (
+                    <>
+                      <TrendingDown className="h-5 w-5" style={{ color: 'hsl(0 84% 60%)' }} />
+                      <span className="font-medium" style={{ color: 'hsl(0 84% 60%)' }}>{item.change}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {item.change > 0 ? (
-                <>
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span className="text-green-500 font-medium">+{item.change}</span>
-                </>
-              ) : item.change < 0 ? (
-                <>
-                  <TrendingDown className="h-5 w-5 text-red-500" />
-                  <span className="text-red-500 font-medium">{item.change}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 }

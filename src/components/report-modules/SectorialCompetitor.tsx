@@ -85,42 +85,43 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="relative flex gap-4">
+      <div className="relative flex gap-6" style={{ height: '900px' }}>
         {/* Left sentiment scale */}
-        <div className="relative w-24 flex-shrink-0">
+        <div className="relative w-20 flex-shrink-0 h-full">
           {/* Gradient bar */}
-          <div className="absolute left-8 top-0 bottom-0 w-4 rounded-full overflow-hidden bg-gradient-to-b from-[hsl(160_84%_39%)] via-[hsl(38_92%_50%)] via-[hsl(220_9%_46%)] to-[hsl(340_82%_67%)]" />
+          <div className="absolute left-6 top-0 bottom-0 w-3 rounded-full bg-gradient-to-b from-[hsl(158_64%_52%)] via-[hsl(25_95%_53%)] via-50% via-[hsl(0_0%_60%)] to-[hsl(330_81%_60%)]" />
           
           {/* Scale labels */}
-          <div className="relative h-full flex flex-col justify-between py-2">
+          <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between py-1">
             {[80, 70, 60, 50, 40, 30, 20, 10, 0, -10, -20, -30, -40].map((val) => (
-              <div key={val} className="text-xs font-medium text-muted-foreground text-right pr-6">
+              <div key={val} className="text-[10px] font-semibold text-muted-foreground">
                 {val}
               </div>
             ))}
           </div>
 
-          {/* Sentiment labels */}
-          <div className="absolute left-0 top-[5%] w-20 text-[10px] text-center text-muted-foreground rotate-[-90deg] origin-center whitespace-nowrap">
+          {/* Sentiment labels - vertical text */}
+          <div className="absolute left-[-12px] top-[8%] text-[9px] text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
             Securely Positive
           </div>
-          <div className="absolute left-0 top-[28%] w-20 text-[10px] text-center text-muted-foreground rotate-[-90deg] origin-center whitespace-nowrap">
+          <div className="absolute left-[-12px] top-[32%] text-[9px] text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
             Moderately Positive
           </div>
-          <div className="absolute left-0 top-[65%] w-20 text-[10px] text-center text-destructive rotate-[-90deg] origin-center whitespace-nowrap">
+          <div className="absolute left-[-12px] top-[68%] text-[9px] text-destructive" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
             Moderately at risk
           </div>
-          <div className="absolute left-0 top-[88%] w-20 text-[10px] text-center text-destructive rotate-[-90deg] origin-center whitespace-nowrap">
+          <div className="absolute left-[-12px] top-[90%] text-[9px] text-destructive" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
             At risk
           </div>
         </div>
 
         {/* Right content area */}
-        <div className="flex-1 relative" style={{ minHeight: '750px' }}>
-          {sortedItems.map((item, idx) => {
-            const rank = idx + 1;
+        <div className="flex-1 relative h-full">
+          {displayData.map((item, idx) => {
+            // Find rank based on score, not array position
+            const rank = sortedItems.findIndex(si => si.competitor === item.competitor) + 1;
             const ordinalRank = getOrdinal(rank);
-            const isUserOrg = item.competitor === "Debswana"; // Debswana (3rd) is the user's org - highlighted in orange
+            const isUserOrg = item.competitor === "Debswana";
             const sentimentColor = getSentimentColor(item.score, isUserOrg);
             const yPosition = getYPosition(item.score);
 
@@ -135,23 +136,23 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
               >
                 {/* Left colored pill with rank and name */}
                 <div 
-                  className="rounded-full px-5 py-2.5 flex items-center gap-3 min-w-[240px] max-w-[240px]"
+                  className="rounded-full px-4 py-2 flex items-center gap-2 min-w-[220px] max-w-[220px]"
                   style={{ backgroundColor: sentimentColor }}
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white font-bold text-[11px]">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25 text-white font-bold text-[10px]">
                     {ordinalRank}
                   </div>
-                  <span className="font-bold text-white text-sm truncate">{item.competitor}</span>
+                  <span className="font-bold text-white text-xs truncate">{item.competitor}</span>
                 </div>
 
                 {/* Right section with description and score */}
-                <div className="flex-1 flex items-center gap-3 bg-background border-2 rounded-full px-5 py-2.5" style={{ borderColor: sentimentColor }}>
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-foreground text-[11px] flex-shrink-0">▲</span>
-                    <span className="text-foreground text-[11px] leading-snug">{item.summary}</span>
+                <div className="flex-1 flex items-center gap-3 bg-background border-2 rounded-full px-4 py-2" style={{ borderColor: sentimentColor }}>
+                  <div className="flex-1 flex items-center gap-1.5">
+                    <span className="text-foreground text-[10px] flex-shrink-0">▲</span>
+                    <span className="text-foreground text-[10px] leading-tight">{item.summary}</span>
                   </div>
                   <div 
-                    className="flex items-center justify-center w-11 h-11 rounded-full text-white font-bold text-base flex-shrink-0"
+                    className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm flex-shrink-0"
                     style={{ backgroundColor: sentimentColor }}
                   >
                     {item.score}

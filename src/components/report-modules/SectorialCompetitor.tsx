@@ -49,7 +49,6 @@ function withRanks(items: CompetitorItem[]) {
   const byScoreDesc = [...items].sort((a, b) => b.score - a.score);
   // map score -> rank (1-based)
   const rankByScore = new Map<number, number>();
-  let currentRank = 1;
   byScoreDesc.forEach((it, idx) => {
     if (!rankByScore.has(it.score)) {
       rankByScore.set(it.score, idx + 1);

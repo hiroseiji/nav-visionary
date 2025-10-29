@@ -16,11 +16,11 @@ const getOrdinal = (n: number) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-const getSentimentColor = (score: number) => {
-  if (score >= 50) return 'hsl(160 84% 39%)'; // green - positive
-  if (score >= 20) return 'hsl(38 92% 50%)'; // orange - mixed
+const getSentimentColor = (score: number, isUserOrg: boolean = false) => {
+  if (isUserOrg) return 'hsl(38 92% 50%)'; // orange for user's org only
+  if (score >= 20) return 'hsl(160 84% 39%)'; // green - positive
   if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
-  return 'hsl(340 82% 67%)'; // pink - negative
+  return 'hsl(340 82% 67%)'; // pink/red - negative
 };
 
 const getYPosition = (score: number) => {
@@ -116,11 +116,12 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
         </div>
 
         {/* Right content area */}
-        <div className="flex-1 relative" style={{ minHeight: '600px' }}>
+        <div className="flex-1 relative" style={{ minHeight: '800px' }}>
           {sortedItems.map((item, idx) => {
             const rank = idx + 1;
             const ordinalRank = getOrdinal(rank);
-            const sentimentColor = getSentimentColor(item.score);
+            const isUserOrg = item.competitor === "Morupule Coal Mine"; // Only this one is orange
+            const sentimentColor = getSentimentColor(item.score, isUserOrg);
             const yPosition = getYPosition(item.score);
 
             return (

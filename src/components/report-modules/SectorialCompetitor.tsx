@@ -134,7 +134,7 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
                   }}
                 >
                   {/* Left section: rank and name */}
-                  <div className="flex items-center gap-2 min-w-[200px] max-w-[200px]">
+                  <div className="flex items-center gap-2 w-[200px] flex-shrink-0">
                     <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25 text-white font-bold text-[10px]">
                       {ordinalRank}
                     </div>
@@ -142,11 +142,11 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
                   </div>
 
                   {/* Right section: arrow, summary and score */}
-                  <div className="flex-1 flex items-center gap-2">
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
                     <span className="text-[11px] flex-shrink-0 font-bold" style={{ color: sentimentColor }}>
                       {arrow}
                     </span>
-                    <span className="text-foreground text-[10px] leading-tight flex-1">{item.summary}</span>
+                    <span className="text-foreground text-[10px] leading-tight flex-1 min-w-0 line-clamp-2">{item.summary}</span>
                     <div 
                       className="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm flex-shrink-0"
                       style={{ backgroundColor: sentimentColor }}

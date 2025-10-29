@@ -17,10 +17,10 @@ const getOrdinal = (n: number) => {
 };
 
 const getSentimentColor = (score: number, isUserOrg: boolean = false) => {
-  if (isUserOrg) return 'hsl(38 92% 50%)'; // orange for user's org only
-  if (score >= 20) return 'hsl(160 84% 39%)'; // green - positive
-  if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
-  return 'hsl(340 82% 67%)'; // pink/red - negative
+  if (isUserOrg) return 'hsl(25 95% 53%)'; // orange for user's org only
+  if (score >= 20) return 'hsl(158 64% 52%)'; // green - positive
+  if (score >= -5) return 'hsl(0 0% 60%)'; // gray - neutral
+  return 'hsl(330 81% 60%)'; // pink - negative
 };
 
 const getYPosition = (score: number) => {
@@ -51,7 +51,7 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
     { 
       competitor: "Okavango Diamond Company", 
       score: 34, 
-      summary: "Receives a $300m credit facility from Standard Chartered Bank to help the company's facilitate the awaited recovery of the retail diamond market."
+      summary: "Receives a $300m credit facility from Standard Chartered Bank to help the company facilitate the awaited recovery of the retail diamond market."
     },
     { 
       competitor: "Rio Tinto Diamonds", 
@@ -116,11 +116,11 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
         </div>
 
         {/* Right content area */}
-        <div className="flex-1 relative" style={{ minHeight: '800px' }}>
+        <div className="flex-1 relative" style={{ minHeight: '750px' }}>
           {sortedItems.map((item, idx) => {
             const rank = idx + 1;
             const ordinalRank = getOrdinal(rank);
-            const isUserOrg = item.competitor === "Morupule Coal Mine"; // Only this one is orange
+            const isUserOrg = item.competitor === "Debswana"; // Debswana (3rd) is the user's org - highlighted in orange
             const sentimentColor = getSentimentColor(item.score, isUserOrg);
             const yPosition = getYPosition(item.score);
 
@@ -135,23 +135,23 @@ export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
               >
                 {/* Left colored pill with rank and name */}
                 <div 
-                  className="rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] max-w-[280px]"
+                  className="rounded-full px-5 py-2.5 flex items-center gap-3 min-w-[240px] max-w-[240px]"
                   style={{ backgroundColor: sentimentColor }}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/30 text-white font-bold text-xs">
-                    {ordinalRank.replace(/\d+/, '').replace('TH', rank.toString() + 'TH').replace('ST', rank.toString() + 'ST').replace('ND', rank.toString() + 'ND').replace('RD', rank.toString() + 'RD')}
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white font-bold text-[11px]">
+                    {ordinalRank}
                   </div>
-                  <span className="font-semibold text-white text-sm">{item.competitor}</span>
+                  <span className="font-bold text-white text-sm truncate">{item.competitor}</span>
                 </div>
 
                 {/* Right section with description and score */}
-                <div className="flex-1 flex items-center gap-4 bg-background border-2 rounded-full px-6 py-3" style={{ borderColor: sentimentColor }}>
+                <div className="flex-1 flex items-center gap-3 bg-background border-2 rounded-full px-5 py-2.5" style={{ borderColor: sentimentColor }}>
                   <div className="flex-1 flex items-center gap-2">
-                    <span className="text-foreground/80 text-[10px] flex-shrink-0">▲</span>
-                    <span className="text-foreground text-xs leading-tight">{item.summary}</span>
+                    <span className="text-foreground text-[11px] flex-shrink-0">▲</span>
+                    <span className="text-foreground text-[11px] leading-snug">{item.summary}</span>
                   </div>
                   <div 
-                    className="flex items-center justify-center w-12 h-12 rounded-full text-white font-bold text-lg flex-shrink-0"
+                    className="flex items-center justify-center w-11 h-11 rounded-full text-white font-bold text-base flex-shrink-0"
                     style={{ backgroundColor: sentimentColor }}
                   >
                     {item.score}

@@ -15,9 +15,9 @@ export type SectorialCompetitorProps = {
 };
 
 const getOrdinal = (n: number) => {
-  const s = ["TH", "ST", "ND", "RD"] as const;
+  const s = ["TH", "ST", "ND", "RD"];
   const v = n % 100;
-  const suffix = (s as any)[(v - 20) % 10] || (s as any)[v] || s[0];
+  const suffix = s[(v - 20) % 10] || s[v] || s[0];
   return `${n}${suffix}`;
 };
 

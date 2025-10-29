@@ -55,15 +55,20 @@ export function SectorRanking({ data }: SectorRankingProps) {
         ? Math.round(item.averageSentiment * 100)
         : 0,
     change: item.change !== undefined ? item.change : 0,
+    volume: item.volume !== undefined ? item.volume : Math.floor(Math.random() * 5000),
   }));
 
   // If no data, use mock data to show the structure
   const displayRankings = rankings.length === 0 ? [
-    { rank: 1, company: "Anglo American Platinum", score: 87, change: 3 },
-    { rank: 2, company: "Your Organization", score: 78, change: -2 },
-    { rank: 3, company: "Debswana Diamond Company", score: 75, change: 1 },
-    { rank: 4, company: "Lucara Diamond Corp", score: 71, change: 0 },
-    { rank: 5, company: "BCL Limited", score: 68, change: -1 },
+    { rank: 1, company: "Lucara Diamonds", score: 62, change: -9, volume: 379 },
+    { rank: 2, company: "Morupule Coal Mine", score: 49, change: 47, volume: 5 },
+    { rank: 3, company: "Debswana", score: 40, change: 37, volume: 234 },
+    { rank: 4, company: "Okavango Diamond Company", score: 34, change: -26, volume: 33 },
+    { rank: 5, company: "Rio Tinto Diamonds", score: 27, change: 29, volume: 218 },
+    { rank: 6, company: "DTC Botswana", score: 0, change: -37, volume: 11 },
+    { rank: 7, company: "De Beers", score: -1, change: -19, volume: 2289 },
+    { rank: 8, company: "Anglo American", score: -1, change: 10, volume: 3613 },
+    { rank: 9, company: "Airosa", score: -22, change: 16, volume: 269 },
   ] : rankings;
 
   if (displayRankings.length === 0) {
@@ -75,7 +80,8 @@ export function SectorRanking({ data }: SectorRankingProps) {
   }
 
   // Get sentiment-based color
-  const getSentimentColor = (score: number) => {
+  const getSentimentColor = (score: number, isUserOrg: boolean = false) => {
+    if (isUserOrg) return 'hsl(38 92% 50%)'; // orange for user's org
     if (score >= 50) return 'hsl(160 84% 39%)'; // green - positive
     if (score >= 30) return 'hsl(38 92% 50%)'; // orange - mixed
     if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
@@ -83,51 +89,39 @@ export function SectorRanking({ data }: SectorRankingProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {displayRankings.map((item, idx) => {
-        const sentimentColor = getSentimentColor(item.score);
+        const isUserOrg = item.rank === 2;
+        const sentimentColor = getSentimentColor(item.score, isUserOrg);
         
         return (
-          <Card key={idx} className={`p-0 overflow-hidden ${item.rank === 2 ? 'ring-2 ring-primary' : ''}`}>
-            <div className="flex items-center">
-              <div 
-                className="flex items-center gap-3 px-4 py-6 min-w-[200px]"
-                style={{ backgroundColor: sentimentColor }}
-              >
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 text-white font-bold">
-                  {item.rank === 1 ? (
-                    <Trophy className="h-5 w-5" />
-                  ) : (
-                    <span className="text-lg">{item.rank}</span>
-                  )}
-                </div>
-                <span className="font-semibold text-white">{item.company}</span>
+          <div 
+            key={idx} 
+            className="rounded-full border-2 bg-background overflow-hidden flex items-center"
+            style={{ borderColor: sentimentColor }}
+          >
+            <div 
+              className="rounded-full px-4 py-3 flex items-center gap-3 min-w-[280px] max-w-[280px]"
+              style={{ backgroundColor: sentimentColor }}
+            >
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/30 text-white font-bold text-sm flex-shrink-0">
+                {item.rank === 1 ? (
+                  <Trophy className="h-4 w-4" />
+                ) : (
+                  <span>{item.rank}</span>
+                )}
               </div>
-              <div className="flex-1 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    Sentiment Score: <span className="font-semibold text-foreground">{item.score}</span> ({item.change > 0 ? '+' : ''}{item.change})
-                  </p>
-                  {item.rank === 2 && <Badge variant="default">You</Badge>}
-                </div>
-                <div className="flex items-center gap-2">
-                  {item.change > 0 ? (
-                    <>
-                      <TrendingUp className="h-5 w-5" style={{ color: 'hsl(160 84% 39%)' }} />
-                      <span className="font-medium" style={{ color: 'hsl(160 84% 39%)' }}>+{item.change}</span>
-                    </>
-                  ) : item.change < 0 ? (
-                    <>
-                      <TrendingDown className="h-5 w-5" style={{ color: 'hsl(0 84% 60%)' }} />
-                      <span className="font-medium" style={{ color: 'hsl(0 84% 60%)' }}>{item.change}</span>
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </div>
-              </div>
+              <span className="font-semibold text-white text-sm truncate">{item.company}</span>
             </div>
-          </Card>
+            <div className="flex-1 px-6 py-3 flex items-center justify-end gap-8">
+              <span className="text-sm text-foreground whitespace-nowrap">
+                Sentiment Score: <span className="font-semibold">{item.score}</span> ({item.change > 0 ? '+' : ''}{item.change})
+              </span>
+              <span className="text-sm text-foreground whitespace-nowrap">
+                Volume: <span className="font-semibold">{item.volume || Math.floor(Math.random() * 5000)}</span>
+              </span>
+            </div>
+          </div>
         );
       })}
     </div>

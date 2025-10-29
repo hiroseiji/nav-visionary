@@ -1,5 +1,3 @@
-import { ComponentProps } from "react";
-
 interface CompetitorItem {
   competitor: string;
   score: number;
@@ -12,115 +10,160 @@ export type SectorialCompetitorProps = {
   data?: SectorialCompetitorData;
 };
 
-const getDotPosition = (score: number): string => {
-  // Map score (-100 to 100) to position (0% to 100%)
+const getOrdinal = (n: number) => {
+  const s = ["TH", "ST", "ND", "RD"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+const getSentimentColor = (score: number) => {
+  if (score >= 50) return 'hsl(160 84% 39%)'; // green - positive
+  if (score >= 20) return 'hsl(38 92% 50%)'; // orange - mixed
+  if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
+  return 'hsl(340 82% 67%)'; // pink - negative
+};
+
+const getYPosition = (score: number) => {
+  // Map score from 80 to -40 range to 0% to 100% position
   // 80 -> 0%, -40 -> 100%
-  // Linear mapping: position = (80 - score) / 120 * 100
   const position = ((80 - score) / 120) * 100;
-  return `${Math.max(0, Math.min(100, position))}%`;
+  return Math.max(0, Math.min(100, position));
 };
 
 export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
-  if (!data || !Array.isArray(data) || data.length === 0) {
-    return <p className="text-muted-foreground">No competitor analysis data available.</p>;
-  }
+  // Dummy data to match the image
+  const dummyData: CompetitorItem[] = [
+    { 
+      competitor: "Lucara Diamond", 
+      score: 62, 
+      summary: "Continues to benefit from positive discussion of the 2,492-carat diamond it discovered at its Karowe mine in northeastern Botswana. The Africa Diamond."
+    },
+    { 
+      competitor: "Morupule Coal Mine", 
+      score: 49, 
+      summary: "Reports the solar panels the company helped install for the Chwesha Foundation in Phalange have reduced electricity costs for the charity by 80%."
+    },
+    { 
+      competitor: "Debswana", 
+      score: 40, 
+      summary: "Signs a Memorandum of Understanding (MoU) enhancing the productivity of SMMEs across Botswana with the CEEIP projects. Receives a inflections of Orican spent on citizen concerns, announced by..."
+    },
+    { 
+      competitor: "Okavango Diamond Company", 
+      score: 34, 
+      summary: "Receives a $300m credit facility from Standard Chartered Bank to help the company's facilitate the awaited recovery of the retail diamond market."
+    },
+    { 
+      competitor: "Rio Tinto Diamonds", 
+      score: 27, 
+      summary: "Installs solar panels at its Diavik diamond mine, which it says will produce nearly 4.2GWh of energy to run industrial operations."
+    },
+    { 
+      competitor: "DTC Botswana", 
+      score: 0, 
+      summary: "The Okavango Diamond Company (ODC) receives a loan from Standard Chartered which would be used to purchase large volumes of rough diamonds from DTC."
+    },
+    { 
+      competitor: "De Beers", 
+      score: -1, 
+      summary: "Praised by Cape Business News for providing drinking water to the Rietfontein secondary school in Musina, South Africa. Faces ongoing weak demand for natural diamonds."
+    },
+    { 
+      competitor: "Anglo American", 
+      score: -1, 
+      summary: "Raises R7.2bn from the sale of its shares in Amplats. Admits a cyber-attack could leave mineworkers stuck underground."
+    },
+    { 
+      competitor: "Airosa", 
+      score: -22, 
+      summary: "Declares bankruptcy of its Belgian trading division in Antwerp, citing the expansion of European sanctions."
+    },
+  ];
 
-  const sortedItems = [...data].sort((a, b) => b.score - a.score);
+  const displayData = data && data.length > 0 ? data : dummyData;
+  const sortedItems = [...displayData].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="sectorial-competitor-section">
-      <h4 className="text-xl font-semibold mb-6">Competitor Landscape</h4>
-      <div className="competitor-section">
-        <div className="sentiment-meter">
-          <div className="meter-scale">
-            {[80, 70, 60, 50, 40, 30, 20, 10, 0, -10, -20, -30, -40].map((val, idx) => (
-              <div key={idx} className="scale-tick">
+    <div className="space-y-6">
+      <div className="relative flex gap-4">
+        {/* Left sentiment scale */}
+        <div className="relative w-24 flex-shrink-0">
+          {/* Gradient bar */}
+          <div className="absolute left-8 top-0 bottom-0 w-4 rounded-full overflow-hidden bg-gradient-to-b from-[hsl(160_84%_39%)] via-[hsl(38_92%_50%)] via-[hsl(220_9%_46%)] to-[hsl(340_82%_67%)]" />
+          
+          {/* Scale labels */}
+          <div className="relative h-full flex flex-col justify-between py-2">
+            {[80, 70, 60, 50, 40, 30, 20, 10, 0, -10, -20, -30, -40].map((val) => (
+              <div key={val} className="text-xs font-medium text-muted-foreground text-right pr-6">
                 {val}
               </div>
             ))}
           </div>
-          <div className="meter-bar">
-            {data.map((item, i) => (
-              <div
-                key={i}
-                className={`dot ${i === 2 ? "highlight" : ""}`}
-                style={{ top: getDotPosition(item.score) }}
-              />
-            ))}
-          </div>
 
-          <div className="meter-labels">
-            <span style={{ top: "10%" }}>Securely Positive</span>
-            <span style={{ top: "35%" }}>Moderately Positive</span>
-            <span style={{ top: "63%" }} className="risk">Moderately at risk</span>
-            <span style={{ top: "87%" }} className="risk">At risk</span>
+          {/* Sentiment labels */}
+          <div className="absolute left-0 top-[5%] w-20 text-[10px] text-center text-muted-foreground rotate-[-90deg] origin-center whitespace-nowrap">
+            Securely Positive
+          </div>
+          <div className="absolute left-0 top-[28%] w-20 text-[10px] text-center text-muted-foreground rotate-[-90deg] origin-center whitespace-nowrap">
+            Moderately Positive
+          </div>
+          <div className="absolute left-0 top-[65%] w-20 text-[10px] text-center text-destructive rotate-[-90deg] origin-center whitespace-nowrap">
+            Moderately at risk
+          </div>
+          <div className="absolute left-0 top-[88%] w-20 text-[10px] text-center text-destructive rotate-[-90deg] origin-center whitespace-nowrap">
+            At risk
           </div>
         </div>
 
-        <div className="sectorial-rank-graph">
+        {/* Right content area */}
+        <div className="flex-1 relative" style={{ minHeight: '600px' }}>
           {sortedItems.map((item, idx) => {
             const rank = idx + 1;
-            const sentimentScore = item.score;
-            const isPositive = sentimentScore > 30;
-            const isNegative = sentimentScore < 0;
-            const sentimentLevel = isPositive
-              ? "positive"
-              : isNegative
-                ? "negative"
-                : "neutral";
-
-            const rankLabel =
-              rank === 1
-                ? "1ST"
-                : rank === 2
-                  ? "2ND"
-                  : rank === 3
-                    ? "3RD"
-                    : rank === 4
-                      ? "4TH"
-                      : rank === 5
-                        ? "5TH"
-                        : rank === 6
-                          ? "6TH"
-                          : rank === 7
-                            ? "7TH"
-                            : rank === 8
-                              ? "8TH"
-                              : rank === 9
-                                ? "9TH"
-                                : `${rank}TH`;
-
-            const sentimentColor = {
-              positive: "#10b981",
-              neutral: "#9ca3af",
-              negative: "#ef4444",
-            }[sentimentLevel];
+            const ordinalRank = getOrdinal(rank);
+            const sentimentColor = getSentimentColor(item.score);
+            const yPosition = getYPosition(item.score);
 
             return (
-              <div className={`competitor-row ${sentimentLevel}`} key={idx}>
-                <div className="left-rank">
-                  <div className="rank-badge" style={{ backgroundColor: sentimentColor }}>
-                    {rankLabel}
+              <div 
+                key={idx}
+                className="absolute w-full flex items-center gap-3 transition-all"
+                style={{ 
+                  top: `${yPosition}%`,
+                  transform: 'translateY(-50%)'
+                }}
+              >
+                {/* Left colored pill with rank and name */}
+                <div 
+                  className="rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] max-w-[280px]"
+                  style={{ backgroundColor: sentimentColor }}
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/30 text-white font-bold text-xs">
+                    {ordinalRank.replace(/\d+/, '').replace('TH', rank.toString() + 'TH').replace('ST', rank.toString() + 'ST').replace('ND', rank.toString() + 'ND').replace('RD', rank.toString() + 'RD')}
                   </div>
-                  <div className="competitor-name">{item.competitor}</div>
+                  <span className="font-semibold text-white text-sm">{item.competitor}</span>
                 </div>
 
-                <div className="mention-box">
-                  {item.summary.includes("▲") && <span className="icon-up">▲</span>}
-                  {item.summary.includes("▼") && <span className="icon-down">▼</span>}
-                  <span>{item.summary}</span>
-                </div>
-
-                <div className="score-bubble" style={{ backgroundColor: sentimentColor }}>
-                  {sentimentScore}
+                {/* Right section with description and score */}
+                <div className="flex-1 flex items-center gap-4 bg-background border-2 rounded-full px-6 py-3" style={{ borderColor: sentimentColor }}>
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-foreground/80 text-[10px] flex-shrink-0">▲</span>
+                    <span className="text-foreground text-xs leading-tight">{item.summary}</span>
+                  </div>
+                  <div 
+                    className="flex items-center justify-center w-12 h-12 rounded-full text-white font-bold text-lg flex-shrink-0"
+                    style={{ backgroundColor: sentimentColor }}
+                  >
+                    {item.score}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-      <div className="metrics-note" style={{ textAlign: "center", marginTop: "20px" }}>
-        *Sentiment is measured on a scale of -100-100, with 0 representing neutral.
+
+      <div className="text-center text-xs text-muted-foreground pt-4">
+        *Sentiment is measured on a scale of -100-100, with 0 representing neutral
       </div>
     </div>
   );

@@ -19,10 +19,14 @@ type ModuleName =
   | "volumeAndSentiment"
   | "wordCloud"
   | "kpiPerformance"
-  // | "sectorRanking"
+  | "sectorRanking"
+  | "sectorialCompetitor"
+  | "sectorialStakeholder"
+  | "issueVisibility"
   | "issueImpact"
   | "reputationalRisks"
-  | "reputationalOpportunities";
+  | "reputationalOpportunities"
+  | "esgAnalysis";
 
 type ModulePage = { mediaType: MediaKey; module: ModuleName };
 type Page = "cover" | "contents" | ModulePage;

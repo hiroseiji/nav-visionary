@@ -203,12 +203,68 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
     },
   };
 
+  // Split data: top item separate, rest together
+  const topItem = sortedData[0];
+  const restItems = sortedData.slice(1);
+
+  // Chart data for top item
+  const topChartData = {
+    labels: [topItem.issue],
+    datasets: channelKeys.map((channel) => ({
+      label: channelDisplayNames[channel] || channel,
+      data: [topItem.channels[channel as keyof ChannelData] || 0],
+      backgroundColor: channelColors[channel] || "#9ca3af",
+      borderWidth: 0,
+      barThickness: 20,
+      maxBarThickness: 20,
+    })),
+  };
+
+  // Chart data for rest of items
+  const restChartData = {
+    labels: restItems.map((item) => item.issue),
+    datasets: channelKeys.map((channel) => ({
+      label: channelDisplayNames[channel] || channel,
+      data: restItems.map((item) => item.channels[channel as keyof ChannelData] || 0),
+      backgroundColor: channelColors[channel] || "#9ca3af",
+      borderWidth: 0,
+      barThickness: 20,
+      maxBarThickness: 20,
+    })),
+  };
+
+  const topOptions: ChartOptions<"bar"> = {
+    ...options,
+    scales: {
+      ...options.scales,
+      x: {
+        ...options.scales?.x,
+        title: {
+          display: false,
+        },
+      },
+    },
+    plugins: {
+      ...options.plugins,
+      legend: {
+        display: false,
+      },
+    },
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
-        <div style={{ height: "600px" }}>
-          <Bar data={chartData} options={options} />
+        {/* Top issue - separated */}
+        <div style={{ height: "80px" }} className="mb-8">
+          <Bar data={topChartData} options={topOptions} />
         </div>
+        
+        {/* Rest of issues */}
+        <div style={{ height: "500px" }}>
+          <Bar data={restChartData} options={options} />
+        </div>
+        
         <p className="text-xs text-muted-foreground text-center mt-4">
           *Visibility is a measure of volume weighted by the influence of the source as well as the prominence and relevance of the mention.
         </p>

@@ -44,12 +44,12 @@ const channelDisplayNames: Record<string, string> = {
 };
 
 const channelColors: Record<string, string> = {
-  International: "#065f46", // dark teal
-  Trade: "#047857", // teal
-  Consumer: "#10b981", // green
-  Local: "#6ee7b7", // light green
-  Blog: "#a7f3d0", // very light green
-  Socials: "#d1d5db", // gray
+  International: "#002a73ff", // navy blue
+  Trade: "#0c2cb8ff", // dark blue
+  Consumer: "#2a74f3ff", // blue
+  Local: "#79a1ffff", // light blue
+  Blog: "#afc7ffff", // very light blue
+  Socials: "#c0c7d9ff", // gray
 };
 
 export const IssueVisibility = ({ data }: IssueVisibilityProps) => {

@@ -21,8 +21,24 @@ export async function exportReportAsPDF(
     // Navigate to the page
     setCurrentPage(i);
     
-    // Wait for page to render
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for page to render and all images to load
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Wait for images and fonts to load
+    await document.fonts.ready;
+    const images = document.querySelectorAll('img');
+    await Promise.all(
+      Array.from(images).map(
+        img =>
+          new Promise(resolve => {
+            if (img.complete) resolve(true);
+            else {
+              img.onload = () => resolve(true);
+              img.onerror = () => resolve(true);
+            }
+          })
+      )
+    );
 
     // Find the page content
     const pageElement = document.querySelector('[data-report-page]') as HTMLElement;
@@ -30,12 +46,16 @@ export async function exportReportAsPDF(
 
     onProgress?.(i, totalPages);
 
-    // Capture the page as canvas
+    // Capture the page as canvas with exact dimensions
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      width: pageElement.scrollWidth,
+      height: pageElement.scrollHeight,
+      windowWidth: pageElement.scrollWidth,
+      windowHeight: pageElement.scrollHeight,
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -45,11 +65,20 @@ export async function exportReportAsPDF(
       pdf.addPage();
     }
 
-    // Calculate dimensions to fit page
+    // Calculate dimensions to fit page perfectly
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
-    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+    // If image is taller than page, scale it down to fit
+    if (imgHeight > pageHeight) {
+      const scaledWidth = (canvas.width * pageHeight) / canvas.height;
+      const xOffset = (pageWidth - scaledWidth) / 2;
+      pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, pageHeight);
+    } else {
+      // Center vertically if shorter than page
+      const yOffset = (pageHeight - imgHeight) / 2;
+      pdf.addImage(imgData, 'JPEG', 0, yOffset, imgWidth, imgHeight);
+    }
   }
 
   // Download the PDF
@@ -72,8 +101,24 @@ export async function exportReportAsPPT(
     // Navigate to the page
     setCurrentPage(i);
     
-    // Wait for page to render
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for page to render and all images to load
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Wait for images and fonts to load
+    await document.fonts.ready;
+    const images = document.querySelectorAll('img');
+    await Promise.all(
+      Array.from(images).map(
+        img =>
+          new Promise(resolve => {
+            if (img.complete) resolve(true);
+            else {
+              img.onload = () => resolve(true);
+              img.onerror = () => resolve(true);
+            }
+          })
+      )
+    );
 
     // Find the page content
     const pageElement = document.querySelector('[data-report-page]') as HTMLElement;
@@ -81,17 +126,21 @@ export async function exportReportAsPPT(
 
     onProgress?.(i, totalPages);
 
-    // Capture the page as canvas
+    // Capture the page as canvas with exact dimensions
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      width: pageElement.scrollWidth,
+      height: pageElement.scrollHeight,
+      windowWidth: pageElement.scrollWidth,
+      windowHeight: pageElement.scrollHeight,
     });
 
     const imgData = canvas.toDataURL('image/png');
     
-    // Add slide with image
+    // Add slide with image (16:9 aspect ratio)
     const slide = pptx.addSlide();
     slide.addImage({
       data: imgData,
@@ -99,7 +148,7 @@ export async function exportReportAsPPT(
       y: 0,
       w: '100%',
       h: '100%',
-      sizing: { type: 'contain', w: '100%', h: '100%' }
+      sizing: { type: 'cover', w: '100%', h: '100%' }
     });
   }
 

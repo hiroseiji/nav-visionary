@@ -49,7 +49,7 @@ const channelColors: Record<string, string> = {
   Consumer: "#2a74f3ff", // blue
   Local: "#79a1ffff", // light blue
   Blog: "#afc7ffff", // very light blue
-  Socials: "#c0c7d9ff", // gray
+  Socials: "#dde1edff", // gray
 };
 
 export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
@@ -140,13 +140,13 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
       x: {
         stacked: true,
         grid: {
-          display: true,
+          display: false,
           color: gridColor,
         },
         ticks: {
           font: {
             size: 11,
-            family: 'Raleway, sans-serif',
+            family: "Raleway, sans-serif",
           },
         },
         title: {
@@ -155,19 +155,20 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
           font: {
             size: 12,
             weight: "normal",
-            family: 'Raleway, sans-serif',
+            family: "Raleway, sans-serif",
           },
         },
       },
       y: {
         stacked: true,
         grid: {
-          display: false,
+          display: true,
+          color: gridColor,
         },
         ticks: {
           font: {
             size: 12,
-            family: 'Raleway, sans-serif',
+            family: "Raleway, sans-serif",
           },
         },
       },
@@ -183,7 +184,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
           padding: 20,
           font: {
             size: 12,
-            family: 'Raleway, sans-serif',
+            family: "Raleway, sans-serif",
           },
         },
       },

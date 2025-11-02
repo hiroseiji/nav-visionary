@@ -2,11 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Download } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 import { useReportData } from "@/hooks/useReportData";
 import { ReportCoverPage } from "@/components/report/ReportCoverPage";
 import { ReportContentsPage } from "@/components/report/ReportContentsPage";
 import { ReportModulePage } from "@/components/report/ReportModulePage";
+import { exportReportAsPDF, exportReportAsPPT } from "@/utils/reportExport";
 
 /* ---------- Local types ---------- */
 type MediaKey = "articles" | "printmedia" | "broadcast" | "posts";
@@ -71,11 +79,14 @@ const getReportCreatedAt = (r?: CreatedAtLike) =>
 export default function ReportResults() {
   const { orgId, reportId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { reportData, organizationData, loading } = useReportData(
     orgId,
     reportId
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
 
   // Build modules & pages with safe fallbacks so hooks run even while loading
   const modulesData = useMemo<ModulesByMedia>(() => {
@@ -185,6 +196,70 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     organizationData?.organizationName ||
     "Organization";
 
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      toast({
+        title: "Exporting PDF",
+        description: "Preparing your report...",
+      });
+
+      await exportReportAsPDF(
+        organizationName,
+        totalPages,
+        setCurrentPage,
+        (current, total) => setExportProgress({ current, total })
+      );
+
+      toast({
+        title: "Success",
+        description: "Report exported as PDF successfully!",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export report as PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+    }
+  };
+
+  const handleExportPPT = async () => {
+    setIsExporting(true);
+    try {
+      toast({
+        title: "Exporting PowerPoint",
+        description: "Preparing your report...",
+      });
+
+      await exportReportAsPPT(
+        organizationName,
+        totalPages,
+        setCurrentPage,
+        (current, total) => setExportProgress({ current, total })
+      );
+
+      toast({
+        title: "Success",
+        description: "Report exported as PowerPoint successfully!",
+      });
+    } catch (error) {
+      console.error("PPT export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export report as PowerPoint. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+    }
+  };
+
   /* ---------- Early returns AFTER all hooks ---------- */
   if (loading) {
     return (
@@ -228,43 +303,72 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
             Back to Reports
           </Button>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>
-              Page {Math.min(Math.max(currentPage, 1), totalPages)} of{" "}
-              {totalPages}
-            </span>
+          <div className="flex items-center gap-4">
+            {isExporting && exportProgress.total > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Exporting page {exportProgress.current} of {exportProgress.total}...
+              </span>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={isExporting}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPPT}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as PowerPoint
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Page {Math.min(Math.max(currentPage, 1), totalPages)} of{" "}
+                {totalPages}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Render Current Page */}
-        {currentPageData === "cover" && (
-          <ReportCoverPage
-            gradientTop={gradientTop}
-            gradientBottom={gradientBottom}
-            organizationName={organizationName}
-            reportCreatedAt={getReportCreatedAt(reportData)}
-            organizationLogoUrl={organizationData?.logoUrl}
-          />
-        )}
-
-        {currentPageData === "contents" && (
-          <ReportContentsPage
-            reportData={reportData}
-            modulesData={modulesData}
-            mediaTypes={mediaTypes}
-            onNavigateToPage={setCurrentPage}
-          />
-        )}
-
-        {typeof currentPageData === "object" &&
-          currentPageData !== null &&
-          "mediaType" in currentPageData && (
-            <ReportModulePage
-              mediaType={currentPageData.mediaType}
-              moduleName={currentPageData.module}
-              reportData={reportData}
+        <div data-report-page>
+          {currentPageData === "cover" && (
+            <ReportCoverPage
+              gradientTop={gradientTop}
+              gradientBottom={gradientBottom}
+              organizationName={organizationName}
+              reportCreatedAt={getReportCreatedAt(reportData)}
+              organizationLogoUrl={organizationData?.logoUrl}
             />
           )}
+
+          {currentPageData === "contents" && (
+            <ReportContentsPage
+              reportData={reportData}
+              modulesData={modulesData}
+              mediaTypes={mediaTypes}
+              onNavigateToPage={setCurrentPage}
+            />
+          )}
+
+          {typeof currentPageData === "object" &&
+            currentPageData !== null &&
+            "mediaType" in currentPageData && (
+              <ReportModulePage
+                mediaType={currentPageData.mediaType}
+                moduleName={currentPageData.module}
+                reportData={reportData}
+              />
+            )}
+        </div>
 
         {/* Navigation Controls */}
         <div className="flex items-center justify-between pt-4">

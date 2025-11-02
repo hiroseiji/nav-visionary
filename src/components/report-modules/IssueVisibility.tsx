@@ -119,6 +119,8 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
     data: sortedData.map((item) => item.channels[channel as keyof ChannelData] || 0),
     backgroundColor: channelColors[channel] || "#9ca3af",
     borderWidth: 0,
+    barThickness: 20,
+    maxBarThickness: 20,
   }));
 
   const chartData = {
@@ -140,6 +142,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
         ticks: {
           font: {
             size: 11,
+            family: 'Raleway, sans-serif',
           },
         },
         title: {
@@ -148,6 +151,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
           font: {
             size: 12,
             weight: "normal",
+            family: 'Raleway, sans-serif',
           },
         },
       },
@@ -159,6 +163,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
         ticks: {
           font: {
             size: 12,
+            family: 'Raleway, sans-serif',
           },
         },
       },
@@ -174,6 +179,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
           padding: 20,
           font: {
             size: 12,
+            family: 'Raleway, sans-serif',
           },
         },
       },
@@ -185,6 +191,9 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             return `${label}: ${value.toLocaleString()}`;
           },
         },
+      },
+      datalabels: {
+        display: false,
       },
     },
   };

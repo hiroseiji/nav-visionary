@@ -366,6 +366,9 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 mediaType={currentPageData.mediaType}
                 moduleName={currentPageData.module}
                 reportData={reportData}
+                pageNumber={currentPage}
+                organizationName={organizationName}
+                organizationLogoUrl={organizationData?.logoUrl}
               />
             )}
         </div>

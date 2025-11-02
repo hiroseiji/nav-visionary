@@ -118,12 +118,18 @@ type ReportModulePageProps = {
   mediaType: MediaKey;
   moduleName: ModuleName;
   reportData: Report;
+  pageNumber?: number;
+  organizationName?: string;
+  organizationLogoUrl?: string;
 };
 
 export const ReportModulePage = ({
   mediaType,
   moduleName,
   reportData,
+  pageNumber,
+  organizationName,
+  organizationLogoUrl,
 }: ReportModulePageProps) => {
   const displayMediaType = mediaTypeLabels[mediaType] || mediaType;
   const displayModule = moduleLabels[moduleName] || moduleName;
@@ -286,8 +292,34 @@ export const ReportModulePage = ({
   };
 
   return (
-    <Card className="min-h-[85vh]">
-      <CardContent className="p-8">
+    <Card className="min-h-[85vh] flex flex-col">
+      {/* Header */}
+      <div className="border-b px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img 
+            src="/socialDark.png" 
+            alt="Social Light" 
+            className="h-8 w-auto"
+          />
+        </div>
+        <div className="text-center flex-1">
+          <p className="text-sm text-muted-foreground">
+            Monthly Insight Report: <span className="font-semibold text-foreground">{displayModule}</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          {organizationLogoUrl && (
+            <img 
+              src={organizationLogoUrl} 
+              alt={organizationName || "Organization"}
+              className="h-10 w-auto object-contain"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <CardContent className="p-8 flex-1">
         <div className="mb-8">
           <p className="text-sm text-muted-foreground mb-2">
             {displayMediaType}
@@ -312,6 +344,13 @@ export const ReportModulePage = ({
           </div>
         )}
       </CardContent>
+
+      {/* Footer */}
+      <div className="border-t px-8 py-3 flex items-center justify-between text-sm text-muted-foreground">
+        <span>© Social Light Botswana | {new Date().getFullYear()}</span>
+        {pageNumber && <span className="font-medium">{pageNumber}</span>}
+        <span>Unauthorized Reproduction is Prohibited</span>
+      </div>
     </Card>
   );
 };

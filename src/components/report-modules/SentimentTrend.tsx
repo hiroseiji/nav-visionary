@@ -311,8 +311,6 @@ export function SentimentTrend({
                   above: "rgba(11,179,123,0.08)",
                   below: "rgba(239,68,68,0.10)",
                 },
-                // @ts-expect-error - Custom property for HaloPointsPlugin
-                _drawHalo: true,
                 datalabels: { display: false },
                 order: 2,
               },
@@ -413,11 +411,10 @@ export function SentimentTrend({
                           },
                         ])
                     ),
-                  }
-                : undefined,
+                   }
+                 : undefined,
             },
           },
-          plugins: [HaloPointsPlugin],
         });
       }
     }

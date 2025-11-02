@@ -57,20 +57,7 @@ export function SectorRanking({ data }: SectorRankingProps) {
     volume: item.volume !== undefined ? item.volume : Math.floor(Math.random() * 5000),
   }));
 
-  // If no data, use mock data to show the structure
-  const displayRankings = rankings.length === 0 ? [
-    { rank: 1, company: "Lucara Diamonds", score: 62, change: -9, volume: 379 },
-    { rank: 2, company: "Morupule Coal Mine", score: 49, change: 47, volume: 5 },
-    { rank: 3, company: "Debswana", score: 40, change: 37, volume: 234 },
-    { rank: 4, company: "Okavango Diamond Company", score: 34, change: -26, volume: 33 },
-    { rank: 5, company: "Rio Tinto Diamonds", score: 27, change: 29, volume: 218 },
-    { rank: 6, company: "DTC Botswana", score: 0, change: -37, volume: 11 },
-    { rank: 7, company: "De Beers", score: -1, change: -19, volume: 2289 },
-    { rank: 8, company: "Anglo American", score: -1, change: 10, volume: 3613 },
-    { rank: 9, company: "Airosa", score: -22, change: 16, volume: 269 },
-  ] : rankings;
-
-  if (displayRankings.length === 0) {
+  if (rankings.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         No sector ranking data available
@@ -85,6 +72,8 @@ export function SectorRanking({ data }: SectorRankingProps) {
     if (score >= 0) return 'hsl(220 9% 46%)'; // gray - neutral
     return 'hsl(0 84% 60%)'; // red - negative
   };
+
+  const displayRankings = rankings;
 
   // Calculate summary stats
   const userOrg = displayRankings.find(r => r.rank === 2);

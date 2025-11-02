@@ -30,57 +30,15 @@ const getSentimentArrow = (score: number) => {
 };
 
 export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
-  // Dummy data to match the image
-  const dummyData: CompetitorItem[] = [
-    { 
-      competitor: "Lucara Diamond", 
-      score: 62, 
-      summary: "Continues to benefit from positive discussion of the 2,492-carat diamond it discovered at its Karowe mine in northeastern Botswana. The Africa Diamond."
-    },
-    { 
-      competitor: "Morupule Coal Mine", 
-      score: 49, 
-      summary: "Reports the solar panels the company helped install for the Chwesha Foundation in Phalange have reduced electricity costs for the charity by 80%."
-    },
-    { 
-      competitor: "Debswana", 
-      score: 40, 
-      summary: "Signs a Memorandum of Understanding (MoU) enhancing the productivity of SMMEs across Botswana with the CEEIP projects. Receives a inflections of Orican spent on citizen concerns, announced by..."
-    },
-    { 
-      competitor: "Okavango Diamond Company", 
-      score: 34, 
-      summary: "Receives a $300m credit facility from Standard Chartered Bank to help the company facilitate the awaited recovery of the retail diamond market."
-    },
-    { 
-      competitor: "Rio Tinto Diamonds", 
-      score: 27, 
-      summary: "Installs solar panels at its Diavik diamond mine, which it says will produce nearly 4.2GWh of energy to run industrial operations."
-    },
-    { 
-      competitor: "DTC Botswana", 
-      score: 0, 
-      summary: "The Okavango Diamond Company (ODC) receives a loan from Standard Chartered which would be used to purchase large volumes of rough diamonds from DTC."
-    },
-    { 
-      competitor: "De Beers", 
-      score: -1, 
-      summary: "Praised by Cape Business News for providing drinking water to the Rietfontein secondary school in Musina, South Africa. Faces ongoing weak demand for natural diamonds."
-    },
-    { 
-      competitor: "Anglo American", 
-      score: -1, 
-      summary: "Raises R7.2bn from the sale of its shares in Amplats. Admits a cyber-attack could leave mineworkers stuck underground."
-    },
-    { 
-      competitor: "Airosa", 
-      score: -22, 
-      summary: "Declares bankruptcy of its Belgian trading division in Antwerp, citing the expansion of European sanctions."
-    },
-  ];
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        No sectorial competitor data available
+      </div>
+    );
+  }
 
-  const displayData = data && data.length > 0 ? data : dummyData;
-  const sortedItems = [...displayData].sort((a, b) => b.score - a.score);
+  const sortedItems = [...data].sort((a, b) => b.score - a.score);
 
   // Calculate position on scale (80 to -40 range, 900px height)
   const getScalePosition = (score: number) => {

@@ -57,59 +57,17 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
   const isDarkMode = document.documentElement.classList.contains('dark');
   const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
 
-  // Dummy data for visualization
-  const dummyData: IssueData[] = [
-    {
-      issue: "Diamond Discovery",
-      totalVisibility: 8500,
-      volume: 145,
-      channels: { International: 3200, Trade: 2100, Consumer: 1800, Local: 900, Blog: 300, Socials: 200 }
-    },
-    {
-      issue: "Environmental Sustainability",
-      totalVisibility: 6200,
-      volume: 98,
-      channels: { International: 2400, Trade: 1500, Consumer: 1200, Local: 600, Blog: 350, Socials: 150 }
-    },
-    {
-      issue: "Labor Relations",
-      totalVisibility: 5100,
-      volume: 87,
-      channels: { International: 1800, Trade: 1400, Consumer: 900, Local: 700, Blog: 200, Socials: 100 }
-    },
-    {
-      issue: "Community Investment",
-      totalVisibility: 4300,
-      volume: 72,
-      channels: { International: 1200, Trade: 1100, Consumer: 1000, Local: 600, Blog: 250, Socials: 150 }
-    },
-    {
-      issue: "Market Performance",
-      totalVisibility: 3800,
-      volume: 65,
-      channels: { International: 1500, Trade: 1200, Consumer: 700, Local: 300, Blog: 80, Socials: 20 }
-    },
-    {
-      issue: "Technology Innovation",
-      totalVisibility: 2900,
-      volume: 54,
-      channels: { International: 900, Trade: 800, Consumer: 600, Local: 400, Blog: 150, Socials: 50 }
-    },
-    {
-      issue: "Safety Protocols",
-      totalVisibility: 2400,
-      volume: 48,
-      channels: { International: 800, Trade: 700, Consumer: 500, Local: 300, Blog: 80, Socials: 20 }
-    },
-    {
-      issue: "Government Relations",
-      totalVisibility: 1900,
-      volume: 39,
-      channels: { International: 700, Trade: 600, Consumer: 300, Local: 200, Blog: 70, Socials: 30 }
-    }
-  ];
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-center text-muted-foreground">
+          No issue visibility data available
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const displayData = data && data.length > 0 ? data : dummyData;
+  const displayData = data;
 
   // Sort by totalVisibility descending
   const sortedData = [...displayData].sort((a, b) => b.totalVisibility - a.totalVisibility);

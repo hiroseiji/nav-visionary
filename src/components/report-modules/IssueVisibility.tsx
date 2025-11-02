@@ -136,6 +136,12 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
     indexAxis: "y" as const,
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+      },
+    },
     scales: {
       x: {
         stacked: true,
@@ -170,6 +176,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             size: 12,
             family: "Raleway, sans-serif",
           },
+          autoSkip: false,
         },
       },
     },
@@ -243,11 +250,25 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
           display: false,
         },
       },
+      y: {
+        ...options.scales?.y,
+        ticks: {
+          ...options.scales?.y?.ticks,
+          // Match the width to ensure alignment
+          autoSkip: false,
+        },
+      },
     },
     plugins: {
       ...options.plugins,
       legend: {
         display: false,
+      },
+    },
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
       },
     },
   };

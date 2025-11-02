@@ -8,6 +8,8 @@ import { FileText, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateReportDialog } from "@/components/CreateReportDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GeoCoverageMap from "@/components/GeoCoverageMap";
 import { Doughnut, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -849,277 +851,307 @@ export default function Analytics() {
           </div>
         </TooltipProvider>
 
-        {/* Charts Section */}
-        <div className="space-y-6">
-          {/* Pie/Doughnut Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {contentType === "posts" && "Mentions Composition by Source"}
-                {contentType === "articles" && "Top Keyword Trends Online"}
-                {contentType === "printMedia" && "Print Media Mentions by News Source"}
-                {contentType === "broadcast" && "Sentiment Breakdown by Station"}
-              </CardTitle>
-              <CardDescription>
-                Distribution of mentions across different sources
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-96">
-              {contentType === "broadcast" ? (
-                broadcastInsightsData?.datasets?.length &&
-                broadcastInsightsData?.datasets[0]?.data?.some((v: number) => v > 0) ? (
-                  <Bar
-                    data={broadcastInsightsData}
-                    options={{
-                      indexAxis: "x",
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: "top",
-                          labels: {
-                            font: { family: "Raleway" },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                          },
-                        },
-                        tooltip: {
-                          callbacks: {
-                            label: function (tooltipItem: any) {
-                              return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`;
-                            },
-                          },
-                        },
-                      },
-                      scales: {
-                        x: {
-                          stacked: false,
-                          title: {
-                            display: true,
-                            text: "Mentions by Sentiment",
-                            font: {
-                              family: "Raleway",
-                              size: 14,
-                              weight: "bold",
-                            },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          ticks: {
-                            font: { family: "Raleway" },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          grid: {
-                            display: true,
-                            color: "rgba(200, 200, 200, 0.21)",
-                          },
-                        },
-                        y: {
-                          stacked: false,
-                          ticks: {
-                            font: {
-                              family: "Raleway",
-                              size: 13,
-                              weight: "normal",
-                            },
-                            padding: 5,
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          grid: {
-                            display: true,
-                            color: "rgba(200, 200, 200, 0.2)",
-                          },
-                        },
-                      },
-                      animation: {
-                        duration: 1500,
-                      },
-                    }}
-                  />
-                ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground">
-                    No broadcast insights data available yet.
-                  </div>
-                )
-              ) : pieData?.datasets?.[0]?.data?.some((v: number) => v > 0) ? (
-                <Doughnut data={pieData} options={pieOptions} />
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  No composition data available yet.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Charts Section with Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 max-w-md">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="keywords">Keywords</TabsTrigger>
+            <TabsTrigger value="sources">Sources</TabsTrigger>
+            <TabsTrigger value="geography">Geography</TabsTrigger>
+          </TabsList>
 
-          {/* Bar Chart - Over Years */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {contentType === "posts" && "Social Posts Over the Years"}
-                {contentType === "articles" && "Online Articles Over the Years"}
-                {contentType === "broadcast" && "Broadcast Mentions Over the Years"}
-                {contentType === "printMedia" && "Print Media Articles Over the Years"}
-              </CardTitle>
-              <CardDescription>
-                Historical trend of mentions over the past years
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-96">
-              <Bar data={dynamicBarData} options={barOptions} />
-            </CardContent>
-          </Card>
-
-          {/* Word Cloud */}
-          {wordCloudData?.keywords && wordCloudData.keywords.length > 0 && (
+          <TabsContent value="overview" className="space-y-6">
+            {/* Bar Chart - Over Years */}
             <Card>
               <CardHeader>
-                <CardTitle>Word Cloud</CardTitle>
+                <CardTitle>
+                  {contentType === "posts" && "Social Posts Over the Years"}
+                  {contentType === "articles" && "Online Articles Over the Years"}
+                  {contentType === "broadcast" && "Broadcast Mentions Over the Years"}
+                  {contentType === "printMedia" && "Print Media Articles Over the Years"}
+                </CardTitle>
                 <CardDescription>
-                  Most frequently mentioned keywords
+                  Historical trend of mentions over the past years
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-96">
-                <div className="h-full w-full">
-                  <WordCloud
-                    words={wordCloudData.keywords.map((k: any) => ({
-                      text: k.text,
-                      value: k.value,
-                    }))}
-                    options={{
-                      rotations: 2,
-                      enableTooltip: false,
-                      rotationAngles: [-90, 0],
-                      fontSizes: [15, 50],
-                      fontWeight: "bold",
-                      scale: "sqrt",
-                      spiral: "archimedean",
-                      transitionDuration: 1000,
-                      fontFamily: "Raleway",
-                      padding: 5,
-                    }}
-                  />
-                </div>
+                <Bar data={dynamicBarData} options={barOptions} />
               </CardContent>
             </Card>
-          )}
 
-          {/* Content Volume Chart or Journalist Chart */}
-          {contentType === "printMedia" ? (
-            journalistChart && journalistChart.labels?.length > 0 && (
+            {/* Content Volume Chart or Journalist Chart */}
+            {contentType === "printMedia" ? (
+              journalistChart && journalistChart.labels?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top 15 Journalists by Volume and Tonality</CardTitle>
+                    <CardDescription>
+                      Print media journalists ranked by article count
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-96">
+                    <Bar
+                      data={{
+                        ...journalistChart,
+                        labels: journalistChart.labels.map((l: string) =>
+                          l === "0" || l.trim() === "" ? "Unknown" : l
+                        ),
+                      }}
+                      options={{
+                        indexAxis: "x",
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: "top",
+                            labels: {
+                              font: { family: "Raleway" },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              usePointStyle: true,
+                              pointStyle: "circle",
+                            },
+                          },
+                          tooltip: {
+                            callbacks: {
+                              label: (tooltipItem: any) =>
+                                `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`,
+                            },
+                          },
+                        },
+                        scales: {
+                          x: {
+                            stacked: false,
+                            title: {
+                              display: true,
+                              text: "Journalist",
+                              font: {
+                                family: "Raleway",
+                                size: 14,
+                                weight: "bold",
+                              },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            ticks: {
+                              font: {
+                                family: "Raleway",
+                                size: 13,
+                                weight: "normal",
+                              },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              color: "rgba(200, 200, 200, 0.2)",
+                              display: true,
+                            },
+                          },
+                          y: {
+                            stacked: false,
+                            title: {
+                              display: true,
+                              text: "Number of Articles",
+                              font: {
+                                family: "Raleway",
+                                size: 14,
+                                weight: "bold",
+                              },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            ticks: {
+                              stepSize: 1,
+                              font: { family: "Raleway" },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              color: "rgba(200, 200, 200, 0.2)",
+                              display: true,
+                            },
+                          },
+                        },
+                        animation: { duration: 1000 },
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              )
+            ) : (
+              countOverTimeData.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Content Volume per Reach & AVE</CardTitle>
+                    <CardDescription>
+                      Tracking media content volume over time with reach and AVE metrics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-96">
+                    <Bar
+                      data={generateCountOverTimeChartData(
+                        countOverTimeData,
+                        normalizedContentType,
+                        granularity
+                      )}
+                      options={chartOptions}
+                    />
+                  </CardContent>
+                </Card>
+              )
+            )}
+          </TabsContent>
+
+          <TabsContent value="keywords" className="space-y-6">
+            {/* Word Cloud */}
+            {wordCloudData?.keywords && wordCloudData.keywords.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Top 15 Journalists by Volume and Tonality</CardTitle>
+                  <CardTitle>Word Cloud</CardTitle>
                   <CardDescription>
-                    Print media journalists ranked by article count
+                    Most frequently mentioned keywords
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="h-96">
-                  <Bar
-                    data={{
-                      ...journalistChart,
-                      labels: journalistChart.labels.map((l: string) =>
-                        l === "0" || l.trim() === "" ? "Unknown" : l
-                      ),
-                    }}
-                    options={{
-                      indexAxis: "x",
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: "top",
-                          labels: {
-                            font: { family: "Raleway" },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                          },
-                        },
-                        tooltip: {
-                          callbacks: {
-                            label: (tooltipItem: any) =>
-                              `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`,
-                          },
-                        },
-                      },
-                      scales: {
-                        x: {
-                          stacked: false,
-                          title: {
-                            display: true,
-                            text: "Journalist",
-                            font: {
-                              family: "Raleway",
-                              size: 14,
-                              weight: "bold",
-                            },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          ticks: {
-                            font: {
-                              family: "Raleway",
-                              size: 13,
-                              weight: "normal",
-                            },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          grid: {
-                            color: "rgba(200, 200, 200, 0.2)",
-                            display: true,
-                          },
-                        },
-                        y: {
-                          stacked: false,
-                          title: {
-                            display: true,
-                            text: "Number of Articles",
-                            font: {
-                              family: "Raleway",
-                              size: 14,
-                              weight: "bold",
-                            },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          ticks: {
-                            stepSize: 1,
-                            font: { family: "Raleway" },
-                            color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                          },
-                          grid: {
-                            color: "rgba(200, 200, 200, 0.2)",
-                            display: true,
-                          },
-                        },
-                      },
-                      animation: { duration: 1000 },
-                    }}
-                  />
+                  <div className="h-full w-full">
+                    <WordCloud
+                      words={wordCloudData.keywords.map((k: any) => ({
+                        text: k.text,
+                        value: k.value,
+                      }))}
+                      options={{
+                        rotations: 2,
+                        enableTooltip: false,
+                        rotationAngles: [-90, 0],
+                        fontSizes: [15, 50],
+                        fontWeight: "bold",
+                        scale: "sqrt",
+                        spiral: "archimedean",
+                        transitionDuration: 1000,
+                        fontFamily: "Raleway",
+                        padding: 5,
+                      }}
+                    />
+                  </div>
                 </CardContent>
               </Card>
-            )
-          ) : (
-            countOverTimeData.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Content Volume per Reach & AVE</CardTitle>
-                  <CardDescription>
-                    Tracking media content volume over time with reach and AVE metrics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-96">
-                  <Bar
-                    data={generateCountOverTimeChartData(
-                      countOverTimeData,
-                      normalizedContentType,
-                      granularity
-                    )}
-                    options={chartOptions}
-                  />
-                </CardContent>
-              </Card>
-            )
-          )}
-        </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="sources" className="space-y-6">
+            {/* Pie/Doughnut Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {contentType === "posts" && "Mentions Composition by Source"}
+                  {contentType === "articles" && "Top Keyword Trends Online"}
+                  {contentType === "printMedia" && "Print Media Mentions by News Source"}
+                  {contentType === "broadcast" && "Sentiment Breakdown by Station"}
+                </CardTitle>
+                <CardDescription>
+                  Distribution of mentions across different sources
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-96">
+                {contentType === "broadcast" ? (
+                  broadcastInsightsData?.datasets?.length &&
+                  broadcastInsightsData?.datasets[0]?.data?.some((v: number) => v > 0) ? (
+                    <Bar
+                      data={broadcastInsightsData}
+                      options={{
+                        indexAxis: "x",
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: "top",
+                            labels: {
+                              font: { family: "Raleway" },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              usePointStyle: true,
+                              pointStyle: "circle",
+                            },
+                          },
+                          tooltip: {
+                            callbacks: {
+                              label: function (tooltipItem: any) {
+                                return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`;
+                              },
+                            },
+                          },
+                        },
+                        scales: {
+                          x: {
+                            stacked: false,
+                            title: {
+                              display: true,
+                              text: "Mentions by Sentiment",
+                              font: {
+                                family: "Raleway",
+                                size: 14,
+                                weight: "bold",
+                              },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            ticks: {
+                              font: { family: "Raleway" },
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              display: true,
+                              color: "rgba(200, 200, 200, 0.21)",
+                            },
+                          },
+                          y: {
+                            stacked: false,
+                            ticks: {
+                              font: {
+                                family: "Raleway",
+                                size: 13,
+                                weight: "normal",
+                              },
+                              padding: 5,
+                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              display: true,
+                              color: "rgba(200, 200, 200, 0.2)",
+                            },
+                          },
+                        },
+                        animation: {
+                          duration: 1500,
+                        },
+                      }}
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-muted-foreground">
+                      No broadcast insights data available yet.
+                    </div>
+                  )
+                ) : pieData?.datasets?.[0]?.data?.some((v: number) => v > 0) ? (
+                  <Doughnut data={pieData} options={pieOptions} />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No composition data available yet.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="geography" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Geographic Coverage</CardTitle>
+                <CardDescription>
+                  Distribution of mentions across different countries
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GeoCoverageMap 
+                  countryCounts={geoCountryCounts} 
+                  showTitle={false}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {user && orgId && (
           <CreateReportDialog

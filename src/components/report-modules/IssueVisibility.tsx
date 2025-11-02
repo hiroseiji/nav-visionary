@@ -53,10 +53,10 @@ const channelColors: Record<string, string> = {
 };
 
 export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
-  // Get theme-aware border color
+  // Get theme-aware border color with subtle opacity
   const borderColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--border').trim() || '0 0% 89.8%';
-  const gridColor = `hsl(${borderColor} / 0.3)`;
+  const gridColor = `hsl(${borderColor} / 0.15)`;
 
   // Dummy data for visualization
   const dummyData: IssueData[] = [

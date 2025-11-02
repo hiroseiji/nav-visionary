@@ -53,26 +53,62 @@ const channelColors: Record<string, string> = {
 };
 
 export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
-  if (!data || data.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Issue Visibility</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/30 rounded-lg p-8 min-h-[300px] flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
-              <p className="text-muted-foreground">No issue visibility data available</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Dummy data for visualization
+  const dummyData: IssueData[] = [
+    {
+      issue: "Diamond Discovery",
+      totalVisibility: 8500,
+      volume: 145,
+      channels: { International: 3200, Trade: 2100, Consumer: 1800, Local: 900, Blog: 300, Socials: 200 }
+    },
+    {
+      issue: "Environmental Sustainability",
+      totalVisibility: 6200,
+      volume: 98,
+      channels: { International: 2400, Trade: 1500, Consumer: 1200, Local: 600, Blog: 350, Socials: 150 }
+    },
+    {
+      issue: "Labor Relations",
+      totalVisibility: 5100,
+      volume: 87,
+      channels: { International: 1800, Trade: 1400, Consumer: 900, Local: 700, Blog: 200, Socials: 100 }
+    },
+    {
+      issue: "Community Investment",
+      totalVisibility: 4300,
+      volume: 72,
+      channels: { International: 1200, Trade: 1100, Consumer: 1000, Local: 600, Blog: 250, Socials: 150 }
+    },
+    {
+      issue: "Market Performance",
+      totalVisibility: 3800,
+      volume: 65,
+      channels: { International: 1500, Trade: 1200, Consumer: 700, Local: 300, Blog: 80, Socials: 20 }
+    },
+    {
+      issue: "Technology Innovation",
+      totalVisibility: 2900,
+      volume: 54,
+      channels: { International: 900, Trade: 800, Consumer: 600, Local: 400, Blog: 150, Socials: 50 }
+    },
+    {
+      issue: "Safety Protocols",
+      totalVisibility: 2400,
+      volume: 48,
+      channels: { International: 800, Trade: 700, Consumer: 500, Local: 300, Blog: 80, Socials: 20 }
+    },
+    {
+      issue: "Government Relations",
+      totalVisibility: 1900,
+      volume: 39,
+      channels: { International: 700, Trade: 600, Consumer: 300, Local: 200, Blog: 70, Socials: 30 }
+    }
+  ];
+
+  const displayData = data && data.length > 0 ? data : dummyData;
 
   // Sort by totalVisibility descending
-  const sortedData = [...data].sort((a, b) => b.totalVisibility - a.totalVisibility);
+  const sortedData = [...displayData].sort((a, b) => b.totalVisibility - a.totalVisibility);
 
   const labels = sortedData.map((item) => item.issue);
 

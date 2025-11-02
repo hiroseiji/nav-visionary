@@ -30,7 +30,7 @@ const getSentimentArrow = (score: number) => {
 };
 
 export const SectorialCompetitor = ({ data }: SectorialCompetitorProps) => {
-  if (!data || data.length === 0) {
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         No sectorial competitor data available

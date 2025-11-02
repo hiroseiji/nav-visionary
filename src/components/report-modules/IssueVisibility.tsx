@@ -53,9 +53,12 @@ const channelColors: Record<string, string> = {
 };
 
 export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
-  // Get theme-aware grid color - lighter in dark mode, subtle in light mode
+  // Get theme-aware colors
   const isDarkMode = document.documentElement.classList.contains('dark');
   const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+  const textColor = isDarkMode ? '#e5e5e5' : '#404040';
+  const tooltipBg = isDarkMode ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)';
+  const tooltipText = isDarkMode ? '#ffffff' : '#000000';
 
   if (!data || data.length === 0) {
     return (
@@ -112,6 +115,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             size: 11,
             family: "Raleway, sans-serif",
           },
+          color: textColor,
         },
         title: {
           display: true,
@@ -121,6 +125,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             weight: "normal",
             family: "Raleway, sans-serif",
           },
+          color: textColor,
         },
       },
       y: {
@@ -134,6 +139,7 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             size: 12,
             family: "Raleway, sans-serif",
           },
+          color: textColor,
           autoSkip: false,
         },
       },
@@ -151,9 +157,13 @@ export const IssueVisibility = ({ data }: IssueVisibilityProps) => {
             size: 12,
             family: "Raleway, sans-serif",
           },
+          color: textColor,
         },
       },
       tooltip: {
+        backgroundColor: tooltipBg,
+        titleColor: tooltipText,
+        bodyColor: tooltipText,
         callbacks: {
           label: (context) => {
             const label = context.dataset.label || "";

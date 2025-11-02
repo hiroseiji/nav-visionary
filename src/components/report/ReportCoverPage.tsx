@@ -4,10 +4,8 @@ import reportsBg from "@/assets/reportsBg.png";
 interface ReportCoverPageProps {
   gradientTop: string;
   gradientBottom: string;
-  organizationData: string;
   organizationName: string;
   reportCreatedAt: string;
-  organization: string;
   organizationLogoUrl?: string;
 }
 
@@ -15,8 +13,6 @@ export const ReportCoverPage = ({
   gradientTop,
   gradientBottom,
   organizationName,
-  organization,
-  organizationData,
   reportCreatedAt,
   organizationLogoUrl
 }: ReportCoverPageProps) => {
@@ -41,7 +37,7 @@ export const ReportCoverPage = ({
           Media Insights Report
         </h1>
         <p className="text-1xl font-regular opacity-90">
-          Prepared for {organizationData?.organization?.alias}
+          Prepared for {organizationName}
         </p>
       </div>
       <div className="relative z-10 p-8 flex items-end justify-between">

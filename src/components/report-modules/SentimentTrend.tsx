@@ -220,6 +220,14 @@ export function SentimentTrend({
   useEffect(() => {
     if (!data || data.length === 0) return;
 
+    // Detect theme mode
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const textColor = isDarkMode ? '#e5e5e5' : '#404040';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+    const tooltipBg = isDarkMode ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)';
+    const tooltipText = isDarkMode ? '#ffffff' : '#000000';
+    const subtitleColor = isDarkMode ? '#aaaaaa' : '#666666';
+
     const labels = data.map((d) => d.date);
     const numOrNull = (v: number) => (Number.isFinite(v) ? v : null);
     const safe = (v: number) => (v === 0.25 ? null : numOrNull(v));
@@ -231,7 +239,7 @@ export function SentimentTrend({
     const dayCats = data.map((d) => getDayCategory(d));
     const colorAt = (i: number) => CAT_COLORS[dayCats[i] as keyof typeof CAT_COLORS] || CAT_COLORS.positive;
 
-    const industryColor = "rgba(254, 254, 254, 0.9)";
+    const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
 
     // Sentiment chart
     if (sentimentCanvasRef.current) {
@@ -322,7 +330,7 @@ export function SentimentTrend({
                   autoSkip: false,
                   maxRotation: 0,
                   font: { family: "Raleway", size: 12 },
-                  color: "#eee",
+                  color: textColor,
                   callback: fourDayTickCallback(labels),
                 },
               },
@@ -330,17 +338,17 @@ export function SentimentTrend({
                 position: "left",
                 min: -100,
                 max: 100,
-                grid: { color: "rgba(180,180,180,0.2)" },
+                grid: { color: gridColor },
                 ticks: {
                   stepSize: 20,
                   font: { family: "Raleway", size: 12 },
-                  color: "#eee",
+                  color: textColor,
                 },
                 title: {
                   display: true,
                   text: "Sentiment*",
                   font: { family: "Raleway", size: 12, weight: "bold" },
-                  color: "#eee",
+                  color: textColor,
                 },
               },
             },
@@ -353,7 +361,7 @@ export function SentimentTrend({
                   boxWidth: 22,
                   boxHeight: 22,
                   padding: 16,
-                  color: "#eee",
+                  color: textColor,
                   font: { family: "Raleway", size: 13 },
                   generateLabels(chart) {
                     const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
@@ -369,7 +377,9 @@ export function SentimentTrend({
                 },
               },
               tooltip: {
-                backgroundColor: "rgba(0,0,0,0.85)",
+                backgroundColor: tooltipBg,
+                titleColor: tooltipText,
+                bodyColor: tooltipText,
                 titleFont: { family: "Raleway", size: 12, weight: "bold" },
                 bodyFont: { family: "Raleway", size: 12 },
                 callbacks: {
@@ -382,7 +392,7 @@ export function SentimentTrend({
                 align: "start",
                 padding: { top: 6 },
                 font: { family: "Raleway", size: 11 },
-                color: "#bbb",
+                color: subtitleColor,
               },
               annotation: annotations.length
                 ? {
@@ -478,23 +488,23 @@ export function SentimentTrend({
                   autoSkip: false,
                   maxRotation: 0,
                   font: { family: "Raleway", size: 12 },
-                  color: "#eee",
+                  color: textColor,
                   callback: fourDayTickCallback(labels),
                 },
               },
               y: {
                 beginAtZero: true,
-                grid: { color: "rgba(200,200,200,0.18)" },
+                grid: { color: gridColor },
                 ticks: {
                   font: { family: "Raleway", size: 12 },
-                  color: "#ddd",
+                  color: textColor,
                   callback: (v: number | string) => (typeof v === 'number' && v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v),
                 },
                 title: {
                   display: true,
                   text: "Volume",
                   font: { family: "Raleway", size: 12, weight: "bold" },
-                  color: "#ddd",
+                  color: textColor,
                 },
                 stacked: true,
               },
@@ -506,7 +516,7 @@ export function SentimentTrend({
                   usePointStyle: true,
                   pointStyle: "circle",
                   font: { family: "Raleway", size: 12 },
-                  color: "#eee",
+                  color: textColor,
                 },
               },
               tooltip: {

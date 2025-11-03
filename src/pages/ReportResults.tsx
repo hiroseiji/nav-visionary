@@ -304,12 +304,6 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
           </Button>
 
           <div className="flex items-center gap-4">
-            {isExporting && exportProgress.total > 0 && (
-              <span className="text-sm text-muted-foreground">
-                Exporting page {exportProgress.current} of {exportProgress.total}...
-              </span>
-            )}
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isExporting}>
@@ -338,7 +332,72 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
           </div>
         </div>
 
-        {/* Render Current Page */}
+        {/* Export Progress Overlay */}
+        {isExporting && (
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-card border rounded-lg p-8 shadow-lg max-w-md w-full mx-4">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+                <h3 className="text-lg font-semibold">Exporting Report</h3>
+                {exportProgress.total > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Processing page {exportProgress.current} of {exportProgress.total}
+                    </p>
+                    <div className="w-full bg-secondary rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Please wait while we prepare your document...
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hidden export container (light mode forced) */}
+        <div className="fixed -left-[9999px] top-0 light" data-export-container>
+          <div data-export-page className="bg-white">
+            {currentPageData === "cover" && (
+              <ReportCoverPage
+                gradientTop={gradientTop}
+                gradientBottom={gradientBottom}
+                organizationName={organizationName}
+                reportCreatedAt={getReportCreatedAt(reportData)}
+                organizationLogoUrl={organizationData?.logoUrl}
+              />
+            )}
+
+            {currentPageData === "contents" && (
+              <ReportContentsPage
+                reportData={reportData}
+                modulesData={modulesData}
+                mediaTypes={mediaTypes}
+                onNavigateToPage={setCurrentPage}
+              />
+            )}
+
+            {typeof currentPageData === "object" &&
+              currentPageData !== null &&
+              "mediaType" in currentPageData && (
+                <ReportModulePage
+                  mediaType={currentPageData.mediaType}
+                  moduleName={currentPageData.module}
+                  reportData={reportData}
+                  pageNumber={currentPage}
+                  organizationName={organizationName}
+                  organizationLogoUrl={organizationData?.logoUrl}
+                />
+              )}
+          </div>
+        </div>
+
+        {/* Render Current Page (visible) */}
         <div data-report-page>
           {currentPageData === "cover" && (
             <ReportCoverPage

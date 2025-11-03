@@ -21,16 +21,16 @@ export async function exportReportAsPDF(
     // Navigate to the page
     setCurrentPage(i);
     
-    // Wait for page to render
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for page to render in hidden container
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-    // Find the page content
-    const pageElement = document.querySelector('[data-report-page]') as HTMLElement;
+    // Find the hidden export container (light mode)
+    const pageElement = document.querySelector('[data-export-page]') as HTMLElement;
     if (!pageElement) continue;
 
     onProgress?.(i, totalPages);
 
-    // Capture the page as canvas
+    // Capture the page as canvas with light background
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
@@ -72,16 +72,16 @@ export async function exportReportAsPPT(
     // Navigate to the page
     setCurrentPage(i);
     
-    // Wait for page to render
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for page to render in hidden container
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-    // Find the page content
-    const pageElement = document.querySelector('[data-report-page]') as HTMLElement;
+    // Find the hidden export container (light mode)
+    const pageElement = document.querySelector('[data-export-page]') as HTMLElement;
     if (!pageElement) continue;
 
     onProgress?.(i, totalPages);
 
-    // Capture the page as canvas
+    // Capture the page as canvas with light background
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,

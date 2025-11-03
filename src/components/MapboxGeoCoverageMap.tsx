@@ -66,6 +66,9 @@ const countryNameToISO: Record<string, string> = {
   "United Arab Emirates": "ARE",
 };
 
+// Replace this with your actual Mapbox public token
+const MAPBOX_TOKEN = "YOUR_MAPBOX_PUBLIC_TOKEN_HERE";
+
 const MapboxGeoCoverageMap = ({
   countryCounts,
   showTitle = true,
@@ -73,13 +76,11 @@ const MapboxGeoCoverageMap = ({
 }: MapboxGeoCoverageMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState("");
-  const [tokenEntered, setTokenEntered] = useState(false);
 
   useEffect(() => {
-    if (!mapContainer.current || !tokenEntered || !mapboxToken) return;
+    if (!mapContainer.current || !MAPBOX_TOKEN || MAPBOX_TOKEN === "YOUR_MAPBOX_PUBLIC_TOKEN_HERE") return;
 
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -182,48 +183,7 @@ const MapboxGeoCoverageMap = ({
     return () => {
       map.current?.remove();
     };
-  }, [tokenEntered, mapboxToken, countryCounts]);
-
-  if (!tokenEntered) {
-    return (
-      <div style={{ ...containerStyle }} className="w-full">
-        {showTitle && <h3 className="text-lg font-semibold mb-4">Geographic Coverage</h3>}
-        <Card className="p-6 max-w-md mx-auto">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
-              <Input
-                id="mapbox-token"
-                type="text"
-                placeholder="pk.eyJ1..."
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
-                className="mt-2"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Get your free token at{" "}
-              <a
-                href="https://mapbox.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                mapbox.com
-              </a>
-            </p>
-            <button
-              onClick={() => setTokenEntered(true)}
-              disabled={!mapboxToken}
-              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Load Map
-            </button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  }, [countryCounts]);
 
   return (
     <div style={{ ...containerStyle }} className="w-full">

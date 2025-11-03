@@ -114,50 +114,70 @@ export const generateCountOverTimeChartData = (
   contentType: string,
   granularity: string
 ) => {
-  const labels = countOverTimeData.map(item => {
+  // Sort data by date
+  const sortedData = [...countOverTimeData].sort((a, b) => {
+    const dateA = new Date(a.date || a._id).getTime();
+    const dateB = new Date(b.date || b._id).getTime();
+    return dateA - dateB;
+  });
+
+  const labels = sortedData.map(item => {
     const date = new Date(item.date || item._id);
     if (granularity === "month") {
       return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
     } else if (granularity === "year") {
       return date.getFullYear().toString();
     }
-    return date.toLocaleDateString();
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   });
 
-  const volumeData = countOverTimeData.map(item => item.count || 0);
-  const reachData = countOverTimeData.map(item => item.reach || 0);
-  const aveData = countOverTimeData.map(item => item.ave || 0);
+  const volumeData = sortedData.map(item => item.count || 0);
+  const reachData = sortedData.map(item => item.reach || 0);
+  const aveData = sortedData.map(item => item.ave || 0);
 
   return {
     labels,
     datasets: [
       {
+        type: 'bar' as const,
         label: "Volume",
         data: volumeData,
         backgroundColor: "rgb(47, 162, 250)",
         borderColor: "rgb(47, 162, 250)",
-        borderRadius: 5,
+        borderRadius: 4,
         yAxisID: "y1",
+        barThickness: 'flex' as const,
+        maxBarThickness: 40,
       },
       {
+        type: 'line' as const,
         label: "Reach",
         data: reachData,
-        backgroundColor: "rgb(12, 217, 94)",
+        backgroundColor: "transparent",
         borderColor: "rgb(12, 217, 94)",
-        borderWidth: 2,
+        borderWidth: 3,
         yAxisID: "y2",
         tension: 0.4,
         fill: false,
+        pointRadius: 4,
+        pointBackgroundColor: "rgb(12, 217, 94)",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
       },
       {
+        type: 'line' as const,
         label: "AVE",
         data: aveData,
-        backgroundColor: "rgb(255, 182, 55)",
+        backgroundColor: "transparent",
         borderColor: "rgb(255, 182, 55)",
-        borderWidth: 2,
+        borderWidth: 3,
         yAxisID: "y2",
         tension: 0.4,
         fill: false,
+        pointRadius: 4,
+        pointBackgroundColor: "rgb(255, 182, 55)",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
       },
     ],
   };

@@ -11,7 +11,7 @@ import { CreateReportDialog } from "@/components/CreateReportDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GeoCoverageMap from "@/components/GeoCoverageMap";
-import { Doughnut, Bar } from "react-chartjs-2";
+import { Doughnut, Bar, Chart } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
@@ -613,26 +613,30 @@ export default function Analytics() {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "right" as const,
+        position: "top" as const,
         labels: {
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
           usePointStyle: true,
-          pointStyle: "roundedRect" as const,
-          boxWidth: 10,
-          boxHeight: 10,
-          padding: 10,
+          pointStyle: "circle" as const,
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 15,
           font: {
-            size: 12,
+            size: 13,
             family: "Raleway",
+            weight: "bold" as const,
           },
         },
       },
       tooltip: {
         callbacks: {
           label: (tooltipItem: any) => {
-            return `${tooltipItem.label}: ${tooltipItem.raw.toLocaleString()}`;
+            const label = tooltipItem.dataset.label || '';
+            const value = tooltipItem.raw;
+            return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
           },
         },
       },
@@ -641,28 +645,70 @@ export default function Analytics() {
       x: {
         grid: {
           display: false,
-          color: "rgba(200, 200, 200, 0.2)",
         },
         ticks: {
-          font: { family: "Raleway" },
+          font: { 
+            family: "Raleway",
+            size: 11,
+          },
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+          maxRotation: 45,
+          minRotation: 45,
+          autoSkip: true,
+          maxTicksLimit: 15,
         },
       },
       y1: {
+        type: 'linear' as const,
+        display: true,
+        position: 'left' as const,
         beginAtZero: true,
-        title: { display: true, text: "Volume", color: theme === "light" ? "#7a7a7a" : "#ffffffd2" },
-        grid: { color: "rgba(200, 200, 200, 0.2)" },
+        title: { 
+          display: true, 
+          text: "Volume", 
+          color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+          font: {
+            size: 12,
+            family: "Raleway",
+            weight: "bold" as const,
+          },
+        },
+        grid: { 
+          color: "rgba(200, 200, 200, 0.2)",
+          drawOnChartArea: true,
+        },
         ticks: {
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+          font: {
+            family: "Raleway",
+            size: 11,
+          },
         },
       },
       y2: {
-        beginAtZero: true,
+        type: 'linear' as const,
+        display: true,
         position: "right" as const,
-        title: { display: true, text: "Reach / AVE", color: theme === "light" ? "#7a7a7a" : "#ffffffd2" },
-        grid: { drawOnChartArea: false, color: "rgba(200, 200, 200, 0.2)" },
+        beginAtZero: true,
+        title: { 
+          display: true, 
+          text: "Reach / AVE", 
+          color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+          font: {
+            size: 12,
+            family: "Raleway",
+            weight: "bold" as const,
+          },
+        },
+        grid: { 
+          drawOnChartArea: false,
+        },
         ticks: {
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+          font: {
+            family: "Raleway",
+            size: 11,
+          },
         },
       },
     },
@@ -998,7 +1044,8 @@ export default function Analytics() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="h-96">
-                    <Bar
+                    <Chart
+                      type="bar"
                       data={generateCountOverTimeChartData(
                         countOverTimeData,
                         normalizedContentType,

@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { CreateReportDialog } from "@/components/CreateReportDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import GeoCoverageMap from "@/components/GeoCoverageMap";
+import MapboxGeoCoverageMap from "@/components/MapboxGeoCoverageMap";
 import { Doughnut, Bar, Chart } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -1323,7 +1323,7 @@ export default function Analytics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <GeoCoverageMap 
+                <MapboxGeoCoverageMap 
                   countryCounts={geoCountryCounts} 
                   showTitle={false}
                 />

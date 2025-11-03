@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -13,6 +13,9 @@ import { toast } from "sonner";
 import { Search, ThumbsUp, ThumbsDown, Minus, Plus, Pencil, Trash2 } from "lucide-react";
 import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Doughnut, Line } from "react-chartjs-2";
+import { useTheme } from "@/components/ThemeContext";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 interface User {
   role: string;
@@ -50,8 +53,13 @@ export default function Competitors() {
   const [visibleArticles, setVisibleArticles] = useState(20);
   const [sentimentFilter, setSentimentFilter] = useState("all");
   const [editingArticle, setEditingArticle] = useState<string | null>(null);
+  const [timeFilter, setTimeFilter] = useState("monthly");
+  const [pieData, setPieData] = useState<any>({});
+  const [colorMap, setColorMap] = useState<any>({});
+  const groupedToOtherRef = useRef<string[]>([]);
   const navigate = useNavigate();
   const { orgId } = useParams();
+  const { theme } = useTheme();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -89,6 +97,115 @@ export default function Competitors() {
     fetchCompetitorData();
   }, [user, orgId, navigate]);
 
+  // Generate pie chart data for competitor mentions
+  useEffect(() => {
+    const currentMonth = new Date().toLocaleString("default", { month: "short" });
+    const relevantArticles = [...broadcastArticles, ...printArticles, ...onlineArticles];
+
+    const keywordDistribution = relevantArticles.reduce((acc: any, article: Article) => {
+      const label = article.company || article.keyword;
+      if (!label) return acc;
+
+      const rawLabel = Array.isArray(article.company) ? article.company.join(", ") : article.company || article.keyword;
+      if (!rawLabel || typeof rawLabel !== "string") return acc;
+
+      const normalizedLabel = rawLabel.trim().charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
+
+      const articleDate = new Date(article.mentionDT || article.publication_date || article.publicationDate || "");
+      const articleMonth = articleDate.toLocaleString("default", { month: "short" });
+
+      if (timeFilter === "monthly") {
+        if (articleMonth === currentMonth) {
+          acc[normalizedLabel] = (acc[normalizedLabel] || 0) + 1;
+        }
+      } else {
+        acc[normalizedLabel] = (acc[normalizedLabel] || 0) + 1;
+      }
+
+      return acc;
+    }, {});
+
+    const rawLabels = Object.keys(keywordDistribution);
+    const rawValues = Object.values(keywordDistribution) as number[];
+
+    const threshold = 0.02;
+    const total = rawValues.reduce((a, b) => a + b, 0);
+    const groupedLabels: string[] = [];
+    const groupedValues: number[] = [];
+    let otherValue = 0;
+
+    groupedToOtherRef.current = [];
+
+    rawLabels.forEach((label, i) => {
+      const proportion = rawValues[i] / total;
+      if (proportion < threshold) {
+        otherValue += rawValues[i];
+        groupedToOtherRef.current.push(label);
+      } else {
+        groupedLabels.push(label);
+        groupedValues.push(rawValues[i]);
+      }
+    });
+
+    if (otherValue > 0) {
+      groupedLabels.push("Other");
+      groupedValues.push(otherValue);
+    }
+
+    if (groupedLabels.length > 0) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const hashCode = (str: string) => str.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+      const getGradient = (ctx: any, hue: number) => {
+        const gradient = ctx.createRadialGradient(100, 100, 50, 100, 100, 200);
+        gradient.addColorStop(0, `hsla(${hue}, 80%, 45%, 1)`);
+        gradient.addColorStop(1, `hsla(${hue}, 80%, 75%, 1)`);
+        return gradient;
+      };
+
+      const newColorMap: any = {};
+      groupedLabels.forEach((label) => {
+        const hash = hashCode(label);
+        const hue = hash % 360;
+        newColorMap[label] = getGradient(ctx, hue);
+      });
+
+      const backgroundColors = groupedLabels.map((label) => newColorMap[label]);
+
+      setPieData({
+        labels: groupedLabels,
+        datasets: [
+          {
+            data: groupedValues,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors,
+            borderWidth: 2,
+            borderRadius: 3,
+            spacing: 2,
+          },
+        ],
+      });
+
+      setColorMap(newColorMap);
+    } else {
+      setPieData({
+        labels: ["No Data Available"],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ["#d3d3d3"],
+            borderColor: "transparent",
+            borderWidth: 2,
+            offset: [0],
+            hoverOffset: 0,
+          },
+        ],
+      });
+    }
+  }, [broadcastArticles, onlineArticles, printArticles, timeFilter]);
+
   const cleanMentionHeadline = (mention: string) => {
     const summaryMatch = mention.match(
       /Summary:\s*(.*?)(Entities:|Sentiment:|Insert_or_Interview:|$)/s
@@ -110,6 +227,179 @@ export default function Competitors() {
     const variant = normalizedSentiment as "positive" | "negative" | "neutral" | "mixed";
     
     return <Badge variant={variant} className="capitalize">{normalizedSentiment}</Badge>;
+  };
+
+  // Generate line chart data for monthly articles
+  const groupArticlesByMonthForLineChart = () => {
+    const currentYear = new Date().getFullYear();
+    const onlineMonthCounts = new Array(12).fill(0);
+    const broadcastMonthCounts = new Array(12).fill(0);
+    const printMonthCounts = new Array(12).fill(0);
+
+    onlineArticles.forEach((article) => {
+      const articleDate = new Date(article.publication_date || article.mentionDT || article.publicationDate || "");
+      if (articleDate.getFullYear() === currentYear) {
+        onlineMonthCounts[articleDate.getMonth()] += 1;
+      }
+    });
+
+    broadcastArticles.forEach((article) => {
+      const articleDate = new Date(article.mentionDT || "");
+      if (articleDate.getFullYear() === currentYear) {
+        broadcastMonthCounts[articleDate.getMonth()] += 1;
+      }
+    });
+
+    printArticles.forEach((article) => {
+      const articleDate = new Date(article.publicationDate || "");
+      if (articleDate.getFullYear() === currentYear) {
+        printMonthCounts[articleDate.getMonth()] += 1;
+      }
+    });
+
+    return { onlineMonthCounts, broadcastMonthCounts, printMonthCounts };
+  };
+
+  const { onlineMonthCounts, broadcastMonthCounts, printMonthCounts } = groupArticlesByMonthForLineChart();
+
+  const lineData = {
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    datasets: [
+      {
+        label: "Online Articles",
+        data: onlineMonthCounts,
+        borderColor: "rgb(190, 75, 192)",
+        backgroundColor: "rgba(190, 75, 192, 0.2)",
+        borderWidth: 2,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 7,
+        fill: true,
+      },
+      {
+        label: "Broadcast Articles",
+        data: broadcastMonthCounts,
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderWidth: 2,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 7,
+        fill: true,
+      },
+      {
+        label: "Print Media Articles",
+        data: printMonthCounts,
+        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(248, 124, 150, 0.41)",
+        borderWidth: 2,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 7,
+        fill: true,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: "right" as const,
+        labels: {
+          boxWidth: 15,
+          usePointStyle: true,
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+          font: {
+            family: "inherit",
+            size: 14,
+            weight: "bold" as const,
+          },
+          padding: 15,
+        },
+      },
+      tooltip: {
+        usePointStyle: true,
+        pointStyle: "circle" as const,
+        callbacks: {
+          label: function (context: any) {
+            const label = context.label;
+            const value = context.formattedValue;
+
+            if (label === "Other" && groupedToOtherRef.current.length > 0) {
+              return [
+                `${label}: ${value}`,
+                "Includes:",
+                ...groupedToOtherRef.current.slice(0, 10),
+                ...(groupedToOtherRef.current.length > 10 ? [`...and ${groupedToOtherRef.current.length - 10} more`] : []),
+              ];
+            }
+
+            return `${label}: ${value}`;
+          },
+        },
+      },
+      datalabels: {
+        display: true,
+        color: "#fff",
+        font: {
+          family: "inherit",
+          size: 13,
+          weight: 600,
+        },
+      },
+    },
+    layout: {
+      padding: {
+        top: 20,
+        bottom: 20,
+      },
+    },
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { family: "inherit" },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+        },
+      },
+      y: {
+        beginAtZero: true,
+        suggestedMax: 200,
+        grid: { color: "rgba(200, 200, 200, 0.2)" },
+        ticks: {
+          font: { family: "inherit" },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          pointStyle: "circle" as const,
+          font: { family: "inherit", size: 13, weight: 500 },
+          color: theme === "light" ? "#7a7a7a" : "#fff",
+          boxWidth: 15,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: any) => `${tooltipItem.raw} Articles`,
+        },
+      },
+      datalabels: { display: false },
+    },
+    animation: { duration: 1000 },
   };
 
   const renderArticleTable = (articles: Article[], type: string) => {
@@ -326,6 +616,55 @@ export default function Competitors() {
           <p className="text-muted-foreground mt-2">
             Monitor and analyze competitor media presence
           </p>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Competitor Mentions</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant={timeFilter === "monthly" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTimeFilter("monthly")}
+                  >
+                    Monthly
+                  </Button>
+                  <Button
+                    variant={timeFilter === "overall" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTimeFilter("overall")}
+                  >
+                    Overall
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                {pieData.labels && pieData.labels.length > 0 ? (
+                  <Doughnut data={pieData} options={pieOptions} plugins={[ChartDataLabels]} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No data available
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Number of Articles Mentioning Competitors (Yearly)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <Line data={lineData} options={lineOptions} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">

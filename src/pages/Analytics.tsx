@@ -774,6 +774,8 @@ export default function Analytics() {
           autoSkip: true,
           maxTicksLimit: 15,
         },
+        barPercentage: 0.5,
+        categoryPercentage: 0.7,
       },
       y1: {
         type: 'linear' as const,

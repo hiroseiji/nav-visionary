@@ -16,6 +16,29 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Doughnut, Line } from "react-chartjs-2";
 import { useTheme } from "@/components/ThemeContext";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip as ChartTooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  ArcElement,
+  ChartTooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  ChartDataLabels
+);
 
 interface User {
   role: string;
@@ -83,6 +106,11 @@ export default function Competitors() {
           axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/broadcastMedia`),
         ]);
 
+        console.log("Fetched competitor data:", {
+          online: onlineRes.data.length,
+          print: printRes.data.length,
+          broadcast: broadcastRes.data.length
+        });
         setOnlineArticles(onlineRes.data);
         setPrintArticles(printRes.data);
         setBroadcastArticles(broadcastRes.data);
@@ -189,7 +217,9 @@ export default function Competitors() {
       });
 
       setColorMap(newColorMap);
+      console.log("Pie chart data generated:", { labels: groupedLabels, values: groupedValues });
     } else {
+      console.log("No data available for pie chart");
       setPieData({
         labels: ["No Data Available"],
         datasets: [
@@ -645,7 +675,7 @@ export default function Competitors() {
             <CardContent>
               <div className="h-[400px]">
                 {pieData.labels && pieData.labels.length > 0 ? (
-                  <Doughnut data={pieData} options={pieOptions} plugins={[ChartDataLabels]} />
+                  <Doughnut data={pieData} options={pieOptions} />
                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
                     No data available

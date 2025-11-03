@@ -217,7 +217,12 @@ const Organizations = () => {
   };
 
   const handleEdit = (org: Organization) => {
-    setFormData(org);
+    setFormData({
+      ...org,
+      monitoringType: org.monitoringType || [],
+      keywords: org.keywords || [],
+      competitors: org.competitors || []
+    });
     setEditMode(true);
     setEditingOrgId(org._id || null);
     setView("form");

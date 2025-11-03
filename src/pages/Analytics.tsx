@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateReportDialog } from "@/components/CreateReportDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GeoCoverageMap from "@/components/GeoCoverageMap";
 import { Doughnut, Bar } from "react-chartjs-2";
 import {
@@ -715,21 +716,35 @@ export default function Analytics() {
               Comprehensive analytics and insights
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setShowCreateReport(true)}>
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={() => setShowCreateReport(true)}
+              className="bg-[#1e40af] hover:bg-[#1e3a8a] text-white px-6 py-2.5 h-auto rounded-xl font-medium shadow-sm"
+            >
               <FileText className="h-4 w-4 mr-2" />
               Create Report
             </Button>
-            <select
-              value={contentType}
-              onChange={(e) => setContentType(e.target.value)}
-              className="px-3 py-2 border rounded-md bg-background"
-            >
-              <option value="posts">Social Media Posts</option>
-              <option value="articles">Online Articles</option>
-              <option value="broadcast">Broadcast Media</option>
-              <option value="printMedia">Print Media</option>
-            </select>
+            <Select value={contentType} onValueChange={setContentType}>
+              <SelectTrigger className="w-[180px] bg-background border-input rounded-xl h-auto py-2.5 px-4 font-medium">
+                <SelectValue placeholder="Select content type" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-50">
+                <SelectItem value="posts">Social Posts</SelectItem>
+                <SelectItem value="articles">Online Media</SelectItem>
+                <SelectItem value="broadcast">Broadcast</SelectItem>
+                <SelectItem value="printMedia">Print</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={granularity} onValueChange={setGranularity}>
+              <SelectTrigger className="w-[140px] bg-background border-input rounded-xl h-auto py-2.5 px-4 font-medium">
+                <SelectValue placeholder="Period" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-50">
+                <SelectItem value="day">Daily</SelectItem>
+                <SelectItem value="week">Weekly</SelectItem>
+                <SelectItem value="month">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

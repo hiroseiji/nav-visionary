@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Bell, Plus, Edit, Trash2, Calendar, Mail } from "lucide-react";
-import { format } from "date-fns";
+import { Bell, Plus, Edit, Trash2, Calendar, Mail, Search } from "lucide-react";
 
 interface User {
   role: string;
@@ -35,6 +34,7 @@ interface AlertItem {
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [filteredAlerts, setFilteredAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [alertName, setAlertName] = useState("");
@@ -43,10 +43,15 @@ export default function Alerts() {
   const [delivery, setDelivery] = useState("");
   const [externalUsers, setExternalUsers] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
   const selectedOrg = localStorage.getItem("selectedOrg");
+
+  useEffect(() => {
+    setFilteredAlerts(alerts);
+  }, [alerts]);
 
   useEffect(() => {
     if (!user) {
@@ -150,6 +155,54 @@ export default function Alerts() {
     setEmailError("");
   };
 
+  const getColor = (email: string) => {
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+      hash = email.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const colors = [
+      "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
+      "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B739", "#52B788"
+    ];
+    
+    const color = colors[Math.abs(hash) % colors.length];
+    const brightnessFactor = 1.2;
+    
+    const adjustBrightness = (hex: string, factor: number) => {
+      const num = parseInt(hex, 16);
+      const adjusted = Math.min(255, Math.floor(num * factor));
+      return adjusted.toString(16).padStart(2, "0");
+    };
+
+    const r = adjustBrightness(color.substring(1, 3), brightnessFactor);
+    const g = adjustBrightness(color.substring(3, 5), brightnessFactor);
+    const b = adjustBrightness(color.substring(5, 7), brightnessFactor);
+    
+    const adjustedColor = `#${r}${g}${b}`;
+    const backgroundColor = `${adjustedColor}55`;
+    const borderColor = `${adjustedColor}FF`;
+    const textColor = `${adjustedColor}FF`;
+
+    return { backgroundColor, borderColor, textColor };
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const lowerCaseQuery = query.toLowerCase();
+
+    setFilteredAlerts(
+      alerts.filter(
+        (alert) =>
+          alert.alertName.toLowerCase().includes(lowerCaseQuery) ||
+          alert.subject.toLowerCase().includes(lowerCaseQuery) ||
+          alert.externalUsers.some((email) =>
+            email.toLowerCase().includes(lowerCaseQuery)
+          )
+      )
+    );
+  };
+
   if (loading) {
     return (
       <SidebarLayout>
@@ -172,7 +225,18 @@ export default function Alerts() {
               Configure and manage email alerts
             </p>
           </div>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <div className="flex gap-3 items-center">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search alerts..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -271,10 +335,11 @@ export default function Alerts() {
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
-        {alerts.length === 0 ? (
+        {filteredAlerts.length === 0 && searchQuery === "" ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Bell className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
@@ -290,10 +355,20 @@ export default function Alerts() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredAlerts.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Search className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">No alerts found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search query
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Active Alerts</CardTitle>
+              <CardTitle>Active Alerts ({filteredAlerts.length})</CardTitle>
               <CardDescription>
                 Manage your configured email alerts
               </CardDescription>
@@ -303,39 +378,52 @@ export default function Alerts() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Alert Name</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Schedule</TableHead>
-                      <TableHead>Recipients</TableHead>
+                      <TableHead>Task Name</TableHead>
+                      <TableHead>People</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Schedule</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {alerts.map((alert) => (
+                    {filteredAlerts.map((alert) => (
                       <TableRow key={alert._id}>
                         <TableCell className="font-medium">
                           {alert.alertName}
                         </TableCell>
-                        <TableCell>{alert.subject}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="capitalize">{alert.schedule}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span>{alert.externalUsers.length} recipients</span>
+                          <div className="flex items-center gap-1">
+                            {alert.externalUsers.map((email, idx) => {
+                              const { backgroundColor, borderColor, textColor } = getColor(email);
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold"
+                                  title={email}
+                                  style={{
+                                    backgroundColor,
+                                    border: `2px solid ${borderColor}`,
+                                    color: textColor,
+                                  }}
+                                >
+                                  {email.substring(0, 2).toUpperCase()}
+                                </div>
+                              );
+                            })}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant={alert.isActive ? "default" : "secondary"}
+                            className="bg-green-500 hover:bg-green-600"
                           >
                             {alert.isActive ? "Active" : "Inactive"}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="capitalize text-sm">
+                            {alert.schedule}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">

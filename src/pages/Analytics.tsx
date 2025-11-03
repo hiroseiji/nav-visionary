@@ -23,6 +23,7 @@ import {
   Tooltip as ChartTooltip,
   Legend,
   ArcElement,
+  TooltipItem,
 } from "chart.js";
 import { ThemeContext } from "@/components/ThemeContext";
 import WordCloud from "react-wordcloud";
@@ -51,6 +52,116 @@ interface User {
   lastName?: string;
 }
 
+interface Organization {
+  _id: string;
+  name: string;
+  organizationName?: string;
+  keywords?: string[];
+  competitors?: string[];
+  [key: string]: unknown;
+}
+
+interface MediaArticle {
+  _id: string;
+  title?: string;
+  headline?: string;
+  mention?: string;
+  source?: string;
+  publication?: string;
+  station?: string;
+  matched_keywords?: string[];
+  publication_date?: string;
+  publicationDate?: string;
+  mentionDT?: string;
+  sentiment?: string;
+  reach?: number;
+  ave?: number;
+  country?: string;
+  [key: string]: unknown;
+}
+
+interface FacebookPost {
+  _id: string;
+  source?: string;
+  date?: string;
+  createdAt?: string;
+  reach?: number;
+  [key: string]: unknown;
+}
+
+interface CountOverTimeItem {
+  _id?: string;
+  date?: string;
+  contentType: string;
+  count: number;
+}
+
+interface KeywordDistributionItem {
+  count: number;
+  sources: string[];
+}
+
+interface KeywordDistribution {
+  [keyword: string]: KeywordDistributionItem;
+}
+
+interface WordCloudData {
+  keywords: Array<{ text: string; value: number }>;
+}
+
+interface SentimentCounts {
+  Positive?: number;
+  Neutral?: number;
+  Negative?: number;
+  Mixed?: number;
+}
+
+interface StationData {
+  station: string;
+  total: number;
+  sentimentCounts: SentimentCounts;
+}
+
+interface BroadcastInsightData {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderRadius: number;
+  }>;
+}
+
+interface JournalistChartData {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    data: number[];
+    backgroundColor: string;
+  }>;
+}
+
+interface PieChartData {
+  labels: string[];
+  datasets: Array<{
+    data: number[];
+    backgroundColor: string[];
+    borderColor: string | string[];
+    borderWidth: number;
+    borderRadius?: number;
+    spacing?: number;
+  }>;
+}
+
+interface ChartTooltipItem {
+  label: string;
+  raw: unknown;
+  formattedValue: string;
+  dataset: {
+    label: string;
+  };
+}
+
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [contentType, setContentType] = useState("posts");
@@ -60,20 +171,20 @@ export default function Analytics() {
   const [totalTopics, setTotalTopics] = useState(4);
   const [totalKeywords, setTotalKeywords] = useState(0);
   const [showCreateReport, setShowCreateReport] = useState(false);
-  const [organizationData, setOrganizationData] = useState<any>(null);
-  const [articles, setArticles] = useState<any[]>([]);
-  const [facebookPosts, setFacebookPosts] = useState<any[]>([]);
-  const [broadcastArticles, setBroadcastArticles] = useState<any[]>([]);
-  const [printArticles, setPrintArticles] = useState<any[]>([]);
-  const [countOverTimeData, setCountOverTimeData] = useState<any[]>([]);
-  const [broadcastOverTimeData, setBroadcastOverTimeData] = useState<any[]>([]);
-  const [printOverTimeData, setPrintOverTimeData] = useState<any[]>([]);
-  const [keywordDistribution, setKeywordDistribution] = useState<any>({});
-  const [wordCloudData, setWordCloudData] = useState<any>(null);
-  const [geoCountryCounts, setGeoCountryCounts] = useState<any>({});
-  const [journalistChart, setJournalistChart] = useState<any>(null);
-  const [broadcastInsightsData, setBroadcastInsightsData] = useState<any>(null);
-  const [otherStations, setOtherStations] = useState<any[]>([]);
+  const [organizationData, setOrganizationData] = useState<Organization | null>(null);
+  const [articles, setArticles] = useState<MediaArticle[]>([]);
+  const [facebookPosts, setFacebookPosts] = useState<FacebookPost[]>([]);
+  const [broadcastArticles, setBroadcastArticles] = useState<MediaArticle[]>([]);
+  const [printArticles, setPrintArticles] = useState<MediaArticle[]>([]);
+  const [countOverTimeData, setCountOverTimeData] = useState<CountOverTimeItem[]>([]);
+  const [broadcastOverTimeData, setBroadcastOverTimeData] = useState<CountOverTimeItem[]>([]);
+  const [printOverTimeData, setPrintOverTimeData] = useState<CountOverTimeItem[]>([]);
+  const [keywordDistribution, setKeywordDistribution] = useState<KeywordDistribution>({});
+  const [wordCloudData, setWordCloudData] = useState<WordCloudData | null>(null);
+  const [geoCountryCounts, setGeoCountryCounts] = useState<Record<string, number>>({});
+  const [journalistChart, setJournalistChart] = useState<JournalistChartData | null>(null);
+  const [broadcastInsightsData, setBroadcastInsightsData] = useState<BroadcastInsightData | null>(null);
+  const [otherStations, setOtherStations] = useState<StationData[]>([]);
   const [otherStationNames, setOtherStationNames] = useState<string[]>([]);
   const [otherPrintSources, setOtherPrintSources] = useState<string[]>([]);
   const [otherOnlineSources, setOtherOnlineSources] = useState<string[]>([]);
@@ -105,7 +216,7 @@ export default function Analytics() {
     []
   );
 
-  const [pieData, setPieData] = useState<any>({
+  const [pieData, setPieData] = useState<PieChartData>({
     labels: [],
     datasets: [
       {
@@ -244,7 +355,7 @@ export default function Analytics() {
           Mixed: "rgb(47, 162, 250)",
         };
 
-        const stationTotals = insights.map((item: any) => ({
+        const stationTotals = insights.map((item: StationData) => ({
           station: item.station,
           total: sentimentTypes.reduce(
             (sum, type) => sum + (item.sentimentCounts?.[type] || 0),
@@ -254,19 +365,19 @@ export default function Analytics() {
         }));
 
         const topN = 15;
-        const sorted = stationTotals.sort((a: any, b: any) => b.total - a.total);
+        const sorted = stationTotals.sort((a, b) => b.total - a.total);
         const topStations = sorted.slice(0, topN);
         const otherStations = sorted.slice(topN);
 
-        const labels = [...topStations.map((s: any) => s.station), "Others"];
+        const labels = [...topStations.map((s) => s.station), "Others"];
 
         const datasets = sentimentTypes.map((type) => {
           const topData = topStations.map(
-            (s: any) => s.sentimentCounts?.[type] || 0
+            (s) => s.sentimentCounts?.[type] || 0
           );
 
           const othersTotal = otherStations.reduce(
-            (sum: number, s: any) => sum + (s.sentimentCounts?.[type] || 0),
+            (sum: number, s) => sum + (s.sentimentCounts?.[type] || 0),
             0
           );
 
@@ -280,7 +391,7 @@ export default function Analytics() {
 
         setBroadcastInsightsData({ labels, datasets });
         setOtherStations(otherStations);
-        setOtherStationNames(otherStations.map((s: any) => s.station));
+        setOtherStationNames(otherStations.map((s) => s.station));
       } catch (err) {
         console.error("Error fetching broadcast insights:", err);
       }
@@ -382,7 +493,7 @@ export default function Analytics() {
   // Process keyword distribution
   useEffect(() => {
     if (articles.length > 0) {
-      const keywordMap: any = {};
+      const keywordMap: Record<string, { count: number; sources: Set<string> }> = {};
 
       articles.forEach((article) => {
         article.matched_keywords?.forEach((keyword: string) => {
@@ -390,15 +501,21 @@ export default function Analytics() {
             keywordMap[keyword] = { count: 0, sources: new Set() };
           }
           keywordMap[keyword].count += 1;
-          keywordMap[keyword].sources.add(article.source);
+          if (article.source) {
+            keywordMap[keyword].sources.add(article.source);
+          }
         });
       });
 
+      const finalKeywordMap: KeywordDistribution = {};
       Object.keys(keywordMap).forEach((key) => {
-        keywordMap[key].sources = Array.from(keywordMap[key].sources);
+        finalKeywordMap[key] = {
+          count: keywordMap[key].count,
+          sources: Array.from(keywordMap[key].sources)
+        };
       });
 
-      setKeywordDistribution(keywordMap);
+      setKeywordDistribution(finalKeywordMap);
     }
   }, [articles]);
 
@@ -406,7 +523,7 @@ export default function Analytics() {
   useEffect(() => {
     // Social Media Posts
     if (contentType === "posts") {
-      const sourceMap: any = {};
+      const sourceMap: Record<string, number> = {};
 
       facebookPosts.forEach((post) => {
         const source = post.source || "Unknown Source";
@@ -440,7 +557,7 @@ export default function Analytics() {
       Object.keys(keywordDistribution).length > 0
     ) {
       const sorted = Object.entries(keywordDistribution).sort(
-        (a: any, b: any) => b[1].count - a[1].count
+        (a, b) => b[1].count - a[1].count
       );
 
       const topN = 7;
@@ -452,9 +569,9 @@ export default function Analytics() {
         ...(otherKeywords.length > 0 ? ["Others"] : []),
       ];
       const data = [
-        ...topKeywords.map(([_, obj]: any) => obj.count),
+        ...topKeywords.map(([_, obj]) => obj.count),
         ...(otherKeywords.length > 0
-          ? [otherKeywords.reduce((sum, [_, obj]: any) => sum + obj.count, 0)]
+          ? [otherKeywords.reduce((sum, [_, obj]) => sum + obj.count, 0)]
           : []),
       ];
 
@@ -480,14 +597,14 @@ export default function Analytics() {
 
     // Print Media (By Publication)
     if (contentType === "printMedia" && printArticles.length > 0) {
-      const sourceMap: any = {};
+      const sourceMap: Record<string, number> = {};
 
       printArticles.forEach((article) => {
         const source = article.publication || "Unknown Publication";
         sourceMap[source] = (sourceMap[source] || 0) + 1;
       });
 
-      const sorted = Object.entries(sourceMap).sort((a: any, b: any) => b[1] - a[1]);
+      const sorted = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]);
       const topN = 7;
       const top = sorted.slice(0, topN);
       const other = sorted.slice(topN);
@@ -499,7 +616,7 @@ export default function Analytics() {
       const data = [
         ...top.map(([_, count]) => count),
         ...(other.length > 0
-          ? [other.reduce((sum, [_, c]: any) => sum + c, 0)]
+          ? [other.reduce((sum, [_, c]) => sum + (c as number), 0)]
           : []),
       ];
 
@@ -555,10 +672,10 @@ export default function Analytics() {
       },
       tooltip: {
         callbacks: {
-          label: function (tooltipItem: any) {
+          label: function (tooltipItem: TooltipItem<"doughnut">) {
             const label = tooltipItem.label;
             const value = tooltipItem.raw;
-            return `${label}: ${value.toLocaleString()}`;
+            return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
           },
         },
       },
@@ -601,9 +718,9 @@ export default function Analytics() {
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) =>
+          label: (tooltipItem: TooltipItem<"bar">) =>
             `${tooltipItem.raw} items in ${
-              tooltipItem.dataset.label.split(" ")[2]
+              tooltipItem.dataset.label?.split(" ")[2] || ""
             }`,
         },
       },
@@ -633,7 +750,7 @@ export default function Analytics() {
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => {
+          label: (tooltipItem: TooltipItem<"bar" | "line">) => {
             const label = tooltipItem.dataset.label || '';
             const value = tooltipItem.raw;
             return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
@@ -974,8 +1091,8 @@ export default function Analytics() {
                           },
                           tooltip: {
                             callbacks: {
-                              label: (tooltipItem: any) =>
-                                `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`,
+                              label: (tooltipItem: TooltipItem<"bar">) =>
+                                `${tooltipItem.dataset.label}: ${typeof tooltipItem.raw === 'number' ? tooltipItem.raw.toLocaleString() : tooltipItem.raw}`,
                             },
                           },
                         },
@@ -1072,7 +1189,7 @@ export default function Analytics() {
                 <CardContent className="h-96">
                   <div className="h-full w-full">
                     <WordCloud
-                      words={wordCloudData.keywords.map((k: any) => ({
+                      words={wordCloudData.keywords.map((k) => ({
                         text: k.text,
                         value: k.value,
                       }))}
@@ -1131,8 +1248,8 @@ export default function Analytics() {
                           },
                           tooltip: {
                             callbacks: {
-                              label: function (tooltipItem: any) {
-                                return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toLocaleString()}`;
+                              label: function (tooltipItem: TooltipItem<"bar">) {
+                                return `${tooltipItem.dataset.label}: ${typeof tooltipItem.raw === 'number' ? tooltipItem.raw.toLocaleString() : tooltipItem.raw}`;
                               },
                             },
                           },
@@ -1220,7 +1337,7 @@ export default function Analytics() {
             open={showCreateReport}
             onOpenChange={setShowCreateReport}
             organizationId={orgId}
-            organizationName={organizationData?.organization?.organizationName || "Organization"}
+            organizationName={(organizationData as Organization | null)?.organizationName || (organizationData as Organization | null)?.name || "Organization"}
             user={{
               firstName: user.firstName || "",
               lastName: user.lastName || "",

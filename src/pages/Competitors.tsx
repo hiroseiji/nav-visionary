@@ -25,7 +25,8 @@ import {
   LinearScale,
   PointElement,
   LineElement,
-  Filler
+  Filler,
+  TooltipItem,
 } from 'chart.js';
 
 ChartJS.register(
@@ -67,6 +68,34 @@ interface Article {
   reach?: number;
 }
 
+interface PieChartData {
+  labels: string[];
+  datasets: Array<{
+    data: number[];
+    backgroundColor: (string | CanvasGradient)[];
+    borderColor: (string | CanvasGradient)[];
+    borderWidth: number;
+    borderRadius: number;
+    spacing: number;
+    offset?: number[];
+    hoverOffset?: number;
+  }>;
+}
+
+interface ColorMap {
+  [key: string]: CanvasGradient;
+}
+
+interface ChartTooltipContext {
+  label: string;
+  formattedValue: string;
+  raw: unknown;
+  dataset: {
+    label: string;
+    data: number[];
+  };
+}
+
 export default function Competitors() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,8 +106,8 @@ export default function Competitors() {
   const [sentimentFilter, setSentimentFilter] = useState("all");
   const [editingArticle, setEditingArticle] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("monthly");
-  const [pieData, setPieData] = useState<any>({});
-  const [colorMap, setColorMap] = useState<any>({});
+  const [pieData, setPieData] = useState<PieChartData>({ labels: [], datasets: [] });
+  const [colorMap, setColorMap] = useState<ColorMap>({});
   const groupedToOtherRef = useRef<string[]>([]);
   const navigate = useNavigate();
   const { orgId } = useParams();
@@ -130,11 +159,11 @@ export default function Competitors() {
     const currentMonth = new Date().toLocaleString("default", { month: "short" });
     const relevantArticles = [...broadcastArticles, ...printArticles, ...onlineArticles];
 
-    const keywordDistribution = relevantArticles.reduce((acc: any, article: Article) => {
+    const keywordDistribution = relevantArticles.reduce((acc: Record<string, number>, article: Article) => {
       const label = article.company || article.keyword;
       if (!label) return acc;
 
-      const rawLabel = Array.isArray(article.company) ? article.company.join(", ") : article.company || article.keyword;
+      const rawLabel = article.company || article.keyword;
       if (!rawLabel || typeof rawLabel !== "string") return acc;
 
       const normalizedLabel = rawLabel.trim().charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
@@ -186,14 +215,17 @@ export default function Competitors() {
 
       const hashCode = (str: string) => str.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-      const getGradient = (ctx: any, hue: number) => {
+      const getGradient = (ctx: CanvasRenderingContext2D | null, hue: number): CanvasGradient => {
+        if (!ctx) {
+          throw new Error("Canvas context is null");
+        }
         const gradient = ctx.createRadialGradient(100, 100, 50, 100, 100, 200);
         gradient.addColorStop(0, `hsla(${hue}, 80%, 45%, 1)`);
         gradient.addColorStop(1, `hsla(${hue}, 80%, 75%, 1)`);
         return gradient;
       };
 
-      const newColorMap: any = {};
+      const newColorMap: ColorMap = {};
       groupedLabels.forEach((label) => {
         const hash = hashCode(label);
         const hue = hash % 360;
@@ -226,8 +258,10 @@ export default function Competitors() {
           {
             data: [1],
             backgroundColor: ["#d3d3d3"],
-            borderColor: "transparent",
+            borderColor: ["transparent"],
             borderWidth: 2,
+            borderRadius: 3,
+            spacing: 2,
             offset: [0],
             hoverOffset: 0,
           },
@@ -354,7 +388,7 @@ export default function Competitors() {
         usePointStyle: true,
         pointStyle: "circle" as const,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: TooltipItem<"doughnut">) {
             const label = context.label;
             const value = context.formattedValue;
 
@@ -424,7 +458,7 @@ export default function Competitors() {
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => `${tooltipItem.raw} Articles`,
+          label: (tooltipItem: TooltipItem<"line">) => `${tooltipItem.raw} Articles`,
         },
       },
       datalabels: { display: false },

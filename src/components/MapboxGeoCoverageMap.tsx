@@ -67,7 +67,8 @@ const countryNameToISO: Record<string, string> = {
 };
 
 // Replace this with your actual Mapbox public token
-const MAPBOX_TOKEN = "YOUR_MAPBOX_PUBLIC_TOKEN_HERE";
+const MAPBOX_TOKEN =
+  "pk.eyJ1IjoiaGlyb3NlaWppIiwiYSI6ImNrc2g3cHZyZzFyeTUyb29kZm50YnY0emEifQ.fSfjCD8-glLbfjMhOiKKIA";
 
 const MapboxGeoCoverageMap = ({
   countryCounts,
@@ -78,7 +79,13 @@ const MapboxGeoCoverageMap = ({
   const map = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || !MAPBOX_TOKEN || MAPBOX_TOKEN === "YOUR_MAPBOX_PUBLIC_TOKEN_HERE") return;
+    if (
+      !mapContainer.current ||
+      !MAPBOX_TOKEN ||
+      MAPBOX_TOKEN ===
+        "pk.eyJ1IjoiaGlyb3NlaWppIiwiYSI6ImNrc2g3cHZyZzFyeTUyb29kZm50YnY0emEifQ.fSfjCD8-glLbfjMhOiKKIA"
+    )
+      return;
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 

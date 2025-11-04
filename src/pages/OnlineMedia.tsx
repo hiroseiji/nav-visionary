@@ -237,10 +237,17 @@ export default function OnlineMedia() {
   ]);
 
   const handleAddArticle = async () => {
+    setSaving(true);
     try {
       const newPayload = {
-        ...newArticle,
+        title: newArticle.title.trim(),
+        source: newArticle.source.trim(),
+        snippet: newArticle.snippet.trim(),
+        country: newArticle.country,
+        publication_date: newArticle.publication_date,
+        reach: Number(newArticle.reach),
         sentiment: mapLabelToSentiment(newArticle.sentiment), // convert string to numeric
+        url: newArticle.url?.trim() || "",
       };
 
       await axios.post(
@@ -255,11 +262,13 @@ export default function OnlineMedia() {
 
       toast.success("Article added successfully");
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
+      fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
       toast.error("Failed to add article");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -314,11 +323,15 @@ export default function OnlineMedia() {
           a._id === editingArticle._id
             ? {
                 ...a,
-                ...newArticle,
-                // keep list item consistent: backend stores number, table shows label via badge fn
-                sentiment: mapLabelToSentiment(
-                  newArticle.sentiment
-                ) as unknown as any,
+                title: newArticle.title,
+                source: newArticle.source,
+                country: newArticle.country,
+                publication_date: newArticle.publication_date,
+                reach: newArticle.reach,
+                url: newArticle.url || a.url,
+                snippet: newArticle.snippet,
+                // Backend stores numeric sentiment, convert label to number
+                sentiment: String(mapLabelToSentiment(newArticle.sentiment)),
               }
             : a
         )

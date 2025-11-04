@@ -54,13 +54,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background p-6">
-        <div className="flex w-full gap-6 items-start">
+      <div className="min-h-screen flex w-full bg-background p-6 overflow-hidden">
+        <div className="flex w-full gap-3 items-start">
           <AppSidebar theme={theme} toggleTheme={toggleTheme} />
 
-          <div className="flex-1 flex flex-col gap-6">
+          <div className="flex-1 flex flex-col gap-3">
             {/* Header */}
-            <header className="bg-muted rounded-3xl overflow-hidden">
+            <header className="sticky top-0 z-40 bg-muted rounded-3xl overflow-hidden">
               <div className="flex h-20 items-center px-8 gap-6">
                 <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
 
@@ -162,8 +162,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             </header>
 
             {/* Main content - with visual separation */}
-            <main className="flex-1 overflow-auto bg-muted rounded-3xl p-6">
-              {children}
+            <main className="flex-1 bg-muted rounded-3xl p-6 overflow-hidden h-[calc(100vh-8rem)]">
+              <div className="overflow-y-auto overflow-x-hidden h-full">
+                {children}
+              </div>
             </main>
           </div>
         </div>

@@ -68,12 +68,12 @@ import {
   mapSentimentToLabel,
   mapLabelToSentiment,
 } from "@/utils/sentimentUtils";
+import { AxiosError } from "axios";
 
 interface Article {
   _id: string;
-  headline: string;
-  source: string;
   title: string;
+  source: string;
   snippet: string;
   country: string;
   publication_date: string;
@@ -119,6 +119,7 @@ export default function OnlineMedia() {
   // Add/Edit article dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [saving, setSaving] = useState(false);
   const [newArticle, setNewArticle] = useState({
     title: "",
     source: "",
@@ -170,7 +171,7 @@ export default function OnlineMedia() {
     if (searchQuery) {
       filtered = filtered.filter(
         (article) =>
-          article.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           article.source?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -237,10 +238,21 @@ export default function OnlineMedia() {
 
   const handleAddArticle = async () => {
     try {
+      const newPayload = {
+        ...newArticle,
+        sentiment: mapLabelToSentiment(newArticle.sentiment), // convert string to numeric
+      };
+
       await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/online`,
-        { ...newArticle, organizationId: orgId }
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles`,
+        newPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
+
       toast.success("Article added successfully");
       setIsDialogOpen(false);
       fetchArticles();
@@ -252,29 +264,104 @@ export default function OnlineMedia() {
   };
 
   const handleUpdateArticle = async () => {
-    if (!editingArticle) return;
+    if (!editingArticle || !orgId) return;
+
+    setSaving(true);
+
+    // Build only fields your backend accepts
+    const payload = {
+      title: newArticle.title?.trim(),
+      snippet: newArticle.snippet?.trim(),
+      source: newArticle.source?.trim(),
+      url: newArticle.url?.trim(),
+      publication_date: newArticle.publication_date, // yyyy-mm-dd
+      country: newArticle.country || "",
+      reach: Number.isFinite(Number(newArticle.reach))
+        ? Number(newArticle.reach)
+        : undefined,
+      sentiment: mapLabelToSentiment(newArticle.sentiment), // map string -> number
+      // You can include these only if you allow editing them:
+      // coverage_type: newArticle.coverage_type,
+      // cpm: Number(newArticle.cpm),
+    };
+
+    // Strip undefined keys
+    const cleanPayload = Object.fromEntries(
+      Object.entries(payload).filter(([, v]) => v !== undefined)
+    );
+
+    // Abort after 25s to avoid hanging
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 25000);
+
     try {
       await axios.put(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/online/${editingArticle._id}`,
-        newArticle
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${editingArticle._id}`,
+        cleanPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+          timeout: 27000, // axios timeout as a backup
+        }
       );
+
+      // Optimistic UI so you see it immediately
+      setArticles((prev) =>
+        prev.map((a) =>
+          a._id === editingArticle._id
+            ? {
+                ...a,
+                ...newArticle,
+                // keep list item consistent: backend stores number, table shows label via badge fn
+                sentiment: mapLabelToSentiment(
+                  newArticle.sentiment
+                ) as unknown as any,
+              }
+            : a
+        )
+      );
+
       toast.success("Article updated successfully");
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
-    } catch (error) {
-      console.error("Error updating article:", error);
-      toast.error("Failed to update article");
+
+      // Pull fresh copy (backend recomputes AVE/rank)
+      fetchArticles();
+    } catch (err) {
+      console.error("Error updating article:", err);
+      const msg =
+        (axios.isAxiosError(err) &&
+          err.response?.data &&
+          (err.response.data as any).message) ||
+        (axios.isAxiosError(err) &&
+          err.code === "ERR_CANCELED" &&
+          "Update timed out.") ||
+        "Failed to update article. Please try again.";
+      toast.error(msg);
+    } finally {
+      clearTimeout(t);
+      setSaving(false);
     }
   };
+
 
   const handleDeleteArticle = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this article?"))
       return;
+
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/online/${id}`
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
+
       toast.success("Article deleted successfully");
       fetchArticles();
     } catch (error) {
@@ -286,14 +373,16 @@ export default function OnlineMedia() {
   const openEditDialog = (article: Article) => {
     setEditingArticle(article);
     setNewArticle({
-      title: article.headline || "",
+      title: article.title || "",
       source: article.source,
       country: article.country,
-      publication_date: article.publication_date,
+      publication_date: article.publication_date
+        ? new Date(article.publication_date).toISOString().split("T")[0]
+        : "",
       reach: article.reach,
-      sentiment: article.sentiment,
+      sentiment: mapSentimentToLabel(article.sentiment),
       url: article.url || "",
-      snippet: "",
+      snippet: article.snippet,
     });
     setIsDialogOpen(true);
   };
@@ -509,8 +598,10 @@ export default function OnlineMedia() {
                   onClick={
                     editingArticle ? handleUpdateArticle : handleAddArticle
                   }
+                  disabled={saving}
                 >
-                  {editingArticle ? "Update" : "Add"} Article
+                  {saving ? "Updating…" : editingArticle ? "Update" : "Add"}{" "}
+                  Article
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -129,6 +129,8 @@ export default function OnlineMedia() {
     sentiment: "neutral",
     url: "",
     snippet: "",
+    cpm: 0,
+    coverage_type: "Not Set",
   });
 
   // Fetch articles
@@ -237,22 +239,30 @@ export default function OnlineMedia() {
   ]);
 
   const handleAddArticle = async () => {
+    if (!newArticle.source) return toast.error("Source name is required.");
+    if (!newArticle.title) return toast.error("Article title is required.");
+    if (!newArticle.url) return toast.error("Article URL is required.");
+    if (!newArticle.publication_date) return toast.error("Publication date is required.");
+    if (!newArticle.reach || Number(newArticle.reach) <= 0) return toast.error("Reach must be a positive number.");
+
     setSaving(true);
     try {
-      const newPayload = {
+      const payload = {
         title: newArticle.title.trim(),
         source: newArticle.source.trim(),
-        snippet: newArticle.snippet.trim(),
+        snippet: newArticle.snippet.trim() || newArticle.title.trim(),
         country: newArticle.country,
-        publication_date: newArticle.publication_date,
+        publication_date: format(new Date(newArticle.publication_date), "yyyy-MM-dd"),
         reach: Number(newArticle.reach),
-        sentiment: mapLabelToSentiment(newArticle.sentiment), // convert string to numeric
-        url: newArticle.url?.trim() || "",
+        sentiment: mapLabelToSentiment(newArticle.sentiment),
+        url: newArticle.url.trim(),
+        cpm: Number(newArticle.cpm) || 0,
+        coverage_type: newArticle.coverage_type || "Not Set",
       };
 
-      await axios.post(
+      const response = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles`,
-        newPayload,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -260,13 +270,20 @@ export default function OnlineMedia() {
         }
       );
 
-      toast.success("Article added successfully");
+      if (response.status === 201 && response.data.article) {
+        setArticles((prev) => [response.data.article, ...prev]);
+        toast.success("Article added successfully");
+      }
+
       setIsDialogOpen(false);
       resetForm();
       fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
-      toast.error("Failed to add article");
+      const errorMsg = axios.isAxiosError(error) && error.response?.data?.error 
+        ? error.response.data.error 
+        : "Failed to add article";
+      toast.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -277,79 +294,51 @@ export default function OnlineMedia() {
 
     setSaving(true);
 
-    // Build payload with proper types
-    const payload: Record<string, string | number> = {
-      title: newArticle.title?.trim() || "",
-      snippet: newArticle.snippet?.trim() || "",
-      source: newArticle.source?.trim() || "",
-      url: newArticle.url?.trim() || "",
-      publication_date: newArticle.publication_date,
-      country: newArticle.country || "",
-      reach: Number(newArticle.reach) || 0,
+    const payload = {
+      title: newArticle.title.trim(),
+      source: newArticle.source.trim(),
+      snippet: newArticle.snippet.trim() || newArticle.title.trim(),
+      country: newArticle.country,
+      publication_date: format(new Date(newArticle.publication_date), "yyyy-MM-dd"),
+      reach: Number(newArticle.reach),
       sentiment: mapLabelToSentiment(newArticle.sentiment),
+      url: newArticle.url.trim(),
+      cpm: Number(newArticle.cpm) || 0,
+      coverage_type: newArticle.coverage_type || "Not Set",
     };
 
-    // Strip empty values
-    const cleanPayload = Object.fromEntries(
-      Object.entries(payload).filter(([, v]) => v !== "" && v !== undefined)
-    ) as Record<string, string | number>;
-
-    // Abort after 25s to avoid hanging
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
-
     try {
-      await axios.put(
+      const response = await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${editingArticle._id}`,
-        cleanPayload,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
           },
-          signal: controller.signal,
-          timeout: 27000,
         }
       );
 
-      // Optimistic UI update
-      setArticles((prev) =>
-        prev.map((article) =>
-          article._id === editingArticle._id
-            ? {
-                ...article,
-                title: newArticle.title,
-                source: newArticle.source,
-                country: newArticle.country,
-                publication_date: newArticle.publication_date,
-                reach: newArticle.reach,
-                url: newArticle.url || article.url || "",
-                snippet: newArticle.snippet,
-                sentiment: mapSentimentToLabel(mapLabelToSentiment(newArticle.sentiment)),
-              }
-            : article
-        )
-      );
+      if (response.status === 200 && response.data.article) {
+        // Use the complete article from backend response
+        setArticles((prev) =>
+          prev.map((a) => (a._id === editingArticle._id ? response.data.article : a))
+        );
+        setFilteredArticles((prev) =>
+          prev.map((a) => (a._id === editingArticle._id ? response.data.article : a))
+        );
+        toast.success("Article updated successfully");
+      }
 
-      toast.success("Article updated successfully");
       setIsDialogOpen(false);
       resetForm();
       fetchArticles();
     } catch (err) {
       console.error("Error updating article:", err);
-      let errorMessage = "Failed to update article. Please try again.";
-      
-      if (axios.isAxiosError(err)) {
-        if (err.code === "ERR_CANCELED") {
-          errorMessage = "Update timed out.";
-        } else if (err.response?.data && typeof err.response.data === "object" && "message" in err.response.data) {
-          errorMessage = String(err.response.data.message);
-        }
-      }
-      
-      toast.error(errorMessage);
+      const errorMsg = axios.isAxiosError(err) && err.response?.data?.error
+        ? err.response.data.error
+        : "Failed to update article";
+      toast.error(errorMsg);
     } finally {
-      clearTimeout(timeoutId);
       setSaving(false);
     }
   };
@@ -390,6 +379,8 @@ export default function OnlineMedia() {
       sentiment: mapSentimentToLabel(article.sentiment),
       url: article.url || "",
       snippet: article.snippet,
+      cpm: 0,
+      coverage_type: article.coverage_type || "Not Set",
     });
     setIsDialogOpen(true);
   };
@@ -405,6 +396,8 @@ export default function OnlineMedia() {
       sentiment: "neutral",
       url: "",
       snippet: "",
+      cpm: 0,
+      coverage_type: "Not Set",
     });
   };
 

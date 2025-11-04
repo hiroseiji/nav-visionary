@@ -277,31 +277,26 @@ export default function OnlineMedia() {
 
     setSaving(true);
 
-    // Build only fields your backend accepts
-    const payload = {
-      title: newArticle.title?.trim(),
-      snippet: newArticle.snippet?.trim(),
-      source: newArticle.source?.trim(),
-      url: newArticle.url?.trim(),
-      publication_date: newArticle.publication_date, // yyyy-mm-dd
+    // Build payload with proper types
+    const payload: Record<string, string | number> = {
+      title: newArticle.title?.trim() || "",
+      snippet: newArticle.snippet?.trim() || "",
+      source: newArticle.source?.trim() || "",
+      url: newArticle.url?.trim() || "",
+      publication_date: newArticle.publication_date,
       country: newArticle.country || "",
-      reach: Number.isFinite(Number(newArticle.reach))
-        ? Number(newArticle.reach)
-        : undefined,
-      sentiment: mapLabelToSentiment(newArticle.sentiment), // map string -> number
-      // You can include these only if you allow editing them:
-      // coverage_type: newArticle.coverage_type,
-      // cpm: Number(newArticle.cpm),
+      reach: Number(newArticle.reach) || 0,
+      sentiment: mapLabelToSentiment(newArticle.sentiment),
     };
 
-    // Strip undefined keys
+    // Strip empty values
     const cleanPayload = Object.fromEntries(
-      Object.entries(payload).filter(([, v]) => v !== undefined)
-    );
+      Object.entries(payload).filter(([, v]) => v !== "" && v !== undefined)
+    ) as Record<string, string | number>;
 
     // Abort after 25s to avoid hanging
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 25000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     try {
       await axios.put(
@@ -313,49 +308,48 @@ export default function OnlineMedia() {
             "Content-Type": "application/json",
           },
           signal: controller.signal,
-          timeout: 27000, // axios timeout as a backup
+          timeout: 27000,
         }
       );
 
-      // Optimistic UI so you see it immediately
+      // Optimistic UI update
       setArticles((prev) =>
-        prev.map((a) =>
-          a._id === editingArticle._id
+        prev.map((article) =>
+          article._id === editingArticle._id
             ? {
-                ...a,
+                ...article,
                 title: newArticle.title,
                 source: newArticle.source,
                 country: newArticle.country,
                 publication_date: newArticle.publication_date,
                 reach: newArticle.reach,
-                url: newArticle.url || a.url,
+                url: newArticle.url || article.url || "",
                 snippet: newArticle.snippet,
-                // Backend stores numeric sentiment, convert label to number
-                sentiment: String(mapLabelToSentiment(newArticle.sentiment)),
+                sentiment: mapSentimentToLabel(mapLabelToSentiment(newArticle.sentiment)),
               }
-            : a
+            : article
         )
       );
 
       toast.success("Article updated successfully");
       setIsDialogOpen(false);
       resetForm();
-
-      // Pull fresh copy (backend recomputes AVE/rank)
       fetchArticles();
     } catch (err) {
       console.error("Error updating article:", err);
-      const msg =
-        (axios.isAxiosError(err) &&
-          err.response?.data &&
-          (err.response.data as any).message) ||
-        (axios.isAxiosError(err) &&
-          err.code === "ERR_CANCELED" &&
-          "Update timed out.") ||
-        "Failed to update article. Please try again.";
-      toast.error(msg);
+      let errorMessage = "Failed to update article. Please try again.";
+      
+      if (axios.isAxiosError(err)) {
+        if (err.code === "ERR_CANCELED") {
+          errorMessage = "Update timed out.";
+        } else if (err.response?.data && typeof err.response.data === "object" && "message" in err.response.data) {
+          errorMessage = String(err.response.data.message);
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
-      clearTimeout(t);
+      clearTimeout(timeoutId);
       setSaving(false);
     }
   };

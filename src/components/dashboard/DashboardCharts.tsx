@@ -120,15 +120,50 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
               <XAxis dataKey="month" className="text-xs" />
               <YAxis className="text-xs" />
               <Tooltip />
-              <Legend />
+              <Legend 
+                iconType="circle"
+                wrapperStyle={{ paddingTop: '20px' }}
+              />
               <Area type="monotone" dataKey="online" stroke="none" fill="url(#colorOnline)" />
               <Area type="monotone" dataKey="social" stroke="none" fill="url(#colorSocial)" />
               <Area type="monotone" dataKey="broadcast" stroke="none" fill="url(#colorBroadcast)" />
               <Area type="monotone" dataKey="print" stroke="none" fill="url(#colorPrint)" />
-              <Line type="monotone" dataKey="online" stroke="#3b82f6" strokeWidth={2} name="Online Articles" />
-              <Line type="monotone" dataKey="social" stroke="#10b981" strokeWidth={2} name="Social Media" />
-              <Line type="monotone" dataKey="broadcast" stroke="#f59e0b" strokeWidth={2} name="Broadcast" />
-              <Line type="monotone" dataKey="print" stroke="#ef4444" strokeWidth={2} name="Print Media" />
+              <Line 
+                type="monotone" 
+                dataKey="online" 
+                stroke="#3b82f6" 
+                strokeWidth={2} 
+                name="Online Articles"
+                dot={{ fill: '#3b82f6', strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="social" 
+                stroke="#10b981" 
+                strokeWidth={2} 
+                name="Social Media"
+                dot={{ fill: '#10b981', strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="broadcast" 
+                stroke="#f59e0b" 
+                strokeWidth={2} 
+                name="Broadcast"
+                dot={{ fill: '#f59e0b', strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="print" 
+                stroke="#ef4444" 
+                strokeWidth={2} 
+                name="Print Media"
+                dot={{ fill: '#ef4444', strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6 }}
+              />
             </ComposedChart>
           </ChartContainer>
         </CardContent>

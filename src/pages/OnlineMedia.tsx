@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -87,6 +87,7 @@ interface Article {
 }
 
 export default function OnlineMedia() {
+  const fetchSeq = useRef(0);
   const { orgId } = useParams();
   const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
@@ -140,28 +141,25 @@ export default function OnlineMedia() {
 
   const fetchArticles = async () => {
     setLoading(true);
+    const seq = ++fetchSeq.current;
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/articles/multi`,
+        { organizationIds: [orgId] },
         {
-          organizationIds: [orgId],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
-      // Correct access to article array
-      const articles = response.data.articles || [];
-      setArticles(articles);
-      setFilteredArticles(articles);
-    } catch (error) {
-      console.error("Error fetching articles:", error);
+      if (seq !== fetchSeq.current) return; // stale response, drop it
+      const list = res.data.articles || [];
+      setArticles(list);
+      setFilteredArticles(list);
+    } catch (e) {
+      if (seq !== fetchSeq.current) return;
+      console.error("Error fetching articles:", e);
       toast.error("Failed to load articles");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeq.current) setLoading(false);
     }
   };
 
@@ -206,12 +204,8 @@ export default function OnlineMedia() {
 
     // Sorting
     filtered.sort((a, b) => {
-      let aVal: string | number = a[sortBy as keyof Article] as
-        | string
-        | number;
-      let bVal: string | number = b[sortBy as keyof Article] as
-        | string
-        | number;
+      let aVal: string | number = a[sortBy as keyof Article] as string | number;
+      let bVal: string | number = b[sortBy as keyof Article] as string | number;
 
       if (sortBy === "publication_date") {
         aVal = new Date(aVal).getTime();
@@ -242,8 +236,10 @@ export default function OnlineMedia() {
     if (!newArticle.source) return toast.error("Source name is required.");
     if (!newArticle.title) return toast.error("Article title is required.");
     if (!newArticle.url) return toast.error("Article URL is required.");
-    if (!newArticle.publication_date) return toast.error("Publication date is required.");
-    if (!newArticle.reach || Number(newArticle.reach) <= 0) return toast.error("Reach must be a positive number.");
+    if (!newArticle.publication_date)
+      return toast.error("Publication date is required.");
+    if (!newArticle.reach || Number(newArticle.reach) <= 0)
+      return toast.error("Reach must be a positive number.");
 
     setSaving(true);
     try {
@@ -252,7 +248,10 @@ export default function OnlineMedia() {
         source: newArticle.source.trim(),
         snippet: newArticle.snippet.trim() || newArticle.title.trim(),
         country: newArticle.country,
-        publication_date: format(new Date(newArticle.publication_date), "yyyy-MM-dd"),
+        publication_date: format(
+          new Date(newArticle.publication_date),
+          "yyyy-MM-dd"
+        ),
         reach: Number(newArticle.reach),
         sentiment: mapLabelToSentiment(newArticle.sentiment),
         url: newArticle.url.trim(),
@@ -280,9 +279,10 @@ export default function OnlineMedia() {
       fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
-      const errorMsg = axios.isAxiosError(error) && error.response?.data?.error 
-        ? error.response.data.error 
-        : "Failed to add article";
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to add article";
       toast.error(errorMsg);
     } finally {
       setSaving(false);
@@ -291,7 +291,6 @@ export default function OnlineMedia() {
 
   const handleUpdateArticle = async () => {
     if (!editingArticle || !orgId) return;
-
     setSaving(true);
 
     const payload = {
@@ -299,50 +298,63 @@ export default function OnlineMedia() {
       source: newArticle.source.trim(),
       snippet: newArticle.snippet.trim() || newArticle.title.trim(),
       country: newArticle.country,
-      publication_date: format(new Date(newArticle.publication_date), "yyyy-MM-dd"),
+      publication_date: format(
+        new Date(newArticle.publication_date),
+        "yyyy-MM-dd"
+      ),
       reach: Number(newArticle.reach),
-      sentiment: mapLabelToSentiment(newArticle.sentiment),
+      sentiment: mapLabelToSentiment(newArticle.sentiment), // can be number or string; backend maps ok
       url: newArticle.url.trim(),
       cpm: Number(newArticle.cpm) || 0,
       coverage_type: newArticle.coverage_type || "Not Set",
     };
 
+    // snapshot for rollback
+    const prevArticles = articles;
+
+    // optimistic UI
+    const optimistic = { ...editingArticle, ...payload };
+    setArticles((prev) =>
+      prev.map((a) => (a._id === editingArticle._id ? optimistic : a))
+    );
+
     try {
-      const response = await axios.put(
+      const putPromise = axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${editingArticle._id}`,
         payload,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
-      if (response.status === 200 && response.data.article) {
-        // Use the complete article from backend response
-        setArticles((prev) =>
-          prev.map((a) => (a._id === editingArticle._id ? response.data.article : a))
-        );
-        setFilteredArticles((prev) =>
-          prev.map((a) => (a._id === editingArticle._id ? response.data.article : a))
-        );
-        toast.success("Article updated successfully");
-      }
+      const res = await toast.promise(putPromise, {
+        loading: "Updating article…",
+        success: "Article updated successfully",
+        error: (e) =>
+          axios.isAxiosError(e) && e.response?.data?.error
+            ? e.response.data.error
+            : "Failed to update article",
+      });
 
+      // trust backend copy if it returned one, otherwise keep optimistic
+      const updated = res.data?.article ?? optimistic;
+      setArticles((prev) =>
+        prev.map((a) => (a._id === editingArticle._id ? updated : a))
+      );
+
+      // close after success
       setIsDialogOpen(false);
       resetForm();
-      fetchArticles();
-    } catch (err) {
-      console.error("Error updating article:", err);
-      const errorMsg = axios.isAxiosError(err) && err.response?.data?.error
-        ? err.response.data.error
-        : "Failed to update article";
-      toast.error(errorMsg);
+
+      // optional: soft revalidate later (won’t affect the just-shown toast)
+      setTimeout(() => fetchArticles(), 300);
+    } catch {
+      // rollback on real failure
+      setArticles(prevArticles);
     } finally {
       setSaving(false);
     }
   };
-
 
   const handleDeleteArticle = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this article?"))

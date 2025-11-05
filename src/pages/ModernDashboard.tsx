@@ -589,53 +589,48 @@ useEffect(() => {
               Latest News
             </h3>
 
-            <div className="flex items-center justify-between mb-6">
-              {/* Reload button for super_admin */}
-              {user.role === "super_admin" && (
-                <Button
-                  className={` ${
-                    scraping
-                      ? "bg-muted text-muted-foreground cursor-not-allowed"
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  }`}
-                  onClick={() => {
-                    const orgName =
-                      organizationData?.organization?.organizationName;
-                    if (!orgName) {
-                      toast.error("Organization name missing, cannot scrape.");
-                      return;
-                    }
-
-                    handleScrape(
-                      orgName,
-                      setScraping,
-                      setArticles,
-                      setFilteredArticles,
-                      setDisplayedArticles,
-                      setTotalArticles
-                    );
-                  }}
-                  disabled={scraping}
-                >
-                  {scraping ? (
-                    "Scraping..."
-                  ) : (
-                    <>
-                      <TfiReload className="h-4 w-4" />
-                      <span>Reload Articles</span>
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-
             {/* Online Articles Table */}
             <div className="mb-8">
-              {/* <h4 className="text-lg font-semibold mb-4">Online Media</h4> */}
               <ArticlesTable
                 title="Online Articles"
                 subtitle="Latest online media mentions"
                 articles={filteredArticles}
+                actionButton={
+                  user.role === "super_admin" ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={scraping ? "cursor-not-allowed opacity-50" : ""}
+                      onClick={() => {
+                        const orgName =
+                          organizationData?.organization?.organizationName;
+                        if (!orgName) {
+                          toast.error("Organization name missing, cannot scrape.");
+                          return;
+                        }
+
+                        handleScrape(
+                          orgName,
+                          setScraping,
+                          setArticles,
+                          setFilteredArticles,
+                          setDisplayedArticles,
+                          setTotalArticles
+                        );
+                      }}
+                      disabled={scraping}
+                    >
+                      {scraping ? (
+                        "Scraping..."
+                      ) : (
+                        <>
+                          <TfiReload className="h-4 w-4" />
+                          <span>Reload Articles</span>
+                        </>
+                      )}
+                    </Button>
+                  ) : undefined
+                }
                 onDelete={(articleId) => {
                   handleDelete(
                     "articles",

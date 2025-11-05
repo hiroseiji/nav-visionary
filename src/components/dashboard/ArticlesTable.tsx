@@ -67,6 +67,7 @@ interface ArticlesTableProps {
   thirdFilterLabel?: string;
   thirdFilterField?: 'coverage_type' | 'source' | 'station_type';
   viewAllLink?: string;
+  actionButton?: React.ReactNode;
 }
 
 export const ArticlesTable: React.FC<ArticlesTableProps> = ({
@@ -85,6 +86,7 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
   thirdFilterLabel = "All Coverage",
   thirdFilterField = 'coverage_type',
   viewAllLink,
+  actionButton,
 }) => {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -191,12 +193,15 @@ export const ArticlesTable: React.FC<ArticlesTableProps> = ({
               <CardTitle className="text-lg">{title}</CardTitle>
               <CardDescription>{subtitle}</CardDescription>
             </div>
-            <Link to={viewAllLink || `/media/online/${orgId}`}>
-              <Button variant="outline" size="sm">
-                View All
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {actionButton}
+              <Link to={viewAllLink || `/media/online/${orgId}`}>
+                <Button variant="outline" size="sm">
+                  View All
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

@@ -75,6 +75,7 @@ export default function PrintMedia() {
   const [articles, setArticles] = useState<PrintArticle[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<PrintArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -217,27 +218,54 @@ export default function PrintMedia() {
   ]);
 
   const handleAddArticle = async () => {
+    if (!newArticle.headline) return toast.error("Headline is required.");
+    if (!newArticle.publicationDate) return toast.error("Publication date is required.");
+
+    setSaving(true);
     try {
-      await axios.post(
+      const response = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print`,
-        { ...newArticle, organizationId: orgId }
+        { ...newArticle, organizationId: orgId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      toast.success("Print article added successfully");
+
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Print article added successfully");
+      }
+
       setIsDialogOpen(false);
       fetchArticles();
       resetForm();
     } catch (error) {
       console.error("Error adding article:", error);
-      toast.error("Failed to add article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to add article";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleUpdateArticle = async () => {
     if (!editingArticle) return;
+    if (!newArticle.headline) return toast.error("Headline is required.");
+
+    setSaving(true);
     try {
       await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${editingArticle._id}`,
-        newArticle
+        newArticle,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Article updated successfully");
       setIsDialogOpen(false);
@@ -245,7 +273,13 @@ export default function PrintMedia() {
       resetForm();
     } catch (error) {
       console.error("Error updating article:", error);
-      toast.error("Failed to update article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to update article";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -254,13 +288,22 @@ export default function PrintMedia() {
       return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${id}`
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Article deleted successfully");
       fetchArticles();
     } catch (error) {
       console.error("Error deleting article:", error);
-      toast.error("Failed to delete article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to delete article";
+      toast.error(errorMsg);
     }
   };
 

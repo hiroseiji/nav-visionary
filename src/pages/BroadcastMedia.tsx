@@ -81,6 +81,7 @@ export default function BroadcastMedia() {
     []
   );
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -226,27 +227,56 @@ export default function BroadcastMedia() {
   ]);
 
   const handleAddArticle = async () => {
+    if (!newArticle.mention) return toast.error("Mention is required.");
+    if (!newArticle.station) return toast.error("Station is required.");
+    if (!newArticle.mentionDT) return toast.error("Mention date is required.");
+
+    setSaving(true);
     try {
-      await axios.post(
+      const response = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast`,
-        { ...newArticle, organizationId: orgId }
+        { ...newArticle, organizationId: orgId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      toast.success("Broadcast article added successfully");
+
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Broadcast article added successfully");
+      }
+
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
+      fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
-      toast.error("Failed to add article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to add article";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleUpdateArticle = async () => {
     if (!editingArticle) return;
+    if (!newArticle.mention) return toast.error("Mention is required.");
+    if (!newArticle.station) return toast.error("Station is required.");
+
+    setSaving(true);
     try {
       await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast/${editingArticle._id}`,
-        newArticle
+        newArticle,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Article updated successfully");
       setIsDialogOpen(false);
@@ -254,7 +284,13 @@ export default function BroadcastMedia() {
       resetForm();
     } catch (error) {
       console.error("Error updating article:", error);
-      toast.error("Failed to update article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to update article";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -263,13 +299,22 @@ export default function BroadcastMedia() {
       return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast/${id}`
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Article deleted successfully");
       fetchArticles();
     } catch (error) {
       console.error("Error deleting article:", error);
-      toast.error("Failed to delete article");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to delete article";
+      toast.error(errorMsg);
     }
   };
 

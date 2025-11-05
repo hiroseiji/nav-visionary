@@ -40,6 +40,7 @@ export default function SocialMedia() {
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Filters
@@ -157,27 +158,56 @@ export default function SocialMedia() {
   }, [posts, searchQuery, sourceFilter, sentimentFilter, groupFilter, sortBy, sortOrder]);
 
   const handleAddPost = async () => {
+    if (!newPost.pageName) return toast.error("Page name is required.");
+    if (!newPost.message) return toast.error("Message is required.");
+    if (!newPost.source) return toast.error("Platform is required.");
+
+    setSaving(true);
     try {
-      await axios.post(
+      const response = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook`,
-        { ...newPost, organizationId: orgId }
+        { ...newPost, organizationId: orgId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      toast.success("Post added successfully");
+
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Post added successfully");
+      }
+
       setIsDialogOpen(false);
       fetchPosts();
       resetForm();
     } catch (error) {
       console.error("Error adding post:", error);
-      toast.error("Failed to add post");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to add post";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleUpdatePost = async () => {
     if (!editingPost) return;
+    if (!newPost.pageName) return toast.error("Page name is required.");
+    if (!newPost.message) return toast.error("Message is required.");
+
+    setSaving(true);
     try {
       await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${editingPost._id}`,
-        newPost
+        newPost,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Post updated successfully");
       setIsDialogOpen(false);
@@ -185,7 +215,13 @@ export default function SocialMedia() {
       resetForm();
     } catch (error) {
       console.error("Error updating post:", error);
-      toast.error("Failed to update post");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to update post";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -193,13 +229,22 @@ export default function SocialMedia() {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${id}`
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       toast.success("Post deleted successfully");
       fetchPosts();
     } catch (error) {
       console.error("Error deleting post:", error);
-      toast.error("Failed to delete post");
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to delete post";
+      toast.error(errorMsg);
     }
   };
 

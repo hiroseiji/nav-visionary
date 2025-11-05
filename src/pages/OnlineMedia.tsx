@@ -342,12 +342,11 @@ export default function OnlineMedia() {
       toast.success("Article updated successfully");
 
       // trust backend copy if it returned one, otherwise keep optimistic
-      const serverArticle = (res as any)?.data?.article;
-      const updated: Article = serverArticle
+      const updated: Article = res.data?.article
         ? {
             ...optimistic,
-            ...serverArticle,
-            sentiment: mapSentimentToLabel(serverArticle.sentiment),
+            ...res.data.article,
+            sentiment: mapSentimentToLabel(res.data.article.sentiment),
           }
         : optimistic;
 

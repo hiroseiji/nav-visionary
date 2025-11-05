@@ -303,7 +303,7 @@ export default function OnlineMedia() {
         "yyyy-MM-dd"
       ),
       reach: Number(newArticle.reach),
-      sentiment: mapLabelToSentiment(newArticle.sentiment), // can be number or string; backend maps ok
+      sentiment: mapLabelToSentiment(newArticle.sentiment),
       url: newArticle.url.trim(),
       cpm: Number(newArticle.cpm) || 0,
       coverage_type: newArticle.coverage_type || "Not Set",
@@ -312,14 +312,26 @@ export default function OnlineMedia() {
     // snapshot for rollback
     const prevArticles = articles;
 
-    // optimistic UI
-    const optimistic = { ...editingArticle, ...payload };
+    // optimistic UI: ensure sentiment stays a string label for Article type
+    const optimistic: Article = {
+      ...editingArticle,
+      title: payload.title ?? editingArticle.title,
+      source: payload.source ?? editingArticle.source,
+      snippet: payload.snippet ?? editingArticle.snippet,
+      country: payload.country ?? editingArticle.country,
+      publication_date: payload.publication_date ?? editingArticle.publication_date,
+      reach: (payload.reach as number) ?? editingArticle.reach,
+      sentiment: mapSentimentToLabel(payload.sentiment),
+      url: payload.url ?? editingArticle.url,
+      coverage_type: payload.coverage_type ?? editingArticle.coverage_type,
+    };
+
     setArticles((prev) =>
       prev.map((a) => (a._id === editingArticle._id ? optimistic : a))
     );
 
     try {
-      const putPromise = axios.put(
+      const res = await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/articles/${editingArticle._id}`,
         payload,
         {
@@ -327,17 +339,18 @@ export default function OnlineMedia() {
         }
       );
 
-      const res = await toast.promise(putPromise, {
-        loading: "Updating article…",
-        success: "Article updated successfully",
-        error: (e) =>
-          axios.isAxiosError(e) && e.response?.data?.error
-            ? e.response.data.error
-            : "Failed to update article",
-      });
+      toast.success("Article updated successfully");
 
       // trust backend copy if it returned one, otherwise keep optimistic
-      const updated = res.data?.article ?? optimistic;
+      const serverArticle = (res as any)?.data?.article;
+      const updated: Article = serverArticle
+        ? {
+            ...optimistic,
+            ...serverArticle,
+            sentiment: mapSentimentToLabel(serverArticle.sentiment),
+          }
+        : optimistic;
+
       setArticles((prev) =>
         prev.map((a) => (a._id === editingArticle._id ? updated : a))
       );
@@ -346,11 +359,16 @@ export default function OnlineMedia() {
       setIsDialogOpen(false);
       resetForm();
 
-      // optional: soft revalidate later (won’t affect the just-shown toast)
+      // optional: soft revalidate later
       setTimeout(() => fetchArticles(), 300);
-    } catch {
+    } catch (e) {
       // rollback on real failure
       setArticles(prevArticles);
+      const msg =
+        axios.isAxiosError(e) && e.response?.data?.error
+          ? e.response.data.error
+          : "Failed to update article";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

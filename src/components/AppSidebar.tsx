@@ -154,10 +154,10 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           </div>
         )}
       </SidebarHeader>
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-6">
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider px-2">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -181,7 +181,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
 
         {/* Media Section */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider px-2">
             Media
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -250,7 +250,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
 
         {/* User Management */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider px-2">
             Management
           </SidebarGroupLabel>
           <SidebarGroupContent>

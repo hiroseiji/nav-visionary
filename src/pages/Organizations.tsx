@@ -1,19 +1,18 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useId } from "react";
 import axios from "axios";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Building2, Plus, Pencil, Trash2, X, AlertCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, X, AlertCircle, SlidersHorizontal } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const industries = [
   "Banking & Financial Services",
@@ -42,13 +41,6 @@ const industries = [
   "Other / Not Listed",
 ];
 
-const monitoringTypes = [
-  { value: "broadcast", label: "Broadcast Media" },
-  { value: "online", label: "Online Media" },
-  { value: "print", label: "Print Media" },
-  { value: "social", label: "Social Media" },
-];
-
 interface Organization {
   _id?: string;
   organizationName: string;
@@ -64,20 +56,23 @@ interface Organization {
   monitoringType: string[];
   keywords: string[];
   competitors: string[];
+  gradientTop: string;
+  gradientBottom: string;
+  accentColor: string;
+  logoUrl?: string;
   status?: string;
 }
 
 const Organizations = () => {
-  const { orgId } = useParams();
   const [currentUser] = useState(
     JSON.parse(localStorage.getItem("user") || '{}')
   );
   
-  const [view, setView] = useState<"list" | "form">("list");
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
-  const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
+  const [saving, setSaving] = useState(false);
   
   const [formData, setFormData] = useState<Organization>({
     organizationName: "",
@@ -93,19 +88,44 @@ const Organizations = () => {
     monitoringType: [],
     keywords: [],
     competitors: [],
+    gradientTop: "#3175b6",
+    gradientBottom: "#2e3e8a",
+    accentColor: "#66aaff",
+    logoUrl: "",
   });
   
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
   const [competitorInput, setCompetitorInput] = useState("");
+  const [countries, setCountries] = useState<string[]>([]);
   
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; orgId: string | null }>({
     open: false,
     orgId: null,
   });
 
+  const gradTopId = useId();
+  const gradBottomId = useId();
+  const accentColorId = useId();
+
   useEffect(() => {
     fetchOrganizations();
+    fetchCountries();
   }, []);
+
+  const fetchCountries = async () => {
+    try {
+      const response = await fetch("https://restcountries.com/v3.1/all");
+      const data = await response.json();
+      const countryNames = data
+        .map((country: any) => country.name.common)
+        .sort((a: string, b: string) => a.localeCompare(b));
+      setCountries(countryNames);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
 
   const fetchOrganizations = async () => {
     try {
@@ -135,25 +155,20 @@ const Organizations = () => {
       monitoringType: [],
       keywords: [],
       competitors: [],
+      gradientTop: "#3175b6",
+      gradientBottom: "#2e3e8a",
+      accentColor: "#66aaff",
+      logoUrl: "",
     });
+    setLogoFile(null);
+    setLogoPreview("");
     setKeywordInput("");
     setCompetitorInput("");
-    setEditMode(false);
-    setEditingOrgId(null);
+    setEditingOrg(null);
   };
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleMonitoringTypeToggle = (type: string) => {
-    setFormData((prev) => {
-      const current = prev.monitoringType || [];
-      const updated = current.includes(type)
-        ? current.filter((t) => t !== type)
-        : [...current, type];
-      return { ...prev, monitoringType: updated };
-    });
   };
 
   const handleAddKeyword = () => {
@@ -161,6 +176,13 @@ const Organizations = () => {
     if (trimmed && !formData.keywords.includes(trimmed) && formData.keywords.length < 30) {
       setFormData((prev) => ({ ...prev, keywords: [...prev.keywords, trimmed] }));
       setKeywordInput("");
+    }
+  };
+
+  const handleKeywordKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddKeyword();
     }
   };
 
@@ -173,9 +195,16 @@ const Organizations = () => {
 
   const handleAddCompetitor = () => {
     const trimmed = competitorInput.trim();
-    if (trimmed && !formData.competitors.includes(trimmed)) {
+    if (trimmed && !formData.competitors.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
       setFormData((prev) => ({ ...prev, competitors: [...prev.competitors, trimmed] }));
       setCompetitorInput("");
+    }
+  };
+
+  const handleCompetitorKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCompetitor();
     }
   };
 
@@ -186,46 +215,100 @@ const Organizations = () => {
     }));
   };
 
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.competitors.length === 0) {
-      toast.warning("Please add at least one competitor");
-      return;
-    }
-    if (formData.keywords.length === 0) {
-      toast.warning("Please add at least one keyword");
+    if (!formData.organizationName.trim()) {
+      toast.error("Organization name is required");
       return;
     }
 
+    if (formData.competitors.length === 0) {
+      toast.warning("Please add at least one competitor.");
+      return;
+    }
+
+    if (formData.keywords.length === 0) {
+      toast.warning("Please add at least one keyword.");
+      return;
+    }
+
+    setSaving(true);
+
     try {
-      const url = editMode
-        ? `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${editingOrgId}`
+      const url = editingOrg
+        ? `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${editingOrg._id}`
         : "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations";
       
-      const method = editMode ? "put" : "post";
-      
-      await axios[method](url, formData);
-      
-      toast.success(editMode ? "Organization updated successfully" : "Organization created successfully");
+      const method = editingOrg ? "put" : "post";
+      const token = localStorage.getItem("token");
+
+      if (logoFile) {
+        const fd = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          fd.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value ?? ""));
+        });
+        fd.append("logo", logoFile, "logo.png");
+
+        await axios[method](url, fd, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } else {
+        await axios[method](url, formData, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      }
+
+      toast.success(editingOrg ? "Organization updated successfully" : "Organization created successfully");
       resetForm();
-      setView("list");
+      setModalOpen(false);
       fetchOrganizations();
     } catch (error) {
+      console.error("Error saving organization:", error);
       toast.error("Failed to save organization");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleEdit = (org: Organization) => {
     setFormData({
-      ...org,
+      organizationName: org.organizationName,
+      industry: org.industry || "",
+      address: org.address || "",
+      country: org.country || "",
+      email: org.email || "",
+      phoneNumber: org.phoneNumber || "",
+      website: org.website || "",
+      facebookUrl: org.facebookUrl || "",
+      linkedinUrl: org.linkedinUrl || "",
+      xHandle: org.xHandle || "",
       monitoringType: org.monitoringType || [],
       keywords: org.keywords || [],
-      competitors: org.competitors || []
+      competitors: org.competitors || [],
+      gradientTop: org.gradientTop || "#3175b6",
+      gradientBottom: org.gradientBottom || "#2e3e8a",
+      accentColor: org.accentColor || "#66aaff",
+      logoUrl: org.logoUrl || "",
     });
-    setEditMode(true);
-    setEditingOrgId(org._id || null);
-    setView("form");
+    setLogoFile(null);
+    setLogoPreview(org.logoUrl || "");
+    setEditingOrg(org);
+    setModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -248,13 +331,11 @@ const Organizations = () => {
       <SidebarLayout>
         <div className="min-h-screen bg-background flex items-center justify-center">
           <Card className="max-w-md">
-            <CardHeader>
-              <div className="flex items-center gap-2 text-destructive">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-destructive mb-4">
                 <AlertCircle className="h-5 w-5" />
-                <CardTitle>Access Denied</CardTitle>
+                <h2 className="text-xl font-semibold">Access Denied</h2>
               </div>
-            </CardHeader>
-            <CardContent>
               <p className="text-muted-foreground">
                 You do not have permission to view this page.
               </p>
@@ -265,420 +346,90 @@ const Organizations = () => {
     );
   }
 
+  const previewSrc = logoFile ? logoPreview : formData.logoUrl;
+
   return (
     <SidebarLayout>
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                {view === "list"
-                  ? "Organizations"
-                  : editMode
-                  ? "Edit Organization"
-                  : "Add Organization"}
-              </h1>
-              <p className="text-muted-foreground">
-                {view === "list"
-                  ? "Manage all organizations"
-                  : "Fill in organization details"}
-              </p>
-            </div>
-            {view === "list" ? (
-              <Button
-                onClick={() => {
-                  resetForm();
-                  setView("form");
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Organization
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setView("list");
-                  resetForm();
-                }}
-              >
-                Back to List
-              </Button>
-            )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Organizations</h1>
+            <p className="text-muted-foreground">Manage all organizations</p>
           </div>
+          <Button onClick={() => { resetForm(); setModalOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Organization
+          </Button>
+        </div>
 
-          {view === "list" ? (
-            <Card>
-              
-              <CardContent>
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Industry</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {organizations.length > 0 ? (
-                        organizations.map((org) => (
-                          <TableRow key={org._id}>
-                            <TableCell className="font-medium">
-                              {org.organizationName}
-                            </TableCell>
-                            <TableCell>{org.email}</TableCell>
-                            <TableCell>{org.industry}</TableCell>
-                            <TableCell>{org.country}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  org.status === "active"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                              >
-                                {org.status || "Active"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(org)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  setDeleteDialog({
-                                    open: true,
-                                    orgId: org._id || null,
-                                  })
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={6}
-                            className="text-center text-muted-foreground"
-                          >
-                            No organizations found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <Tabs defaultValue="basic" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                  <TabsTrigger value="contact">Contact</TabsTrigger>
-                  <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="basic" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Basic Information</CardTitle>
-                      <CardDescription>
-                        Core organization details
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="organizationName">
-                            Organization Name *
-                          </Label>
-                          <Input
-                            id="organizationName"
-                            value={formData.organizationName}
-                            onChange={(e) =>
-                              handleChange("organizationName", e.target.value)
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="industry">Industry *</Label>
-                          <Select
-                            value={formData.industry}
-                            onValueChange={(value) =>
-                              handleChange("industry", value)
-                            }
-                          >
-                            <SelectTrigger id="industry">
-                              <SelectValue placeholder="Select Industry" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {industries.map((ind) => (
-                                <SelectItem key={ind} value={ind}>
-                                  {ind}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="address">Address</Label>
-                          <Input
-                            id="address"
-                            value={formData.address}
-                            onChange={(e) =>
-                              handleChange("address", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="country">Country *</Label>
-                          <Input
-                            id="country"
-                            value={formData.country}
-                            onChange={(e) =>
-                              handleChange("country", e.target.value)
-                            }
-                            required
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="contact" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Contact Information</CardTitle>
-                      <CardDescription>
-                        Contact details and social media
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) =>
-                              handleChange("email", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phoneNumber">Phone Number</Label>
-                          <Input
-                            id="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={(e) =>
-                              handleChange("phoneNumber", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="website">Website</Label>
-                          <Input
-                            id="website"
-                            value={formData.website}
-                            onChange={(e) =>
-                              handleChange("website", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="facebookUrl">Facebook URL</Label>
-                          <Input
-                            id="facebookUrl"
-                            value={formData.facebookUrl}
-                            onChange={(e) =>
-                              handleChange("facebookUrl", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
-                          <Input
-                            id="linkedinUrl"
-                            value={formData.linkedinUrl}
-                            onChange={(e) =>
-                              handleChange("linkedinUrl", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="xHandle">X (Twitter) Handle</Label>
-                          <Input
-                            id="xHandle"
-                            value={formData.xHandle}
-                            onChange={(e) =>
-                              handleChange("xHandle", e.target.value)
-                            }
-                            placeholder="@username"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="monitoring" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Monitoring Configuration</CardTitle>
-                      <CardDescription>
-                        Set up keywords and competitors
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="space-y-2">
-                        <Label>Monitoring Types</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          {monitoringTypes.map((type) => (
-                            <div
-                              key={type.value}
-                              className="flex items-center space-x-2"
-                            >
-                              <Checkbox
-                                id={type.value}
-                                checked={formData.monitoringType.includes(
-                                  type.value
-                                )}
-                                onCheckedChange={() =>
-                                  handleMonitoringTypeToggle(type.value)
-                                }
-                              />
-                              <Label
-                                htmlFor={type.value}
-                                className="cursor-pointer"
-                              >
-                                {type.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="keywords">Keywords (up to 30) *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="keywords"
-                            value={keywordInput}
-                            onChange={(e) => setKeywordInput(e.target.value)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" &&
-                              (e.preventDefault(), handleAddKeyword())
-                            }
-                            placeholder="Add a keyword and press Enter"
-                          />
-                          <Button type="button" onClick={handleAddKeyword}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {formData.keywords.map((keyword, index) => (
-                            <Badge key={index} variant="secondary">
-                              {keyword}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveKeyword(keyword)}
-                                className="ml-2"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="competitors">Competitors *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="competitors"
-                            value={competitorInput}
-                            onChange={(e) => setCompetitorInput(e.target.value)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" &&
-                              (e.preventDefault(), handleAddCompetitor())
-                            }
-                            placeholder="Add a competitor and press Enter"
-                          />
-                          <Button type="button" onClick={handleAddCompetitor}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {formData.competitors.map((competitor, index) => (
-                            <Badge key={index} variant="secondary">
-                              {competitor}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRemoveCompetitor(competitor)
-                                }
-                                className="ml-2"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-
-              <div className="flex justify-end gap-2 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setView("list");
-                    resetForm();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editMode ? "Update Organization" : "Create Organization"}
-                </Button>
+        <Card>
+          <CardContent className="pt-6">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
               </div>
-            </form>
-          )}
-        {/* </div> */}
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Country</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {organizations.length > 0 ? (
+                    organizations.map((org) => (
+                      <TableRow key={org._id}>
+                        <TableCell className="font-medium">
+                          {org.organizationName}
+                        </TableCell>
+                        <TableCell>{org.email}</TableCell>
+                        <TableCell>{org.industry}</TableCell>
+                        <TableCell>{org.country}</TableCell>
+                        <TableCell>
+                          <Badge variant={org.status === "active" ? "default" : "secondary"}>
+                            {org.status || "Active"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(org)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteDialog({ open: true, orgId: org._id || null })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No organizations found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      <AlertDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}
-      >
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Organization</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              organization.
+              Are you sure you want to delete this organization? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -687,6 +438,361 @@ const Organizations = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create/Edit Organization Modal */}
+      <Dialog open={modalOpen} onOpenChange={(open) => {
+        setModalOpen(open);
+        if (!open) resetForm();
+      }}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>{editingOrg ? "Edit Organization" : "Create Organization"}</DialogTitle>
+            <DialogDescription>
+              Fill in the organization details below. Fields marked with * are required.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[calc(90vh-120px)] px-6">
+            <form onSubmit={handleSubmit} className="space-y-4 pb-6">
+              {/* Company Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="organizationName">
+                  Company Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="organizationName"
+                  value={formData.organizationName}
+                  onChange={(e) => handleChange("organizationName", e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Industry & Country */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="industry">
+                    Industry <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(value) => handleChange("industry", value)}
+                  >
+                    <SelectTrigger id="industry">
+                      <SelectValue placeholder="Select Industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industries.map((ind) => (
+                        <SelectItem key={ind} value={ind}>
+                          {ind}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="country">
+                    Country <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) => handleChange("country", value)}
+                  >
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Select Country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="space-y-1.5">
+                <Label htmlFor="address">
+                  Address <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Contact Details */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">
+                    Contact Email <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="phoneNumber">
+                    Phone Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => handleChange("phoneNumber", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Branding Section */}
+              <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
+                <h3 className="font-semibold">Branding</h3>
+                
+                {/* Logo Upload */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="logo">Organization Logo (PNG recommended)</Label>
+                  <Input
+                    id="logo"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                  />
+                  {previewSrc && (
+                    <div 
+                      className="mt-2 w-24 h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-background"
+                      style={{ borderColor: formData.accentColor }}
+                    >
+                      <img 
+                        src={previewSrc} 
+                        alt="Logo preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Gradient Colors */}
+                <div className="space-y-2">
+                  <Label>Gradient Colors</Label>
+                  <div className="flex gap-3 items-center">
+                    <button
+                      type="button"
+                      className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
+                      style={{ background: formData.gradientTop }}
+                      onClick={() => document.getElementById(gradTopId)?.click()}
+                      title={`Top: ${formData.gradientTop}`}
+                    >
+                      <SlidersHorizontal size={16} className="text-white drop-shadow" />
+                    </button>
+                    <input
+                      id={gradTopId}
+                      type="color"
+                      value={formData.gradientTop}
+                      onChange={(e) => handleChange("gradientTop", e.target.value.toUpperCase())}
+                      className="sr-only"
+                    />
+
+                    <button
+                      type="button"
+                      className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
+                      style={{ background: formData.gradientBottom }}
+                      onClick={() => document.getElementById(gradBottomId)?.click()}
+                      title={`Bottom: ${formData.gradientBottom}`}
+                    >
+                      <SlidersHorizontal size={16} className="text-white drop-shadow" />
+                    </button>
+                    <input
+                      id={gradBottomId}
+                      type="color"
+                      value={formData.gradientBottom}
+                      onChange={(e) => handleChange("gradientBottom", e.target.value.toUpperCase())}
+                      className="sr-only"
+                    />
+
+                    <button
+                      type="button"
+                      className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
+                      style={{ background: formData.accentColor }}
+                      onClick={() => document.getElementById(accentColorId)?.click()}
+                      title={`Accent: ${formData.accentColor}`}
+                    >
+                      <SlidersHorizontal size={16} className="text-white drop-shadow" />
+                    </button>
+                    <input
+                      id={accentColorId}
+                      type="color"
+                      value={formData.accentColor}
+                      onChange={(e) => handleChange("accentColor", e.target.value.toUpperCase())}
+                      className="sr-only"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Style: Linear 180°</p>
+                  
+                  {/* Gradient Preview */}
+                  <div
+                    className="w-full h-20 rounded"
+                    style={{
+                      background: `linear-gradient(180deg, ${formData.gradientTop} 0%, ${formData.gradientBottom} 100%)`,
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">*Will be used to style the report cover.</p>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
+                <h3 className="font-semibold">Media Links</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      placeholder="https://"
+                      value={formData.website}
+                      onChange={(e) => handleChange("website", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="facebookUrl">Facebook</Label>
+                    <Input
+                      id="facebookUrl"
+                      type="url"
+                      placeholder="https://"
+                      value={formData.facebookUrl}
+                      onChange={(e) => handleChange("facebookUrl", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="linkedinUrl">LinkedIn</Label>
+                    <Input
+                      id="linkedinUrl"
+                      type="url"
+                      placeholder="https://"
+                      value={formData.linkedinUrl}
+                      onChange={(e) => handleChange("linkedinUrl", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="xHandle">X Handle</Label>
+                    <Input
+                      id="xHandle"
+                      placeholder="@exampleorg"
+                      value={formData.xHandle}
+                      onChange={(e) => handleChange("xHandle", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div className="space-y-1.5">
+                <Label>
+                  Keywords (max 30) <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Type a keyword and press Enter"
+                    value={keywordInput}
+                    onChange={(e) => setKeywordInput(e.target.value)}
+                    onKeyDown={handleKeywordKeyDown}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddKeyword}
+                    disabled={formData.keywords.length >= 30}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.keywords.map((keyword, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                    >
+                      {keyword}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveKeyword(keyword)}
+                        className="hover:text-destructive"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Competitors */}
+              <div className="space-y-1.5">
+                <Label>
+                  Competitors <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Type a competitor and press Enter"
+                    value={competitorInput}
+                    onChange={(e) => setCompetitorInput(e.target.value)}
+                    onKeyDown={handleCompetitorKeyDown}
+                  />
+                  <Button type="button" onClick={handleAddCompetitor} size="sm">
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.competitors.map((competitor, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
+                    >
+                      {competitor}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCompetitor(competitor)}
+                        className="hover:text-destructive"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : editingOrg ? "Update Organization" : "Create Organization"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    resetForm();
+                    setModalOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </SidebarLayout>
   );
 };

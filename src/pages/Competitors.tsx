@@ -49,6 +49,7 @@ interface User {
 }
 
 interface Article {
+  url: string;
   _id: string;
   title?: string;
   headline?: string;
@@ -377,9 +378,9 @@ export default function Competitors() {
           usePointStyle: true,
           color: theme === "light" ? "#7a7a7a" : "#fff",
           font: {
-            family: "inherit",
-            size: 14,
-            weight: "bold" as const,
+            family: "raleway",
+            size: 12,
+            weight: "normal" as const,
           },
           padding: 15,
         },
@@ -409,9 +410,9 @@ export default function Competitors() {
         display: true,
         color: "#fff",
         font: {
-          family: "inherit",
-          size: 13,
-          weight: 600,
+          family: "raleway",
+          size: 12,
+          weight: 400,
         },
       },
     },
@@ -430,7 +431,7 @@ export default function Competitors() {
       x: {
         grid: { display: false },
         ticks: {
-          font: { family: "inherit" },
+          font: { family: "raleway" },
           color: theme === "light" ? "#7a7a7a" : "#fff",
         },
       },
@@ -439,7 +440,7 @@ export default function Competitors() {
         suggestedMax: 200,
         grid: { color: "rgba(200, 200, 200, 0.2)" },
         ticks: {
-          font: { family: "inherit" },
+          font: { family: "raleway" },
           color: theme === "light" ? "#7a7a7a" : "#fff",
         },
       },
@@ -451,14 +452,15 @@ export default function Competitors() {
         labels: {
           usePointStyle: true,
           pointStyle: "circle" as const,
-          font: { family: "inherit", size: 13, weight: 500 },
+          font: { family: "raleway", size: 12, weight: 500 },
           color: theme === "light" ? "#7a7a7a" : "#fff",
           boxWidth: 15,
         },
       },
       tooltip: {
         callbacks: {
-          label: (tooltipItem: TooltipItem<"line">) => `${tooltipItem.raw} Articles`,
+          label: (tooltipItem: TooltipItem<"line">) =>
+            `${tooltipItem.raw} Articles`,
         },
       },
       datalabels: { display: false },
@@ -488,9 +490,9 @@ export default function Competitors() {
                 {type === "online" && <TableHead className="font-medium">Reach</TableHead>}
                 <TableHead className="font-medium">AVE</TableHead>
                 <TableHead className="font-medium">Date</TableHead>
-                {type === "online" && (
+                {/* {type === "online" && ( */}
                   <TableHead className="font-medium">Country</TableHead>
-                )}
+                {/* )} */}
                 <TableHead className="font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -512,37 +514,65 @@ export default function Competitors() {
                   const truncatedHeadline = headline && headline.length > 100 ? headline.substring(0, 100) + "..." : headline;
                   
                   return (
-                    <TableRow key={article._id} className="hover:bg-muted/30 transition-colors border-b last:border-0">
+                    <TableRow
+                      key={article._id}
+                      className="hover:bg-muted/30 transition-colors border-b last:border-0"
+                    >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-2">
                           {article.company_logo_url && (
-                            <img 
-                              src={article.company_logo_url} 
-                              alt={competitor || "Company logo"} 
+                            <img
+                              src={article.company_logo_url}
+                              alt={competitor || "Company logo"}
                               className="h-8 w-8 object-contain rounded-full border-2 border-muted"
                             />
                           )}
-                          <span className="text-sm font-medium">{competitor || "N/A"}</span>
+                          <span className="text-sm font-medium">
+                            {competitor || "N/A"}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium py-4 text-sm">
-                        {type === "broadcast" && headline && headline.length > 100 ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="cursor-help">{truncatedHeadline}</span>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-md">
-                                <p>{headline}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          headline
-                        )}
+                      <TableCell className="font-medium py-4 text-sm max-w-xs">
+                        {(() => {
+                          const full = headline || "";
+                          const short =
+                            full.length > 100 ? full.slice(0, 100) + "…" : full;
+
+                          const clickable = article.url ? (
+                            <a
+                              href={article.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-primary cursor-pointer block"
+                            >
+                              {short}
+                            </a>
+                          ) : (
+                            <span className="block">{short}</span>
+                          );
+
+                          return full.length > 100 ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  {clickable}
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-md">
+                                  <p>{full}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            clickable
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="py-4 text-sm">
-                        {type === "broadcast" ? article.station : type === "print" ? article.publication : article.source}
+                        {type === "broadcast"
+                          ? article.station
+                          : type === "print"
+                          ? article.publication
+                          : article.source}
                       </TableCell>
                       <TableCell className="py-4">
                         {getSentimentBadge(article.sentiment)}
@@ -557,12 +587,16 @@ export default function Competitors() {
                       </TableCell>
                       <TableCell className="py-4 text-sm">
                         {new Date(
-                          type === "broadcast" ? article.mentionDT || "" : 
-                          type === "print" ? article.publicationDate || "" : 
-                          article.publication_date || ""
+                          type === "broadcast"
+                            ? article.mentionDT || ""
+                            : type === "print"
+                            ? article.publicationDate || ""
+                            : article.publication_date || ""
                         ).toLocaleDateString()}
                       </TableCell>
-                      {type === "online" && <TableCell className="py-4 text-sm">{article.country || "N/A"}</TableCell>}
+                      <TableCell className="py-4 text-sm">
+                        {article.country || "N/A"}
+                      </TableCell>
                       <TableCell className="py-4">
                         <div className="flex items-center gap-2">
                           <button
@@ -584,7 +618,9 @@ export default function Competitors() {
                                     await axios.delete(
                                       `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${orgId}/competitorArticles/${article._id}`
                                     );
-                                    toast.success("Article deleted successfully");
+                                    toast.success(
+                                      "Article deleted successfully"
+                                    );
                                     // Refresh data
                                     const [onlineRes, printRes, broadcastRes] =
                                       await Promise.all([

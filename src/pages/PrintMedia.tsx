@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -76,6 +76,7 @@ interface PrintArticle {
 
 export default function PrintMedia() {
   const { orgId } = useParams();
+  const fetchSeq = useRef(0);
   const [articles, setArticles] = useState<PrintArticle[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<PrintArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,24 +129,25 @@ export default function PrintMedia() {
 
   const fetchArticles = async () => {
     setLoading(true);
+    const seq = ++fetchSeq.current;
     try {
-      const response = await axios.post(
-        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi",
+      const res = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi`,
         { organizationIds: [orgId] },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
-      // response.data is already the array
-      const articles = Array.isArray(response.data) ? response.data : [];
-      setArticles(articles);
-      setFilteredArticles(articles);
-    } catch (error) {
-      console.error("Error fetching print articles:", error);
-      toast.error("Failed to load print articles");
+      if (seq !== fetchSeq.current) return; // stale response, drop it
+      const list = res.data.articles || [];
+      setArticles(list);
+      setFilteredArticles(list);
+    } catch (e) {
+      if (seq !== fetchSeq.current) return;
+      console.error("Error fetching articles:", e);
+      toast.error("Failed to load articles");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeq.current) setLoading(false);
     }
   };
 
@@ -157,7 +159,9 @@ export default function PrintMedia() {
       filtered = filtered.filter(
         (article) =>
           article.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.publication?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.publication
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           article.byline?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -499,7 +503,7 @@ export default function PrintMedia() {
                     placeholder="Article headline"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
                   <div className="grid gap-2">
                     <Label htmlFor="publication">Publisher</Label>
                     <Input
@@ -545,7 +549,7 @@ export default function PrintMedia() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
                   <div className="grid gap-2">
                     <Label htmlFor="publication">URL</Label>
                     <Input
@@ -834,7 +838,7 @@ export default function PrintMedia() {
                           )}
                         </TableCell>
                         <TableCell>{article.publication}</TableCell>
-                        <TableCell>{article.byline}</TableCell>
+                        <TableCell>{article.byline || "-" }</TableCell>
                         <TableCell>
                           <Badge variant="outline">{article.section}</Badge>
                         </TableCell>

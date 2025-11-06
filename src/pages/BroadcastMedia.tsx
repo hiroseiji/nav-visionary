@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -56,6 +56,12 @@ import {
   Radio,
   ExternalLink,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -79,6 +85,7 @@ interface BroadcastArticle {
 
 export default function BroadcastMedia() {
   const { orgId } = useParams();
+  const fetchSeq = useRef(0);
   const [articles, setArticles] = useState<BroadcastArticle[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<BroadcastArticle[]>(
     []
@@ -131,9 +138,12 @@ export default function BroadcastMedia() {
   }, [orgId]);
 
   const fetchArticles = async () => {
+    if (!orgId) return;
     setLoading(true);
+    const seq = ++fetchSeq.current;
+
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi",
         { organizationIds: [orgId] },
         {
@@ -141,17 +151,23 @@ export default function BroadcastMedia() {
         }
       );
 
-      // response.data is already the array
-      const articles = Array.isArray(response.data) ? response.data : [];
-      setArticles(articles);
-      setFilteredArticles(articles);
-    } catch (error) {
-      console.error("Error fetching broadcast articles:", error);
-      toast.error("Failed to load broadcast articles");
+      if (seq !== fetchSeq.current) return;
+
+      // Support both forms: array OR { articles }
+      const data = res.data;
+      const list = Array.isArray(data) ? data : data.articles || [];
+
+      setArticles(list);
+      setFilteredArticles(list);
+    } catch (e) {
+      if (seq !== fetchSeq.current) return;
+      console.error("Error fetching articles:", e);
+      toast.error("Failed to load articles");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeq.current) setLoading(false);
     }
   };
+
 
   // Apply filters
   useEffect(() => {
@@ -176,15 +192,19 @@ export default function BroadcastMedia() {
       );
     }
 
+    // inside your filtering useEffect:
     if (stationTypeFilter !== "all") {
       filtered = filtered.filter(
-        (article) => article.stationType === stationTypeFilter
+        (article) =>
+          (article.stationType || "").toLowerCase() === stationTypeFilter
       );
     }
 
     if (sentimentFilter !== "all") {
       filtered = filtered.filter(
-        (article) => article.sentiment === sentimentFilter
+        (article) =>
+          mapSentimentToLabel(article.sentiment).toLowerCase() ===
+          sentimentFilter
       );
     }
 
@@ -228,57 +248,56 @@ export default function BroadcastMedia() {
   ]);
 
   const handleAddArticle = async () => {
-      if (!newArticle.station) return toast.error("Station is required.");
-      if (!newArticle.mention)
-        return toast.error("Article author is required.");
-      if (!newArticle.url) return toast.error("Article URL is required.");
-      if (!newArticle.mentionDT)
-        return toast.error("Broadcast date is required.");
-      if (!newArticle.ave || Number(newArticle.ave) <= 0)
-        return toast.error("Advertising Value Equivalent required.");
-  
-      setSaving(true);
-      try {
-        const payload = {
-          station: newArticle.station.trim(),
-          stationType: newArticle.stationType.toLowerCase(),
-          mention: newArticle.mention.trim(),
-          country: newArticle.country,
-          mentionDT: format(new Date(newArticle.mentionDT), "yyyy-MM-dd"),
-          ave: Number(newArticle.ave),
-          sentiment: mapLabelToSentiment(newArticle.sentiment),
-          url: newArticle.url.trim(),
-        };
-  
-        const response = await axios.post(
-          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcasts`,
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-  
-        if (response.status === 201 && response.data.article) {
-          setArticles((prev) => [response.data.article, ...prev]);
-          toast.success("Broadcast added successfully");
+    if (!newArticle.station) return toast.error("Station is required.");
+    if (!newArticle.mention) return toast.error("Article author is required.");
+    if (!newArticle.url) return toast.error("Article URL is required.");
+    if (!newArticle.mentionDT)
+      return toast.error("Broadcast date is required.");
+    if (!newArticle.ave || Number(newArticle.ave) <= 0)
+      return toast.error("Advertising Value Equivalent required.");
+
+    setSaving(true);
+    try {
+      const payload = {
+        station: newArticle.station.trim(),
+        stationType: newArticle.stationType.toLowerCase(),
+        mention: newArticle.mention.trim(),
+        country: newArticle.country,
+        mentionDT: format(new Date(newArticle.mentionDT), "yyyy-MM-dd"),
+        ave: Number(newArticle.ave),
+        sentiment: mapLabelToSentiment(newArticle.sentiment),
+        url: newArticle.url.trim(),
+      };
+
+      const response = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcasts`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-  
-        setIsDialogOpen(false);
-        resetForm();
-        fetchArticles();
-      } catch (error) {
-        console.error("Error adding broadcast:", error);
-        const errorMsg =
-          axios.isAxiosError(error) && error.response?.data?.error
-            ? error.response.data.error
-            : "Failed to add broadcast";
-        toast.error(errorMsg);
-      } finally {
-        setSaving(false);
+      );
+
+      if (response.status === 201 && response.data.article) {
+        setArticles((prev) => [response.data.article, ...prev]);
+        toast.success("Broadcast added successfully");
       }
-    };
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchArticles();
+    } catch (error) {
+      console.error("Error adding broadcast:", error);
+      const errorMsg =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to add broadcast";
+      toast.error(errorMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleUpdateArticle = async () => {
     if (!editingArticle || !orgId) return;
@@ -299,7 +318,7 @@ export default function BroadcastMedia() {
     const prevArticles = articles;
 
     const normalizeStationType = (v?: string) =>
-      (v ?? "").toLowerCase() === "radio" ? "radio" : "tv"; 
+      (v ?? "").toLowerCase() === "radio" ? "radio" : "tv";
 
     // optimistic UI: ensure sentiment stays a string label for Article type
     const optimistic: BroadcastArticle = {
@@ -449,6 +468,11 @@ export default function BroadcastMedia() {
     return mention;
   };
 
+  const truncate = (text: string, limit = 120) => {
+    if (!text) return "";
+    return text.length > limit ? text.slice(0, limit).trim() + "…" : text;
+  };
+
   return (
     <SidebarLayout>
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
@@ -522,6 +546,22 @@ export default function BroadcastMedia() {
                   </div>
                 </div>
                 <div className="grid gap-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      value={newArticle.url}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          url: e.target.value,
+                        })
+                      }
+                      placeholder="URL to the broadcast"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="mention">Transcript</Label>
                   <Input
                     id="mention"
@@ -581,7 +621,7 @@ export default function BroadcastMedia() {
                           ave: Number(e.target.value),
                         })
                       }
-                      placeholder="0"
+                      placeholder="Advertising Value Equivalent"
                     />
                   </div>
                 </div>
@@ -663,6 +703,7 @@ export default function BroadcastMedia() {
                   <SelectItem value="positive">Positive</SelectItem>
                   <SelectItem value="neutral">Neutral</SelectItem>
                   <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={countryFilter} onValueChange={setCountryFilter}>
@@ -757,7 +798,7 @@ export default function BroadcastMedia() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Station</TableHead>
-                      <TableHead>Headline</TableHead>
+                      <TableHead>Summary</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Country</TableHead>
                       <TableHead
@@ -808,20 +849,44 @@ export default function BroadcastMedia() {
                           </div>
                         </TableCell>
                         <TableCell className="max-w-md">
-                          {article.url ? (
-                            <a
-                              href={article.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline text-primary block line-clamp-1"
-                            >
-                              {cleanMentionHeadline(article.mention)}
-                            </a>
-                          ) : (
-                            <span className="line-clamp-1">
-                              {cleanMentionHeadline(article.mention)}
-                            </span>
-                          )}
+                          {(() => {
+                            const full =
+                              cleanMentionHeadline(article.mention) || "";
+                            const short = truncate(full, 120);
+
+                            return article.url ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <a
+                                      href={article.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:underline text-primary block cursor-pointer line-clamp-1"
+                                    >
+                                      {short}
+                                    </a>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-md">
+                                    <p>{full}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="block cursor-help line-clamp-1">
+                                      {short}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-md">
+                                    <p>{full}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="uppercase">

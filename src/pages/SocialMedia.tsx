@@ -2,20 +2,64 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, ThumbsUp, ThumbsDown, Minus, ArrowUpDown, ExternalLink } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  ArrowUpDown,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { mapSentimentToLabel } from "@/utils/sentimentUtils";
+import {
+  mapSentimentToLabel,
+  mapLabelToSentiment,
+} from "@/utils/sentimentUtils";
 
 interface SocialPost {
   _id: string;
@@ -42,12 +86,12 @@ export default function SocialMedia() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Filters
   const [sourceFilter, setSourceFilter] = useState<string>("all"); // Platform filter
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [groupFilter, setGroupFilter] = useState<string>("all");
-  
+
   // Sorting
   const [sortBy, setSortBy] = useState<string>("createdTime");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -60,10 +104,10 @@ export default function SocialMedia() {
       setSortOrder("desc");
     }
   };
-  
+
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
-  
+
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<SocialPost | null>(null);
@@ -71,16 +115,15 @@ export default function SocialMedia() {
     pageName: "",
     postId: "",
     message: "",
-    source: "facebook", // Platform field
+    source: "facebook",
+    sourceCustom: "",
     group: "",
     country: "",
     createdTime: "",
     sentiment: "neutral",
     reach: 0,
     ave: 0,
-    url: "",
-    logo_url: "",
-    link: ""
+    link: "",
   });
 
   useEffect(() => {
@@ -131,7 +174,9 @@ export default function SocialMedia() {
     }
 
     if (sentimentFilter !== "all") {
-      filtered = filtered.filter((post) => mapSentimentToLabel(post.sentiment) === sentimentFilter);
+      filtered = filtered.filter(
+        (post) => mapSentimentToLabel(post.sentiment) === sentimentFilter
+      );
     }
 
     if (groupFilter !== "all") {
@@ -139,8 +184,12 @@ export default function SocialMedia() {
     }
 
     filtered.sort((a, b) => {
-      let aVal: string | number = a[sortBy as keyof SocialPost] as string | number;
-      let bVal: string | number = b[sortBy as keyof SocialPost] as string | number;
+      let aVal: string | number = a[sortBy as keyof SocialPost] as
+        | string
+        | number;
+      let bVal: string | number = b[sortBy as keyof SocialPost] as
+        | string
+        | number;
 
       if (sortBy === "createdTime") {
         aVal = new Date(aVal).getTime();
@@ -155,18 +204,55 @@ export default function SocialMedia() {
     });
 
     setFilteredPosts(filtered);
-  }, [posts, searchQuery, sourceFilter, sentimentFilter, groupFilter, sortBy, sortOrder]);
+  }, [
+    posts,
+    searchQuery,
+    sourceFilter,
+    sentimentFilter,
+    groupFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const handleAddPost = async () => {
-    if (!newPost.pageName) return toast.error("Page name is required.");
-    if (!newPost.message) return toast.error("Message is required.");
+    // 1. Required field validation
+    if (!newPost.pageName.trim()) return toast.error("Page name is required.");
+    if (!newPost.message.trim())
+      return toast.error("Post message is required.");
     if (!newPost.source) return toast.error("Platform is required.");
+    if (!newPost.createdTime) return toast.error("Date published is required.");
+    if (!newPost.reach || Number(newPost.reach) <= 0)
+      return toast.error("Reach is required.");
+
+    // Handle "other" platform
+    const finalSource =
+      newPost.source === "other"
+        ? newPost.sourceCustom?.trim()
+        : newPost.source;
+
+    if (!finalSource) return toast.error("Please specify the platform.");
+
+    // 2. Clean + structured payload (same style as print)
+    const payload = {
+      pageName: newPost.pageName.trim(),
+      postId: newPost.postId?.trim() || `${Date.now()}`, // fallback ID
+      message: newPost.message.trim(),
+      source: finalSource.trim(),
+      group: newPost.group.trim(),
+      country: newPost.country.trim(),
+      link: newPost.link.trim(),
+      createdTime: new Date(newPost.createdTime),
+      reach: Number(newPost.reach),
+      ave: Number(newPost.ave) || 0,
+      sentiment: mapLabelToSentiment(newPost.sentiment),
+      organizationId: orgId,
+    };
 
     setSaving(true);
     try {
       const response = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook`,
-        { ...newPost, organizationId: orgId },
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/posts`,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -174,52 +260,114 @@ export default function SocialMedia() {
         }
       );
 
-      if (response.status === 201 || response.status === 200) {
+      if (response.status === 201 && response.data.post) {
+        // Optimistic UI insert
+        setPosts((prev) => [response.data.post, ...prev]);
         toast.success("Post added successfully");
       }
 
       setIsDialogOpen(false);
-      fetchPosts();
       resetForm();
     } catch (error) {
       console.error("Error adding post:", error);
-      const errorMsg =
+      toast.error(
         axios.isAxiosError(error) && error.response?.data?.error
           ? error.response.data.error
-          : "Failed to add post";
-      toast.error(errorMsg);
+          : "Failed to add post"
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleUpdatePost = async () => {
-    if (!editingPost) return;
-    if (!newPost.pageName) return toast.error("Page name is required.");
-    if (!newPost.message) return toast.error("Message is required.");
-
+    if (!editingPost || !orgId) return;
     setSaving(true);
+
+    // Resolve platform (supporting "other")
+    const finalSource =
+      newPost.source === "other"
+        ? newPost.sourceCustom?.trim()
+        : newPost.source;
+
+    const payload = {
+      pageName: newPost.pageName.trim(),
+      postId: newPost.postId?.trim() ?? editingPost.postId,
+      message: newPost.message.trim(),
+      source: finalSource?.trim(),
+      group: newPost.group?.trim(),
+      country: newPost.country?.trim(),
+      createdTime: format(new Date(newPost.createdTime), "yyyy-MM-dd"),
+      reach: Number(newPost.reach),
+      ave: Number(newPost.ave),
+      sentiment: mapLabelToSentiment(newPost.sentiment),
+      link: newPost.link?.trim(),
+    };
+
+    // Snapshot for rollback
+    const prevPosts = posts;
+
+    // Optimistic UI copy (mirroring print handler)
+    const optimistic: SocialPost = {
+      ...editingPost,
+      pageName: payload.pageName ?? editingPost.pageName,
+      postId: payload.postId ?? editingPost.postId,
+      message: payload.message ?? editingPost.message,
+      source: payload.source ?? editingPost.source,
+      group: payload.group ?? editingPost.group,
+      country: payload.country ?? editingPost.country,
+      createdTime: payload.createdTime ?? editingPost.createdTime,
+      reach: payload.reach ?? editingPost.reach,
+      ave: payload.ave ?? editingPost.ave,
+      sentiment: mapSentimentToLabel(payload.sentiment),
+      link: payload.link ?? editingPost.link,
+    };
+
+    // Optimistic UI update
+    setPosts((prev) =>
+      prev.map((p) => (p._id === editingPost._id ? optimistic : p))
+    );
+
     try {
-      await axios.put(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${editingPost._id}`,
-        newPost,
+      const res = await axios.put(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/posts/${editingPost._id}`,
+        payload,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+
       toast.success("Post updated successfully");
+
+      // trust backend copy if it returned one (same pattern as print)
+      const updated: SocialPost = res.data?.post
+        ? {
+            ...optimistic,
+            ...res.data.post,
+            sentiment: mapSentimentToLabel(res.data.post.sentiment),
+          }
+        : optimistic;
+
+      // Final UI update
+      setPosts((prev) =>
+        prev.map((p) => (p._id === editingPost._id ? updated : p))
+      );
+
       setIsDialogOpen(false);
-      fetchPosts();
       resetForm();
-    } catch (error) {
-      console.error("Error updating post:", error);
-      const errorMsg =
-        axios.isAxiosError(error) && error.response?.data?.error
-          ? error.response.data.error
+
+      // optional: soft revalidate
+      setTimeout(() => fetchPosts(), 300);
+    } catch (e) {
+      // rollback on failure
+      setPosts(prevPosts);
+
+      const msg =
+        axios.isAxiosError(e) && e.response?.data?.error
+          ? e.response.data.error
           : "Failed to update post";
-      toast.error(errorMsg);
+
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -249,22 +397,46 @@ export default function SocialMedia() {
   };
 
   const openEditDialog = (post: SocialPost) => {
+    // Normalize the source
+    const allowedPlatforms = [
+      "facebook",
+      "twitter",
+      "instagram",
+      "linkedin",
+      "tiktok",
+    ];
+    const rawSource = (post.source ?? "").toString().trim();
+    const sourceLower = rawSource.toLowerCase();
+    const isListed = allowedPlatforms.includes(sourceLower);
+
+    const source = isListed ? sourceLower : "other";
+    const sourceCustom = isListed ? "" : rawSource;
+
+    // Normalize sentiment → label for UI
+    const sentimentLabel =
+      typeof post.sentiment === "number"
+        ? mapSentimentToLabel(post.sentiment)
+        : post.sentiment || "neutral";
+
     setEditingPost(post);
+
     setNewPost({
-      pageName: post.pageName,
-      postId: post.postId,
-      message: post.message,
-      source: post.source, // Platform field
-      group: post.group,
-      country: post.country,
-      createdTime: post.createdTime,
-      sentiment: post.sentiment,
-      reach: post.reach,
-      ave: post.ave,
-      url: post.url || "",
-      logo_url: post.logo_url || "",
-      link: post.link || ""
+      pageName: post.pageName ?? "",
+      postId: post.postId ?? "",
+      message: post.message ?? "",
+      source, // "facebook" | "twitter" | ... | "other"
+      sourceCustom, // custom text for "other"
+      group: post.group ?? "",
+      country: post.country ?? "",
+      createdTime: post.createdTime
+        ? new Date(post.createdTime).toISOString().split("T")[0]
+        : "",
+      sentiment: sentimentLabel.toLowerCase(),
+      reach: Number(post.reach ?? 0),
+      ave: Number(post.ave ?? 0),
+      link: post.link ?? "",
     });
+
     setIsDialogOpen(true);
   };
 
@@ -274,16 +446,15 @@ export default function SocialMedia() {
       pageName: "",
       postId: "",
       message: "",
-      source: "facebook", // Platform field
+      source: "facebook",
+      sourceCustom: "",
       group: "",
       country: "",
       createdTime: "",
       sentiment: "neutral",
       reach: 0,
       ave: 0,
-      url: "",
-      logo_url: "",
-      link: ""
+      link: "",
     });
   };
 
@@ -291,12 +462,12 @@ export default function SocialMedia() {
     const sentimentLabel = mapSentimentToLabel(sentiment);
     const sentimentLower = sentimentLabel.toLowerCase();
     let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
-    
-    if (sentimentLower === 'positive') variant = 'positive';
-    else if (sentimentLower === 'negative') variant = 'negative';
-    else if (sentimentLower === 'mixed') variant = 'mixed';
-    else variant = 'neutral';
-    
+
+    if (sentimentLower === "positive") variant = "positive";
+    else if (sentimentLower === "negative") variant = "negative";
+    else if (sentimentLower === "mixed") variant = "mixed";
+    else variant = "neutral";
+
     return (
       <Badge variant={variant}>
         <span className="capitalize">{sentimentLabel}</span>
@@ -304,8 +475,12 @@ export default function SocialMedia() {
     );
   };
 
-  const uniqueSources = Array.from(new Set(posts.map(p => p.source).filter(Boolean))); // Platform options
-  const uniqueGroups = Array.from(new Set(posts.map(p => p.group).filter(Boolean)));
+  const uniqueSources = Array.from(
+    new Set(posts.map((p) => p.source).filter(Boolean))
+  ); // Platform options
+  const uniqueGroups = Array.from(
+    new Set(posts.map((p) => p.group).filter(Boolean))
+  );
 
   return (
     <SidebarLayout>
@@ -355,17 +530,6 @@ export default function SocialMedia() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="logo_url">Logo URL</Label>
-                  <Input
-                    id="logo_url"
-                    value={newPost.logo_url}
-                    onChange={(e) =>
-                      setNewPost({ ...newPost, logo_url: e.target.value })
-                    }
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="grid gap-2">
                   <Label htmlFor="link">Post Link</Label>
                   <Input
                     id="link"
@@ -390,24 +554,41 @@ export default function SocialMedia() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="source">Platform</Label>
-                    <Select
-                      value={newPost.source}
-                      onValueChange={(value) =>
-                        setNewPost({ ...newPost, source: value })
-                      }
-                    >
-                      <SelectTrigger id="source">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="facebook">Facebook</SelectItem>
-                        <SelectItem value="twitter">Twitter</SelectItem>
-                        <SelectItem value="instagram">Instagram</SelectItem>
-                        <SelectItem value="linkedin">LinkedIn</SelectItem>
-                        <SelectItem value="tiktok">TikTok</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="grid gap-2">
+                      <Label htmlFor="source">Platform</Label>
+                      <Select
+                        value={newPost.source}
+                        onValueChange={(value) =>
+                          setNewPost({ ...newPost, source: value })
+                        }
+                      >
+                        <SelectTrigger id="source">
+                          <SelectValue placeholder="Select platform" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="facebook">Facebook</SelectItem>
+                          <SelectItem value="twitter">Twitter</SelectItem>
+                          <SelectItem value="instagram">Instagram</SelectItem>
+                          <SelectItem value="linkedin">LinkedIn</SelectItem>
+                          <SelectItem value="tiktok">TikTok</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {newPost.source === "other" && (
+                        <Input
+                          className="mt-2"
+                          placeholder="Specify platform (e.g., Threads, YouTube)"
+                          value={newPost.sourceCustom ?? ""}
+                          onChange={(e) =>
+                            setNewPost((s) => ({
+                              ...s,
+                              sourceCustom: e.target.value,
+                            }))
+                          }
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="country">Country</Label>
@@ -422,7 +603,7 @@ export default function SocialMedia() {
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="group">Group</Label>
+                  <Label htmlFor="group">Group (Optional)</Label>
                   <Input
                     id="group"
                     value={newPost.group}
@@ -453,7 +634,7 @@ export default function SocialMedia() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="reach">Reach</Label>
+                    <Label htmlFor="reach">Post Reach</Label>
                     <Input
                       id="reach"
                       type="number"
@@ -485,7 +666,7 @@ export default function SocialMedia() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="createdTime">Date Published</Label>
+                    <Label htmlFor="createdTime">Date Posted</Label>
                     <Input
                       id="createdTime"
                       type="date"
@@ -496,17 +677,6 @@ export default function SocialMedia() {
                           createdTime: e.target.value,
                         })
                       }
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="url">URL</Label>
-                    <Input
-                      id="url"
-                      value={newPost.url}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, url: e.target.value })
-                      }
-                      placeholder="https://..."
                     />
                   </div>
                 </div>

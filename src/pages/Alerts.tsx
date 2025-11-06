@@ -35,6 +35,7 @@ interface AlertItem {
 export default function Alerts() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [filteredAlerts, setFilteredAlerts] = useState<AlertItem[]>([]);
+  const [editingAlert, setEditingAlert] = useState<AlertItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [alertName, setAlertName] = useState("");
@@ -83,6 +84,81 @@ export default function Alerts() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateEmails(externalUsers)) return;
+
+    const formData = new FormData();
+    formData.append("alertName", alertName);
+    formData.append("subject", subject);
+    formData.append("schedule", schedule);
+    formData.append("startDate", new Date().toISOString());
+    formData.append("delivery", schedule === "monthly" ? "1" : delivery);
+
+    externalUsers
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean)
+      .forEach((email) => formData.append("externalUsers[]", email));
+
+    try {
+      let res;
+
+      if (editingAlert) {
+        // UPDATE
+        res = await axios.put(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/alerts/update/${editingAlert._id}`,
+          formData
+        );
+
+        toast.success("Alert updated successfully");
+        setAlerts((prev) =>
+          prev.map((a) => (a._id === editingAlert._id ? res.data.alert : a))
+        );
+      } else {
+        // CREATE
+        formData.append("organizationId", selectedOrg || "");
+
+        res = await axios.post(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/create-alert`,
+          formData
+        );
+
+        setAlerts((prev) => [...prev, res.data.details]);
+        toast.success("Alert created successfully");
+      }
+
+      setIsModalOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting alert:", error);
+      toast.error("Failed to save alert");
+    }
+  };
+
+  const openEditModal = async (alertId: string) => {
+    try {
+      const res = await axios.get(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/alerts/details/${alertId}`
+      );
+
+      const data = res.data;
+      setEditingAlert(data);
+
+      setAlertName(data.alertName);
+      setSubject(data.subject);
+      setSchedule(data.schedule);
+      setDelivery(data.delivery);
+      setExternalUsers(data.externalUsers.join(", "));
+
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error("Error loading alert:", err);
+      toast.error("Failed to load alert details");
+    }
+  };
+
   const validateEmails = (emailString: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
     const emails = emailString.split(",").map(e => e.trim()).filter(Boolean);
@@ -101,44 +177,15 @@ export default function Alerts() {
     setEmailError("");
     return true;
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateEmails(externalUsers)) return;
-
-    const formData = new FormData();
-    formData.append("organizationId", selectedOrg || "");
-    formData.append("alertName", alertName);
-    formData.append("subject", subject);
-    formData.append("startDate", new Date().toISOString());
-    formData.append("schedule", schedule);
-    formData.append("delivery", schedule === "monthly" ? "1" : delivery);
-    
-    externalUsers.split(",").map(e => e.trim()).filter(Boolean).forEach(email => {
-      formData.append("externalUsers[]", email);
-    });
-
-    try {
-      const response = await axios.post(
-        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/create-alert",
-        formData
-      );
-      
-      setAlerts(prev => [...prev, response.data.details]);
-      toast.success("Alert created successfully");
-      setIsModalOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error("Error creating alert:", error);
-      toast.error("Failed to create alert");
-    }
-  };
+  
 
   const handleDelete = async (alertId: string) => {
     try {
-      await axios.delete(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/alerts/${alertId}`);
-      setAlerts(prev => prev.filter(a => a._id !== alertId));
+      await axios.delete(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/alerts/${alertId}`
+      );
+
+      setAlerts((prev) => prev.filter((a) => a._id !== alertId));
       toast.success("Alert deleted successfully");
     } catch (error) {
       console.error("Error deleting alert:", error);
@@ -146,7 +193,9 @@ export default function Alerts() {
     }
   };
 
+
   const resetForm = () => {
+    setEditingAlert(null);
     setAlertName("");
     setSubject("");
     setSchedule("");
@@ -237,104 +286,112 @@ export default function Alerts() {
               />
             </div>
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Alert
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create New Alert</DialogTitle>
-                <DialogDescription>
-                  Set up a new email alert for your organization
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="alertName">Alert Name</Label>
-                  <Input
-                    id="alertName"
-                    value={alertName}
-                    onChange={(e) => setAlertName(e.target.value)}
-                    placeholder="e.g., Weekly Report"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Email Subject</Label>
-                  <Input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Subject line for the email"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="schedule">Schedule</Label>
-                  <Select value={schedule} onValueChange={setSchedule} required>
-                    <SelectTrigger id="schedule">
-                      <SelectValue placeholder="Select schedule" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {schedule !== "monthly" && (
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Alert
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingAlert ? "Edit Alert" : "Create New Alert"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingAlert
+                      ? "Update your alert settings"
+                      : "Set up a new email alert"}
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="delivery">Delivery Day</Label>
+                    <Label htmlFor="alertName">Alert Name</Label>
                     <Input
-                      id="delivery"
-                      type="number"
-                      min="1"
-                      max={schedule === "weekly" ? "7" : "31"}
-                      value={delivery}
-                      onChange={(e) => setDelivery(e.target.value)}
-                      placeholder={
-                        schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"
-                      }
+                      id="alertName"
+                      value={alertName}
+                      onChange={(e) => setAlertName(e.target.value)}
+                      placeholder="e.g., Weekly Report"
                       required
                     />
                   </div>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="externalUsers">Recipient Emails</Label>
-                  <Input
-                    id="externalUsers"
-                    value={externalUsers}
-                    onChange={(e) => {
-                      setExternalUsers(e.target.value);
-                      setEmailError("");
-                    }}
-                    placeholder="email1@example.com, email2@example.com"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Separate multiple emails with commas
-                  </p>
-                  {emailError && (
-                    <p className="text-xs text-destructive">{emailError}</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Email Subject</Label>
+                    <Input
+                      id="subject"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Subject line for the email"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="schedule">Schedule</Label>
+                    <Select
+                      value={schedule}
+                      onValueChange={setSchedule}
+                      required
+                    >
+                      <SelectTrigger id="schedule">
+                        <SelectValue placeholder="Select schedule" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {schedule !== "monthly" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="delivery">Delivery Day</Label>
+                      <Input
+                        id="delivery"
+                        type="number"
+                        min="1"
+                        max={schedule === "weekly" ? "7" : "31"}
+                        value={delivery}
+                        onChange={(e) => setDelivery(e.target.value)}
+                        placeholder={
+                          schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"
+                        }
+                        required
+                      />
+                    </div>
                   )}
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create Alert</Button>
-                </div>
-              </form>
-            </DialogContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="externalUsers">Recipient Emails</Label>
+                    <Input
+                      id="externalUsers"
+                      value={externalUsers}
+                      onChange={(e) => {
+                        setExternalUsers(e.target.value);
+                        setEmailError("");
+                      }}
+                      placeholder="email1@example.com, email2@example.com"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Separate multiple emails with commas
+                    </p>
+                    {emailError && (
+                      <p className="text-xs text-destructive">{emailError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        resetForm();
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Alert</Button>
+                  </div>
+                </form>
+              </DialogContent>
             </Dialog>
           </div>
         </div>
@@ -394,7 +451,11 @@ export default function Alerts() {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             {alert.externalUsers.map((email, idx) => {
-                              const { backgroundColor, borderColor, textColor } = getColor(email);
+                              const {
+                                backgroundColor,
+                                borderColor,
+                                textColor,
+                              } = getColor(email);
                               return (
                                 <div
                                   key={idx}
@@ -427,7 +488,11 @@ export default function Alerts() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditModal(alert._id)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button

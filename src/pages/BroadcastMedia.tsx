@@ -58,7 +58,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { mapSentimentToLabel } from "@/utils/sentimentUtils";
+import {
+  mapSentimentToLabel,
+  mapLabelToSentiment,
+} from "@/utils/sentimentUtils";
 
 interface BroadcastArticle {
   _id: string;
@@ -120,8 +123,6 @@ export default function BroadcastMedia() {
     mentionDT: "",
     sentiment: "neutral",
     ave: 0,
-    transcript: "",
-    logo_url: "",
     url: "",
   });
 
@@ -227,93 +228,161 @@ export default function BroadcastMedia() {
   ]);
 
   const handleAddArticle = async () => {
-    if (!newArticle.mention) return toast.error("Mention is required.");
-    if (!newArticle.station) return toast.error("Station is required.");
-    if (!newArticle.mentionDT) return toast.error("Date is required.");
-
-    setSaving(true);
-    try {
-      const response = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/broadcast`,
-        { ...newArticle, organizationId: orgId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      if (!newArticle.station) return toast.error("Station is required.");
+      if (!newArticle.mention)
+        return toast.error("Article author is required.");
+      if (!newArticle.url) return toast.error("Article URL is required.");
+      if (!newArticle.mentionDT)
+        return toast.error("Broadcast date is required.");
+      if (!newArticle.ave || Number(newArticle.ave) <= 0)
+        return toast.error("Advertising Value Equivalent required.");
+  
+      setSaving(true);
+      try {
+        const payload = {
+          station: newArticle.station.trim(),
+          stationType: newArticle.stationType.toLowerCase(),
+          mention: newArticle.mention.trim(),
+          country: newArticle.country,
+          mentionDT: format(new Date(newArticle.mentionDT), "yyyy-MM-dd"),
+          ave: Number(newArticle.ave),
+          sentiment: mapLabelToSentiment(newArticle.sentiment),
+          url: newArticle.url.trim(),
+        };
+  
+        const response = await axios.post(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcasts`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+  
+        if (response.status === 201 && response.data.article) {
+          setArticles((prev) => [response.data.article, ...prev]);
+          toast.success("Broadcast added successfully");
         }
-      );
-
-      if (response.status === 201 || response.status === 200) {
-        toast.success("Broadcast article added successfully");
+  
+        setIsDialogOpen(false);
+        resetForm();
+        fetchArticles();
+      } catch (error) {
+        console.error("Error adding broadcast:", error);
+        const errorMsg =
+          axios.isAxiosError(error) && error.response?.data?.error
+            ? error.response.data.error
+            : "Failed to add broadcast";
+        toast.error(errorMsg);
+      } finally {
+        setSaving(false);
       }
-
-      setIsDialogOpen(false);
-      resetForm();
-      fetchArticles();
-    } catch (error) {
-      console.error("Error adding article:", error);
-      const errorMsg =
-        axios.isAxiosError(error) && error.response?.data?.error
-          ? error.response.data.error
-          : "Failed to add article";
-      toast.error(errorMsg);
-    } finally {
-      setSaving(false);
-    }
-  };
+    };
 
   const handleUpdateArticle = async () => {
-    if (!editingArticle) return;
-    if (!newArticle.mention) return toast.error("Summary is required.");
-    if (!newArticle.station) return toast.error("Station is required.");
-
+    if (!editingArticle || !orgId) return;
     setSaving(true);
+
+    const payload = {
+      station: newArticle.station.trim(),
+      stationType: newArticle.stationType.toLowerCase(),
+      mention: newArticle.mention.trim(),
+      country: newArticle.country,
+      mentionDT: format(new Date(newArticle.mentionDT), "yyyy-MM-dd"),
+      ave: Number(newArticle.ave),
+      sentiment: mapLabelToSentiment(newArticle.sentiment),
+      url: newArticle.url.trim(),
+    };
+
+    // snapshot for rollback
+    const prevArticles = articles;
+
+    const normalizeStationType = (v?: string) =>
+      (v ?? "").toLowerCase() === "radio" ? "radio" : "tv"; 
+
+    // optimistic UI: ensure sentiment stays a string label for Article type
+    const optimistic: BroadcastArticle = {
+      ...editingArticle,
+      station: payload.station ?? editingArticle.station,
+      stationType: normalizeStationType(
+        (payload.stationType as string) ?? editingArticle.stationType
+      ),
+      mention: payload.mention ?? editingArticle.mention,
+      country: payload.country ?? editingArticle.country,
+      mentionDT: (payload.mentionDT as string) ?? editingArticle.mentionDT,
+      ave: (payload.ave as number) ?? editingArticle.ave,
+      sentiment: mapSentimentToLabel(payload.sentiment),
+      url: payload.url ?? editingArticle.url,
+    };
+
+    setArticles((prev) =>
+      prev.map((a) => (a._id === editingArticle._id ? optimistic : a))
+    );
+
     try {
-      await axios.put(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcastMedia/${editingArticle._id}`,
-        newArticle,
+      const res = await axios.put(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcasts/${editingArticle._id}`,
+        payload,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      toast.success("Article updated successfully");
+
+      toast.success("Broadcast updated successfully");
+
+      // trust backend copy if it returned one, otherwise keep optimistic
+      const updated: BroadcastArticle = res.data?.article
+        ? {
+            ...optimistic,
+            ...res.data.article,
+            sentiment: mapSentimentToLabel(res.data.article.sentiment),
+          }
+        : optimistic;
+
+      setArticles((prev) =>
+        prev.map((a) => (a._id === editingArticle._id ? updated : a))
+      );
+
+      // close after success
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
-    } catch (error) {
-      console.error("Error updating article:", error);
-      const errorMsg =
-        axios.isAxiosError(error) && error.response?.data?.error
-          ? error.response.data.error
-          : "Failed to update article";
-      toast.error(errorMsg);
+
+      // optional: soft revalidate later
+      setTimeout(() => fetchArticles(), 300);
+    } catch (e) {
+      // rollback on real failure
+      setArticles(prevArticles);
+      const msg =
+        axios.isAxiosError(e) && e.response?.data?.error
+          ? e.response.data.error
+          : "Failed to update broadcast";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteArticle = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this article?"))
+    if (!window.confirm("Are you sure you want to delete this broadcast?"))
       return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcastMedia/${id}`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/broadcasts/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      toast.success("Article deleted successfully");
+      toast.success("Deleted successfully");
       fetchArticles();
     } catch (error) {
-      console.error("Error deleting article:", error);
+      console.error("Error deleting broadcast:", error);
       const errorMsg =
         axios.isAxiosError(error) && error.response?.data?.error
           ? error.response.data.error
-          : "Failed to delete article";
+          : "Failed to delete broadcast";
       toast.error(errorMsg);
     }
   };
@@ -323,15 +392,13 @@ export default function BroadcastMedia() {
     setNewArticle({
       mention: article.mention,
       station: article.station,
-      stationType: article.stationType,
+      stationType: article.stationType?.toLowerCase() || "tv",
       country: article.country,
       mentionDT: article.mentionDT
         ? new Date(article.mentionDT).toISOString().split("T")[0]
         : "",
-      sentiment: article.sentiment,
+      sentiment: mapSentimentToLabel(article.sentiment),
       ave: article.ave,
-      transcript: article.transcript || "",
-      logo_url: article.logo_url || "",
       url: article.url || "",
     });
     setIsDialogOpen(true);
@@ -347,8 +414,6 @@ export default function BroadcastMedia() {
       mentionDT: "",
       sentiment: "neutral",
       ave: 0,
-      transcript: "",
-      logo_url: "",
       url: "",
     });
   };
@@ -420,20 +485,6 @@ export default function BroadcastMedia() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="mention">mention</Label>
-                  <Input
-                    id="mention"
-                    value={newArticle.mention}
-                    onChange={(e) =>
-                      setNewArticle({
-                        ...newArticle,
-                        mention: e.target.value,
-                      })
-                    }
-                    placeholder="Story mention"
-                  />
-                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="station">Station</Label>
@@ -452,13 +503,16 @@ export default function BroadcastMedia() {
                   <div className="grid gap-2">
                     <Label htmlFor="stationType">Station Type</Label>
                     <Select
-                      value={newArticle.stationType}
+                      value={newArticle.stationType ?? "tv"}
                       onValueChange={(value) =>
-                        setNewArticle({ ...newArticle, stationType: value })
+                        setNewArticle((s) => ({
+                          ...s,
+                          stationType: value.toLowerCase(),
+                        }))
                       }
                     >
-                      <SelectTrigger id="stationType">
-                        <SelectValue />
+                      <SelectTrigger id="stationType" aria-label="Station type">
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="tv">TV</SelectItem>
@@ -466,6 +520,20 @@ export default function BroadcastMedia() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="mention">Transcript</Label>
+                  <Input
+                    id="mention"
+                    value={newArticle.mention}
+                    onChange={(e) =>
+                      setNewArticle({
+                        ...newArticle,
+                        mention: e.target.value,
+                      })
+                    }
+                    placeholder="Key spoken mention (transcript excerpt)"
+                  />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="grid gap-2">
@@ -518,7 +586,7 @@ export default function BroadcastMedia() {
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="mentionDT">Date Published</Label>
+                  <Label htmlFor="mentionDT">Date Broadcasted</Label>
                   <Input
                     id="mentionDT"
                     type="date"
@@ -529,21 +597,6 @@ export default function BroadcastMedia() {
                         mentionDT: e.target.value,
                       })
                     }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="transcript">Transcript (Optional)</Label>
-                  <Textarea
-                    id="transcript"
-                    value={newArticle.transcript}
-                    onChange={(e) =>
-                      setNewArticle({
-                        ...newArticle,
-                        transcript: e.target.value,
-                      })
-                    }
-                    placeholder="Story transcript or summary..."
-                    rows={6}
                   />
                 </div>
               </div>

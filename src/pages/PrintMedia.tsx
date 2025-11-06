@@ -56,11 +56,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { mapSentimentToLabel } from "@/utils/sentimentUtils";
+import {
+  mapSentimentToLabel,
+  mapLabelToSentiment,
+} from "@/utils/sentimentUtils";
 
 interface PrintArticle {
   _id: string;
   headline: string;
+  publication: string;
   byline: string;
   section: string;
   country: string;
@@ -108,12 +112,14 @@ export default function PrintMedia() {
   );
   const [newArticle, setNewArticle] = useState({
     headline: "",
+    publication: "",
     byline: "",
     section: "",
     country: "",
     publicationDate: "",
     sentiment: "neutral",
     ave: 0,
+    url: "",
   });
 
   useEffect(() => {
@@ -151,6 +157,7 @@ export default function PrintMedia() {
       filtered = filtered.filter(
         (article) =>
           article.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.publication?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           article.byline?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -219,14 +226,35 @@ export default function PrintMedia() {
 
   const handleAddArticle = async () => {
     if (!newArticle.headline) return toast.error("Headline is required.");
+    if (!newArticle.publication) return toast.error("Newspaper name is required.");
+    if (!newArticle.byline)
+      return toast.error("Article author is required.");
+    if (!newArticle.url) return toast.error("Article URL is required.");
     if (!newArticle.publicationDate)
       return toast.error("Publication date is required.");
+    if (!newArticle.ave || Number(newArticle.ave) <= 0)
+      return toast.error("Advertising Value Equivalent required.");
 
     setSaving(true);
     try {
+      const payload = {
+        headline: newArticle.headline.trim(),
+        publication: newArticle.publication.trim(),
+        byline: newArticle.byline.trim(),
+        section: newArticle.section.trim(),
+        country: newArticle.country,
+        publicationDate: format(
+          new Date(newArticle.publicationDate),
+          "yyyy-MM-dd"
+        ),
+        ave: Number(newArticle.ave),
+        sentiment: mapLabelToSentiment(newArticle.sentiment),
+        url: newArticle.url.trim(),
+      };
+
       const response = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print`,
-        { ...newArticle, organizationId: orgId },
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/printMedia`,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -234,13 +262,14 @@ export default function PrintMedia() {
         }
       );
 
-      if (response.status === 201 || response.status === 200) {
-        toast.success("Print article added successfully");
+      if (response.status === 201 && response.data.article) {
+        setArticles((prev) => [response.data.article, ...prev]);
+        toast.success("Article added successfully");
       }
 
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
+      fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
       const errorMsg =
@@ -254,31 +283,84 @@ export default function PrintMedia() {
   };
 
   const handleUpdateArticle = async () => {
-    if (!editingArticle) return;
-    if (!newArticle.headline) return toast.error("Headline is required.");
-
+    if (!editingArticle || !orgId) return;
     setSaving(true);
+
+    const payload = {
+      headline: newArticle.headline.trim(),
+      publication: newArticle.publication.trim(),
+      byline: newArticle.byline.trim(),
+      section: newArticle.section.trim(),
+      country: newArticle.country,
+      publicationDate: format(
+        new Date(newArticle.publicationDate),
+        "yyyy-MM-dd"
+      ),
+      ave: Number(newArticle.ave),
+      sentiment: mapLabelToSentiment(newArticle.sentiment),
+      url: newArticle.url.trim(),
+    };
+
+    // snapshot for rollback
+    const prevArticles = articles;
+
+    // optimistic UI: ensure sentiment stays a string label for Article type
+    const optimistic: PrintArticle = {
+      ...editingArticle,
+      headline: payload.headline ?? editingArticle.headline,
+      publication: payload.publication ?? editingArticle.publication,
+      byline: payload.byline ?? editingArticle.byline,
+      section: payload.section ?? editingArticle.section,
+      country: payload.country ?? editingArticle.country,
+      publicationDate:
+        payload.publicationDate ?? editingArticle.publicationDate,
+      ave: (payload.ave as number) ?? editingArticle.ave,
+      sentiment: mapSentimentToLabel(payload.sentiment),
+      url: payload.url ?? editingArticle.url,
+    };
+
+    setArticles((prev) =>
+      prev.map((a) => (a._id === editingArticle._id ? optimistic : a))
+    );
+
     try {
-      await axios.put(
+      const res = await axios.put(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/printMedia/${editingArticle._id}`,
-        newArticle,
+        payload,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+
       toast.success("Article updated successfully");
+
+      // trust backend copy if it returned one, otherwise keep optimistic
+      const updated: PrintArticle = res.data?.article
+        ? {
+            ...optimistic,
+            ...res.data.article,
+            sentiment: mapSentimentToLabel(res.data.article.sentiment),
+          }
+        : optimistic;
+
+      setArticles((prev) =>
+        prev.map((a) => (a._id === editingArticle._id ? updated : a))
+      );
+
+      // close after success
       setIsDialogOpen(false);
-      fetchArticles();
       resetForm();
-    } catch (error) {
-      console.error("Error updating article:", error);
-      const errorMsg =
-        axios.isAxiosError(error) && error.response?.data?.error
-          ? error.response.data.error
+
+      // optional: soft revalidate later
+      setTimeout(() => fetchArticles(), 300);
+    } catch (e) {
+      // rollback on real failure
+      setArticles(prevArticles);
+      const msg =
+        axios.isAxiosError(e) && e.response?.data?.error
+          ? e.response.data.error
           : "Failed to update article";
-      toast.error(errorMsg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -312,12 +394,16 @@ export default function PrintMedia() {
     setEditingArticle(article);
     setNewArticle({
       headline: article.headline,
+      publication: article.publication,
       byline: article.byline,
       section: article.section,
       country: article.country,
-      publicationDate: article.publicationDate,
-      sentiment: article.sentiment,
+      publicationDate: article.publicationDate
+        ? new Date(article.publicationDate).toISOString().split("T")[0]
+        : "",
+      sentiment: mapSentimentToLabel(article.sentiment),
       ave: article.ave,
+      url: article.url,
     });
     setIsDialogOpen(true);
   };
@@ -326,12 +412,14 @@ export default function PrintMedia() {
     setEditingArticle(null);
     setNewArticle({
       headline: "",
+      publication: "",
       byline: "",
       section: "",
       country: "",
       publicationDate: "",
       sentiment: "neutral",
       ave: 0,
+      url: "",
     });
   };
 
@@ -413,7 +501,23 @@ export default function PrintMedia() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="byline">byline</Label>
+                    <Label htmlFor="publication">Publisher</Label>
+                    <Input
+                      id="publication"
+                      value={newArticle.publication}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          publication: e.target.value,
+                        })
+                      }
+                      placeholder="Newspaper name"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="byline">Author</Label>
                     <Input
                       id="byline"
                       value={newArticle.byline}
@@ -423,7 +527,7 @@ export default function PrintMedia() {
                           byline: e.target.value,
                         })
                       }
-                      placeholder="Newspaper name"
+                      placeholder="Article author"
                     />
                   </div>
                   <div className="grid gap-2">
@@ -438,6 +542,22 @@ export default function PrintMedia() {
                         })
                       }
                       placeholder="e.g., Business, News"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="publication">URL</Label>
+                    <Input
+                      id="url"
+                      value={newArticle.url}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          url: e.target.value,
+                        })
+                      }
+                      placeholder="Link to article pdf"
                     />
                   </div>
                 </div>
@@ -660,7 +780,8 @@ export default function PrintMedia() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Headline</TableHead>
-                      <TableHead>Publication</TableHead>
+                      <TableHead>Publisher</TableHead>
+                      <TableHead>Author</TableHead>
                       <TableHead>Section</TableHead>
                       <TableHead>Country</TableHead>
                       <TableHead
@@ -712,6 +833,7 @@ export default function PrintMedia() {
                             </span>
                           )}
                         </TableCell>
+                        <TableCell>{article.publication}</TableCell>
                         <TableCell>{article.byline}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{article.section}</Badge>

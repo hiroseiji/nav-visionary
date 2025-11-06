@@ -86,157 +86,163 @@ const Settings = () => {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-6 max-w-4xl">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Manage your account settings and preferences</p>
-          </div>
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
+        {/* <div className="container mx-auto p-6 max-w-4xl"> */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences
+          </p>
+        </div>
 
-          <div className="space-y-6">
-            {/* Profile Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <UserIcon className="h-5 w-5" />
-                  <CardTitle>Profile Information</CardTitle>
-                </div>
-                <CardDescription>Update your personal information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSaveProfile} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
+        <div className="space-y-6">
+          {/* Profile Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <UserIcon className="h-5 w-5" />
+                <CardTitle>Profile Information</CardTitle>
+              </div>
+              <CardDescription>
+                Update your personal information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="firstName">First Name</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      disabled
-                      className="bg-muted"
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
                     />
                   </div>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Save Profile"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Password Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
-                  <CardTitle>Change Password</CardTitle>
-                </div>
-                <CardDescription>Update your password to keep your account secure</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSavePassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Label htmlFor="lastName">Last Name</Label>
                     <Input
-                      id="currentPassword"
-                      type="password"
-                      value={pwdCurrent}
-                      onChange={(e) => setPwdCurrent(e.target.value)}
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        value={pwdNew}
-                        onChange={(e) => setPwdNew(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={pwdConfirm}
-                        onChange={(e) => setPwdConfirm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Updating..." : "Update Password"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Preferences Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <SettingsIcon className="h-5 w-5" />
-                  <CardTitle>Preferences</CardTitle>
                 </div>
-                <CardDescription>Customize your experience</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Select value={theme} onValueChange={setTheme}>
-                    <SelectTrigger id="theme">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="system">System</SelectItem>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="notifications">Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive email notifications for important updates
-                    </p>
-                  </div>
-                  <Switch
-                    id="notifications"
-                    checked={notifications}
-                    onCheckedChange={setNotifications}
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
-
-                <Button onClick={handleSavePreferences}>
-                  Save Preferences
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : "Save Profile"}
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Password Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                <CardTitle>Change Password</CardTitle>
+              </div>
+              <CardDescription>
+                Update your password to keep your account secure
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSavePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={pwdCurrent}
+                    onChange={(e) => setPwdCurrent(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={pwdNew}
+                      onChange={(e) => setPwdNew(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={pwdConfirm}
+                      onChange={(e) => setPwdConfirm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Updating..." : "Update Password"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Preferences Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <SettingsIcon className="h-5 w-5" />
+                <CardTitle>Preferences</CardTitle>
+              </div>
+              <CardDescription>Customize your experience</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <Select value={theme} onValueChange={setTheme}>
+                  <SelectTrigger id="theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="notifications">Email Notifications</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive email notifications for important updates
+                  </p>
+                </div>
+                <Switch
+                  id="notifications"
+                  checked={notifications}
+                  onCheckedChange={setNotifications}
+                />
+              </div>
+
+              <Button onClick={handleSavePreferences}>Save Preferences</Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+      {/* </div> */}
     </SidebarLayout>
   );
 };

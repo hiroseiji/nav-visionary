@@ -380,52 +380,6 @@ export default function Alerts() {
                         onBannerChange={(file) => setBanner(file)} 
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="topic">Topic (Optional)</Label>
-                        <Input
-                          id="topic"
-                          value={topic}
-                          onChange={(e) => setTopic(e.target.value)}
-                          placeholder="e.g., Product Launch"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="mediaType">Media Type (Optional)</Label>
-                        <Select
-                          value={mediaType}
-                          onValueChange={setMediaType}
-                        >
-                          <SelectTrigger id="mediaType">
-                            <SelectValue placeholder="Select media type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Media</SelectItem>
-                            <SelectItem value="online">Online Media</SelectItem>
-                            <SelectItem value="print">Print Media</SelectItem>
-                            <SelectItem value="broadcast">Broadcast Media</SelectItem>
-                            <SelectItem value="social">Social Media</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sentiment">Sentiment Filter (Optional)</Label>
-                      <Select
-                        value={sentiment}
-                        onValueChange={setSentiment}
-                      >
-                        <SelectTrigger id="sentiment">
-                          <SelectValue placeholder="Select sentiment" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Sentiments</SelectItem>
-                          <SelectItem value="positive">Positive</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="negative">Negative</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                     {schedule !== "monthly" && (
                       <div className="space-y-1.5">
                         <Label htmlFor="delivery">Delivery Day</Label>
@@ -461,29 +415,6 @@ export default function Alerts() {
                       {emailError && (
                         <p className="text-xs text-destructive">{emailError}</p>
                       )}
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Exclude Days (Optional)</Label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={day}
-                              checked={excludeDays.includes(day)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setExcludeDays([...excludeDays, day]);
-                                } else {
-                                  setExcludeDays(excludeDays.filter((d) => d !== day));
-                                }
-                              }}
-                            />
-                            <Label htmlFor={day} className="text-xs cursor-pointer">
-                              {day.slice(0, 3)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                   <div className="flex gap-3 justify-end px-6 py-4 border-t bg-muted/30">

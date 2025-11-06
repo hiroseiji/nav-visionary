@@ -189,9 +189,6 @@ export default function Reports() {
           <h1 className="text-4xl font-bold tracking-tight">
             Generated Reports
           </h1>
-          <p className="text-muted-foreground mt-2">
-            View and manage all generated reports
-          </p>
         </div>
 
         <Card>

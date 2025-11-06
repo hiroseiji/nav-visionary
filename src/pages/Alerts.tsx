@@ -13,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Bell, Plus, Edit, Trash2, Calendar, Mail, Search } from "lucide-react";
+import BannerUpload from "@/components/BannerUpload";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface User {
   role: string;
@@ -25,8 +27,13 @@ interface AlertItem {
   _id: string;
   alertName: string;
   subject: string;
+  banner?: string;
+  topic?: string;
+  mediaType?: string;
+  sentiment?: string;
   schedule: string;
   delivery: string;
+  excludeDays?: string[];
   externalUsers: string[];
   startDate: string;
   isActive: boolean;
@@ -45,6 +52,11 @@ export default function Alerts() {
   const [externalUsers, setExternalUsers] = useState("");
   const [emailError, setEmailError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [banner, setBanner] = useState<File | null>(null);
+  const [topic, setTopic] = useState("");
+  const [mediaType, setMediaType] = useState("");
+  const [sentiment, setSentiment] = useState("");
+  const [excludeDays, setExcludeDays] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
@@ -102,6 +114,13 @@ export default function Alerts() {
       .filter(Boolean)
       .forEach((email) => formData.append("externalUsers[]", email));
 
+    // Optional fields
+    if (banner) formData.append("banner", banner);
+    if (topic) formData.append("topic", topic);
+    if (mediaType) formData.append("mediaType", mediaType);
+    if (sentiment) formData.append("sentiment", sentiment);
+    excludeDays.forEach((day) => formData.append("excludeDays[]", day));
+
     try {
       let res;
 
@@ -151,6 +170,11 @@ export default function Alerts() {
       setSchedule(data.schedule);
       setDelivery(data.delivery);
       setExternalUsers(data.externalUsers.join(", "));
+      setTopic(data.topic || "");
+      setMediaType(data.mediaType || "");
+      setSentiment(data.sentiment || "");
+      setExcludeDays(data.excludeDays || []);
+      setBanner(null); // Don't set banner on edit, user can upload new one
 
       setIsModalOpen(true);
     } catch (err) {
@@ -202,6 +226,11 @@ export default function Alerts() {
     setDelivery("");
     setExternalUsers("");
     setEmailError("");
+    setBanner(null);
+    setTopic("");
+    setMediaType("");
+    setSentiment("");
+    setExcludeDays([]);
   };
 
   const getColor = (email: string) => {
@@ -325,6 +354,57 @@ export default function Alerts() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="banner">Banner Image (Optional)</Label>
+                    <BannerUpload 
+                      currentBanner={editingAlert?.banner}
+                      onBannerChange={(file) => setBanner(file)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="topic">Topic (Optional)</Label>
+                    <Input
+                      id="topic"
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder="e.g., Product Launch"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mediaType">Media Type (Optional)</Label>
+                    <Select
+                      value={mediaType}
+                      onValueChange={setMediaType}
+                    >
+                      <SelectTrigger id="mediaType">
+                        <SelectValue placeholder="Select media type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Media</SelectItem>
+                        <SelectItem value="online">Online Media</SelectItem>
+                        <SelectItem value="print">Print Media</SelectItem>
+                        <SelectItem value="broadcast">Broadcast Media</SelectItem>
+                        <SelectItem value="social">Social Media</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sentiment">Sentiment Filter (Optional)</Label>
+                    <Select
+                      value={sentiment}
+                      onValueChange={setSentiment}
+                    >
+                      <SelectTrigger id="sentiment">
+                        <SelectValue placeholder="Select sentiment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sentiments</SelectItem>
+                        <SelectItem value="positive">Positive</SelectItem>
+                        <SelectItem value="neutral">Neutral</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="schedule">Schedule</Label>
                     <Select
                       value={schedule}
@@ -377,6 +457,35 @@ export default function Alerts() {
                       <p className="text-xs text-destructive">{emailError}</p>
                     )}
                   </div>
+                  <div className="space-y-2">
+                    <Label>Exclude Days (Optional)</Label>
+                    <div className="flex flex-wrap gap-4">
+                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                        <div key={day} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day}
+                            checked={excludeDays.includes(day)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setExcludeDays([...excludeDays, day]);
+                              } else {
+                                setExcludeDays(excludeDays.filter((d) => d !== day));
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={day}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {day}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Select days to exclude from alert delivery
+                    </p>
+                  </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button
                       type="button"
@@ -388,7 +497,9 @@ export default function Alerts() {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">Create Alert</Button>
+                    <Button type="submit">
+                      {editingAlert ? "Update Alert" : "Create Alert"}
+                    </Button>
                   </div>
                 </form>
               </DialogContent>

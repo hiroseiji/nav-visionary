@@ -428,11 +428,16 @@ export const handleCountryEdit = (
 
 // Fetch countries
 export const fetchCountries = async (): Promise<string[]> => {
-  // Mock implementation - replace with actual API call
-  return [
-    "Botswana", "South Africa", "Zimbabwe", "Namibia", "Zambia",
-    "United States", "United Kingdom", "Canada", "Australia"
-  ];
+  try {
+    const response = await axios.get("https://restcountries.com/v3.1/all?fields=name");
+    const countryNames = response.data
+      .map((country: { name: { common: string } }) => country.name.common)
+      .sort();
+    return ["Botswana", ...countryNames.filter((c: string) => c !== "Botswana")];
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    return [];
+  }
 };
 
 // Handle scrape

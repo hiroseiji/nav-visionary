@@ -321,8 +321,8 @@ export default function Alerts() {
                   Create Alert
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
+              <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col gap-0 p-0">
+                <DialogHeader className="px-6 pt-6 pb-4 border-b">
                   <DialogTitle>
                     {editingAlert ? "Edit Alert" : "Create New Alert"}
                   </DialogTitle>
@@ -332,161 +332,161 @@ export default function Alerts() {
                       : "Set up a new email alert"}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="alertName">Alert Name</Label>
-                    <Input
-                      id="alertName"
-                      value={alertName}
-                      onChange={(e) => setAlertName(e.target.value)}
-                      placeholder="e.g., Weekly Report"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Email Subject</Label>
-                    <Input
-                      id="subject"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="Subject line for the email"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="banner">Banner Image (Optional)</Label>
-                    <BannerUpload 
-                      currentBanner={editingAlert?.banner}
-                      onBannerChange={(file) => setBanner(file)} 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="topic">Topic (Optional)</Label>
-                    <Input
-                      id="topic"
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="e.g., Product Launch"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="mediaType">Media Type (Optional)</Label>
-                    <Select
-                      value={mediaType}
-                      onValueChange={setMediaType}
-                    >
-                      <SelectTrigger id="mediaType">
-                        <SelectValue placeholder="Select media type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Media</SelectItem>
-                        <SelectItem value="online">Online Media</SelectItem>
-                        <SelectItem value="print">Print Media</SelectItem>
-                        <SelectItem value="broadcast">Broadcast Media</SelectItem>
-                        <SelectItem value="social">Social Media</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sentiment">Sentiment Filter (Optional)</Label>
-                    <Select
-                      value={sentiment}
-                      onValueChange={setSentiment}
-                    >
-                      <SelectTrigger id="sentiment">
-                        <SelectValue placeholder="Select sentiment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Sentiments</SelectItem>
-                        <SelectItem value="positive">Positive</SelectItem>
-                        <SelectItem value="neutral">Neutral</SelectItem>
-                        <SelectItem value="negative">Negative</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="schedule">Schedule</Label>
-                    <Select
-                      value={schedule}
-                      onValueChange={setSchedule}
-                      required
-                    >
-                      <SelectTrigger id="schedule">
-                        <SelectValue placeholder="Select schedule" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {schedule !== "monthly" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="delivery">Delivery Day</Label>
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                  <div className="overflow-y-auto px-6 py-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="alertName">Alert Name</Label>
+                        <Input
+                          id="alertName"
+                          value={alertName}
+                          onChange={(e) => setAlertName(e.target.value)}
+                          placeholder="e.g., Weekly Report"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="schedule">Schedule</Label>
+                        <Select
+                          value={schedule}
+                          onValueChange={setSchedule}
+                          required
+                        >
+                          <SelectTrigger id="schedule">
+                            <SelectValue placeholder="Select schedule" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="subject">Email Subject</Label>
                       <Input
-                        id="delivery"
-                        type="number"
-                        min="1"
-                        max={schedule === "weekly" ? "7" : "31"}
-                        value={delivery}
-                        onChange={(e) => setDelivery(e.target.value)}
-                        placeholder={
-                          schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"
-                        }
+                        id="subject"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="Subject line for the email"
                         required
                       />
                     </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor="externalUsers">Recipient Emails</Label>
-                    <Input
-                      id="externalUsers"
-                      value={externalUsers}
-                      onChange={(e) => {
-                        setExternalUsers(e.target.value);
-                        setEmailError("");
-                      }}
-                      placeholder="email1@example.com, email2@example.com"
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Separate multiple emails with commas
-                    </p>
-                    {emailError && (
-                      <p className="text-xs text-destructive">{emailError}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Exclude Days (Optional)</Label>
-                    <div className="flex flex-wrap gap-4">
-                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                        <div key={day} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={day}
-                            checked={excludeDays.includes(day)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setExcludeDays([...excludeDays, day]);
-                              } else {
-                                setExcludeDays(excludeDays.filter((d) => d !== day));
-                              }
-                            }}
-                          />
-                          <Label
-                            htmlFor={day}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {day}
-                          </Label>
-                        </div>
-                      ))}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="banner">Banner Image (Optional)</Label>
+                      <BannerUpload 
+                        currentBanner={editingAlert?.banner}
+                        onBannerChange={(file) => setBanner(file)} 
+                      />
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Select days to exclude from alert delivery
-                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="topic">Topic (Optional)</Label>
+                        <Input
+                          id="topic"
+                          value={topic}
+                          onChange={(e) => setTopic(e.target.value)}
+                          placeholder="e.g., Product Launch"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="mediaType">Media Type (Optional)</Label>
+                        <Select
+                          value={mediaType}
+                          onValueChange={setMediaType}
+                        >
+                          <SelectTrigger id="mediaType">
+                            <SelectValue placeholder="Select media type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Media</SelectItem>
+                            <SelectItem value="online">Online Media</SelectItem>
+                            <SelectItem value="print">Print Media</SelectItem>
+                            <SelectItem value="broadcast">Broadcast Media</SelectItem>
+                            <SelectItem value="social">Social Media</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="sentiment">Sentiment Filter (Optional)</Label>
+                      <Select
+                        value={sentiment}
+                        onValueChange={setSentiment}
+                      >
+                        <SelectTrigger id="sentiment">
+                          <SelectValue placeholder="Select sentiment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sentiments</SelectItem>
+                          <SelectItem value="positive">Positive</SelectItem>
+                          <SelectItem value="neutral">Neutral</SelectItem>
+                          <SelectItem value="negative">Negative</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {schedule !== "monthly" && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="delivery">Delivery Day</Label>
+                        <Input
+                          id="delivery"
+                          type="number"
+                          min="1"
+                          max={schedule === "weekly" ? "7" : "31"}
+                          value={delivery}
+                          onChange={(e) => setDelivery(e.target.value)}
+                          placeholder={
+                            schedule === "weekly" ? "1-7 (Mon-Sun)" : "1-31"
+                          }
+                          required
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="externalUsers">Recipient Emails</Label>
+                      <Input
+                        id="externalUsers"
+                        value={externalUsers}
+                        onChange={(e) => {
+                          setExternalUsers(e.target.value);
+                          setEmailError("");
+                        }}
+                        placeholder="email1@example.com, email2@example.com"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Separate multiple emails with commas
+                      </p>
+                      {emailError && (
+                        <p className="text-xs text-destructive">{emailError}</p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Exclude Days (Optional)</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                          <div key={day} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={day}
+                              checked={excludeDays.includes(day)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setExcludeDays([...excludeDays, day]);
+                                } else {
+                                  setExcludeDays(excludeDays.filter((d) => d !== day));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={day} className="text-xs cursor-pointer">
+                              {day.slice(0, 3)}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-end gap-2 pt-4">
+                  <div className="flex gap-3 justify-end px-6 py-4 border-t bg-muted/30">
                     <Button
                       type="button"
                       variant="outline"

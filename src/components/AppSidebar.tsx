@@ -144,7 +144,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
             <img
               src={theme === "light" ? logoLight : logoDark}
               alt="logo"
-              className="h-20 w-auto object-contain"
+              className="h-32 w-auto object-contain"
             />
           )}
         </div>

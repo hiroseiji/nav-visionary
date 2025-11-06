@@ -119,7 +119,7 @@ const Organizations = () => {
       const response = await fetch("https://restcountries.com/v3.1/all");
       const data = await response.json();
       const countryNames = data
-        .map((country: any) => country.name.common)
+        .map((country: { name: { common: string } }) => country.name.common)
         .sort((a: string, b: string) => a.localeCompare(b));
       setCountries(countryNames);
     } catch (error) {

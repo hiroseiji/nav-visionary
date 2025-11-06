@@ -1,6 +1,7 @@
 import { useState, useEffect, useId } from "react";
 import axios from "axios";
 import { SidebarLayout } from "@/components/SidebarLayout";
+import { fetchCountries } from "@/utils/dashboardUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,20 +116,12 @@ const Organizations = () => {
 
   useEffect(() => {
     fetchOrganizations();
-    fetchCountries();
+    loadCountries();
   }, []);
 
-  const fetchCountries = async () => {
-    try {
-      const response = await fetch("https://restcountries.com/v3.1/all");
-      const data = await response.json();
-      const countryNames = data
-        .map((country: { name: { common: string } }) => country.name.common)
-        .sort((a: string, b: string) => a.localeCompare(b));
-      setCountries(countryNames);
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-    }
+  const loadCountries = async () => {
+    const countryList = await fetchCountries();
+    setCountries(countryList);
   };
 
   const fetchCompetitorSuggestions = async (

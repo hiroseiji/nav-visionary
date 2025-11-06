@@ -6,13 +6,48 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, AlertCircle, SlidersHorizontal } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  AlertCircle,
+  SlidersHorizontal,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const industries = [
@@ -66,15 +101,15 @@ interface Organization {
 
 const Organizations = () => {
   const [currentUser] = useState(
-    JSON.parse(localStorage.getItem("user") || '{}')
+    JSON.parse(localStorage.getItem("user") || "{}")
   );
-  
+
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [saving, setSaving] = useState(false);
-  
+
   const [formData, setFormData] = useState<Organization>({
     organizationName: "",
     industry: "",
@@ -94,7 +129,7 @@ const Organizations = () => {
     accentColor: "#66aaff",
     logoUrl: "",
   });
-  
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
@@ -104,8 +139,11 @@ const Organizations = () => {
     []
   );
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; orgId: string | null }>({
+
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    orgId: string | null;
+  }>({
     open: false,
     orgId: null,
   });
@@ -215,8 +253,15 @@ const Organizations = () => {
 
   const handleAddKeyword = () => {
     const trimmed = keywordInput.trim();
-    if (trimmed && !formData.keywords.includes(trimmed) && formData.keywords.length < 30) {
-      setFormData((prev) => ({ ...prev, keywords: [...prev.keywords, trimmed] }));
+    if (
+      trimmed &&
+      !formData.keywords.includes(trimmed) &&
+      formData.keywords.length < 30
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        keywords: [...prev.keywords, trimmed],
+      }));
       setKeywordInput("");
     }
   };
@@ -237,8 +282,16 @@ const Organizations = () => {
 
   const handleAddCompetitor = () => {
     const trimmed = competitorInput.trim();
-    if (trimmed && !formData.competitors.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
-      setFormData((prev) => ({ ...prev, competitors: [...prev.competitors, trimmed] }));
+    if (
+      trimmed &&
+      !formData.competitors.some(
+        (c) => c.toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        competitors: [...prev.competitors, trimmed],
+      }));
       setCompetitorInput("");
     }
   };
@@ -272,7 +325,7 @@ const Organizations = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.organizationName.trim()) {
       toast.error("Organization name is required");
       return;
@@ -294,14 +347,17 @@ const Organizations = () => {
       const url = editingOrg
         ? `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${editingOrg._id}`
         : "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations";
-      
+
       const method = editingOrg ? "put" : "post";
       const token = localStorage.getItem("token");
 
       if (logoFile) {
         const fd = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-          fd.append(key, Array.isArray(value) ? JSON.stringify(value) : String(value ?? ""));
+          fd.append(
+            key,
+            Array.isArray(value) ? JSON.stringify(value) : String(value ?? "")
+          );
         });
         fd.append("logo", logoFile, "logo.png");
 
@@ -317,7 +373,11 @@ const Organizations = () => {
         });
       }
 
-      toast.success(editingOrg ? "Organization updated successfully" : "Organization created successfully");
+      toast.success(
+        editingOrg
+          ? "Organization updated successfully"
+          : "Organization created successfully"
+      );
       resetForm();
       setModalOpen(false);
       fetchOrganizations();
@@ -353,7 +413,6 @@ const Organizations = () => {
     // clear input
     setCompetitorInput("");
   };
-
 
   const handleEdit = (org: Organization) => {
     setFormData({
@@ -884,8 +943,8 @@ const Organizations = () => {
 
                 {/* Suggested competitor chips */}
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {fetchCompetitorSuggestions.length > 0 ? (
-                    fetchCompetitorSuggestions.map((competitor, idx) => {
+                  {suggestedCompetitors.length > 0 ? (
+                    suggestedCompetitors.map((competitor, idx) => {
                       const isSelected = formData.competitors.some(
                         (c) =>
                           c.toLowerCase().trim() ===

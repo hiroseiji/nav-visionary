@@ -229,7 +229,7 @@ export default function SocialMedia() {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/facebook/${id}`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/posts/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -219,7 +219,8 @@ export default function PrintMedia() {
 
   const handleAddArticle = async () => {
     if (!newArticle.headline) return toast.error("Headline is required.");
-    if (!newArticle.publicationDate) return toast.error("Publication date is required.");
+    if (!newArticle.publicationDate)
+      return toast.error("Publication date is required.");
 
     setSaving(true);
     try {
@@ -259,7 +260,7 @@ export default function PrintMedia() {
     setSaving(true);
     try {
       await axios.put(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${editingArticle._id}`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/printMedia/${editingArticle._id}`,
         newArticle,
         {
           headers: {
@@ -288,7 +289,7 @@ export default function PrintMedia() {
       return;
     try {
       await axios.delete(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/print/${id}`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${orgId}/printMedia/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -338,12 +339,12 @@ export default function PrintMedia() {
     const sentimentLabel = mapSentimentToLabel(sentiment);
     const sentimentLower = sentimentLabel.toLowerCase();
     let variant: "positive" | "negative" | "neutral" | "mixed" = "neutral";
-    
-    if (sentimentLower === 'positive') variant = 'positive';
-    else if (sentimentLower === 'negative') variant = 'negative';
-    else if (sentimentLower === 'mixed') variant = 'mixed';
-    else variant = 'neutral';
-    
+
+    if (sentimentLower === "positive") variant = "positive";
+    else if (sentimentLower === "negative") variant = "negative";
+    else if (sentimentLower === "mixed") variant = "mixed";
+    else variant = "neutral";
+
     return (
       <Badge variant={variant}>
         <span className="capitalize">{sentimentLabel}</span>
@@ -361,425 +362,414 @@ export default function PrintMedia() {
   return (
     <SidebarLayout>
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                Print Media
-              </h1>
-              <p className="text-muted-foreground">
-                Manage print media coverage and articles
-              </p>
-            </div>
-            <Dialog
-              open={isDialogOpen}
-              onOpenChange={(open) => {
-                setIsDialogOpen(open);
-                if (!open) resetForm();
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Article
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingArticle ? "Edit Article" : "Add New Article"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingArticle
-                      ? "Update the print article details"
-                      : "Add a new print media coverage entry"}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="headline">Headline</Label>
-                    <Input
-                      id="headline"
-                      value={newArticle.headline}
-                      onChange={(e) =>
-                        setNewArticle({
-                          ...newArticle,
-                          headline: e.target.value,
-                        })
-                      }
-                      placeholder="Article headline"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="byline">byline</Label>
-                      <Input
-                        id="byline"
-                        value={newArticle.byline}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            byline: e.target.value,
-                          })
-                        }
-                        placeholder="Newspaper name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="section">Section</Label>
-                      <Input
-                        id="section"
-                        value={newArticle.section}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            section: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Business, News"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="country">Country</Label>
-                      <Input
-                        id="country"
-                        value={newArticle.country}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            country: e.target.value,
-                          })
-                        }
-                        placeholder="Country"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="sentiment">Sentiment</Label>
-                      <Select
-                        value={newArticle.sentiment}
-                        onValueChange={(value) =>
-                          setNewArticle({ ...newArticle, sentiment: value })
-                        }
-                      >
-                        <SelectTrigger id="sentiment">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="positive">Positive</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="negative">Negative</SelectItem>
-                          <SelectItem value="mixed">Mixed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="ave">AVE</Label>
-                      <Input
-                        id="ave"
-                        type="number"
-                        value={newArticle.ave}
-                        onChange={(e) =>
-                          setNewArticle({
-                            ...newArticle,
-                            ave: Number(e.target.value),
-                          })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="publicationDate">Date Published</Label>
-                    <Input
-                      id="publicationDate"
-                      type="date"
-                      value={newArticle.publicationDate}
-                      onChange={(e) =>
-                        setNewArticle({
-                          ...newArticle,
-                          publicationDate: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={
-                      editingArticle ? handleUpdateArticle : handleAddArticle
-                    }
-                  >
-                    {editingArticle ? "Update" : "Add"} Article
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              Print Media
+            </h1>
+            <p className="text-muted-foreground">
+              Manage print media coverage and articles
+            </p>
           </div>
-
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Filters & Search</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Article
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingArticle ? "Edit Article" : "Add New Article"}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingArticle
+                    ? "Update the print article details"
+                    : "Add a new print media coverage entry"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="headline">Headline</Label>
                   <Input
-                    placeholder="Search articles..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
+                    id="headline"
+                    value={newArticle.headline}
+                    onChange={(e) =>
+                      setNewArticle({
+                        ...newArticle,
+                        headline: e.target.value,
+                      })
+                    }
+                    placeholder="Article headline"
                   />
                 </div>
-                <Select value={sectionFilter} onValueChange={setSectionFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Section" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sections</SelectItem>
-                    {uniqueSections.map((section) => (
-                      <SelectItem key={section} value={section}>
-                        {section}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={sentimentFilter}
-                  onValueChange={setSentimentFilter}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="byline">byline</Label>
+                    <Input
+                      id="byline"
+                      value={newArticle.byline}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          byline: e.target.value,
+                        })
+                      }
+                      placeholder="Newspaper name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="section">Section</Label>
+                    <Input
+                      id="section"
+                      value={newArticle.section}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          section: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., Business, News"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={newArticle.country}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          country: e.target.value,
+                        })
+                      }
+                      placeholder="Country"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sentiment">Sentiment</Label>
+                    <Select
+                      value={newArticle.sentiment}
+                      onValueChange={(value) =>
+                        setNewArticle({ ...newArticle, sentiment: value })
+                      }
+                    >
+                      <SelectTrigger id="sentiment">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="positive">Positive</SelectItem>
+                        <SelectItem value="neutral">Neutral</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                        <SelectItem value="mixed">Mixed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="ave">AVE</Label>
+                    <Input
+                      id="ave"
+                      type="number"
+                      value={newArticle.ave}
+                      onChange={(e) =>
+                        setNewArticle({
+                          ...newArticle,
+                          ave: Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="publicationDate">Date Published</Label>
+                  <Input
+                    id="publicationDate"
+                    type="date"
+                    value={newArticle.publicationDate}
+                    onChange={(e) =>
+                      setNewArticle({
+                        ...newArticle,
+                        publicationDate: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    resetForm();
+                  }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sentiment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sentiments</SelectItem>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                    <SelectItem value="negative">Negative</SelectItem>
-                    <SelectItem value="mixed">Mixed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={countryFilter} onValueChange={setCountryFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {uniqueCountries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-4">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Start date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "End date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                {(startDate || endDate) && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setStartDate(undefined);
-                      setEndDate(undefined);
-                    }}
-                  >
-                    Clear dates
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Articles Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Articles ({filteredArticles.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading articles...
-                </div>
-              ) : filteredArticles.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No articles found
-                </div>
-              ) : (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Headline</TableHead>
-                        <TableHead>Publication</TableHead>
-                        <TableHead>Section</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("publicationDate")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Date
-                            <ArrowUpDown
-                              className={`h-4 w-4 ${
-                                sortBy === "publicationDate"
-                                  ? "text-primary"
-                                  : ""
-                              }`}
-                            />
-                          </div>
-                        </TableHead>
-                        <TableHead>Sentiment</TableHead>
-                        <TableHead
-                          className="text-right cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleSort("ave")}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            AVE
-                            <ArrowUpDown
-                              className={`h-4 w-4 ${
-                                sortBy === "ave" ? "text-primary" : ""
-                              }`}
-                            />
-                          </div>
-                        </TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredArticles
-                        .slice(0, visibleCount)
-                        .map((article) => (
-                          <TableRow key={article._id}>
-                            <TableCell className="font-medium max-w-md">
-                              {article.url ? (
-                                <a
-                                  href={article.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="hover:underline text-primary block line-clamp-1"
-                                >
-                                  {article.headline}
-                                </a>
-                              ) : (
-                                <span className="block line-clamp-1">
-                                  {article.headline}
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell>{article.byline}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{article.section}</Badge>
-                            </TableCell>
-                            <TableCell>{article.country}</TableCell>
-                            <TableCell>
-                              {article.publicationDate &&
-                              !isNaN(
-                                new Date(article.publicationDate).getTime()
-                              )
-                                ? format(
-                                    new Date(article.publicationDate),
-                                    "PP"
-                                  )
-                                : "N/A"}
-                            </TableCell>
-                            <TableCell>
-                              {getSentimentBadge(article.sentiment)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {article.ave?.toLocaleString()}
-                            </TableCell>
-                            <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => openEditDialog(article)}
-                                  >
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleDeleteArticle(article._id)
-                                    }
-                                    className="text-destructive"
-                                  >
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                  {filteredArticles.length > visibleCount && (
-                    <div className="mt-4 text-center">
-                      <Button
-                        variant="outline"
-                        onClick={() => setVisibleCount(visibleCount + 20)}
-                      >
-                        Load More
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={
+                    editingArticle ? handleUpdateArticle : handleAddArticle
+                  }
+                >
+                  {editingArticle ? "Update" : "Add"} Article
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Filters & Search</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search articles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Section" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sections</SelectItem>
+                  {uniqueSections.map((section) => (
+                    <SelectItem key={section} value={section}>
+                      {section}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={sentimentFilter}
+                onValueChange={setSentimentFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sentiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sentiments</SelectItem>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {uniqueCountries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "End date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setStartDate(undefined);
+                    setEndDate(undefined);
+                  }}
+                >
+                  Clear dates
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Articles Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Articles ({filteredArticles.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading articles...
+              </div>
+            ) : filteredArticles.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No articles found
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Headline</TableHead>
+                      <TableHead>Publication</TableHead>
+                      <TableHead>Section</TableHead>
+                      <TableHead>Country</TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("publicationDate")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Date
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "publicationDate" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead>Sentiment</TableHead>
+                      <TableHead
+                        className="text-right cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("ave")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          AVE
+                          <ArrowUpDown
+                            className={`h-4 w-4 ${
+                              sortBy === "ave" ? "text-primary" : ""
+                            }`}
+                          />
+                        </div>
+                      </TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredArticles.slice(0, visibleCount).map((article) => (
+                      <TableRow key={article._id}>
+                        <TableCell className="font-medium max-w-md">
+                          {article.url ? (
+                            <a
+                              href={article.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-primary block line-clamp-1"
+                            >
+                              {article.headline}
+                            </a>
+                          ) : (
+                            <span className="block line-clamp-1">
+                              {article.headline}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>{article.byline}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{article.section}</Badge>
+                        </TableCell>
+                        <TableCell>{article.country}</TableCell>
+                        <TableCell>
+                          {article.publicationDate &&
+                          !isNaN(new Date(article.publicationDate).getTime())
+                            ? format(new Date(article.publicationDate), "PP")
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {getSentimentBadge(article.sentiment)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {article.ave?.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => openEditDialog(article)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteArticle(article._id)}
+                                className="text-destructive"
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredArticles.length > visibleCount && (
+                  <div className="mt-4 text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setVisibleCount(visibleCount + 20)}
+                    >
+                      Load More
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </SidebarLayout>
   );
 }

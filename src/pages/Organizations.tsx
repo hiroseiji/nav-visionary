@@ -99,6 +99,10 @@ const Organizations = () => {
   const [keywordInput, setKeywordInput] = useState("");
   const [competitorInput, setCompetitorInput] = useState("");
   const [countries, setCountries] = useState<string[]>([]);
+  const [suggestedCompetitors, setSuggestedCompetitors] = useState<string[]>(
+    []
+  );
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; orgId: string | null }>({
     open: false,
@@ -126,6 +130,51 @@ const Organizations = () => {
       console.error("Error fetching countries:", error);
     }
   };
+
+  const fetchCompetitorSuggestions = async (
+    industry: string,
+    country: string
+  ) => {
+    if (!industry || !country) {
+      setSuggestedCompetitors([]);
+      return;
+    }
+    try {
+      setSuggestionsLoading(true);
+      const res = await axios.get(
+        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/competitors/suggest",
+        {
+          params: {
+            industry,
+            country,
+            // optional: send current keywords to improve suggestions
+            keywords: formData.keywords?.join(",") || "",
+          },
+        }
+      );
+      const names: string[] = Array.isArray(res.data) ? res.data : [];
+      // de-dupe against already added competitors
+      const clean = names
+        .filter((n) => !!n && typeof n === "string")
+        .filter(
+          (n) =>
+            !formData.competitors.some(
+              (c) => c.toLowerCase() === n.toLowerCase()
+            )
+        );
+      setSuggestedCompetitors(clean.slice(0, 15));
+    } catch (e) {
+      console.error("competitor suggestions error:", e);
+      setSuggestedCompetitors([]);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompetitorSuggestions(formData.industry, formData.country);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.industry, formData.country]);
 
   const fetchOrganizations = async () => {
     try {
@@ -208,10 +257,12 @@ const Organizations = () => {
     }
   };
 
-  const handleRemoveCompetitor = (competitor: string) => {
+  const removeCompetitor = (c: string) => {
     setFormData((prev) => ({
       ...prev,
-      competitors: prev.competitors.filter((c) => c !== competitor),
+      competitors: prev.competitors.filter(
+        (x) => x.toLowerCase().trim() !== c.toLowerCase().trim()
+      ),
     }));
   };
 
@@ -285,6 +336,32 @@ const Organizations = () => {
     }
   };
 
+  const addCompetitor = () => {
+    const trimmed = competitorInput.trim();
+
+    // prevent empty input
+    if (!trimmed) return;
+
+    // prevent duplicates (case-insensitive)
+    const alreadyExists = formData.competitors.some(
+      (c) => c.toLowerCase().trim() === trimmed.toLowerCase()
+    );
+    if (alreadyExists) {
+      toast.warning("Competitor already added.");
+      return;
+    }
+
+    // add competitor
+    setFormData((prev) => ({
+      ...prev,
+      competitors: [...prev.competitors, trimmed],
+    }));
+
+    // clear input
+    setCompetitorInput("");
+  };
+
+
   const handleEdit = (org: Organization) => {
     setFormData({
       organizationName: org.organizationName,
@@ -356,7 +433,12 @@ const Organizations = () => {
             <h1 className="text-3xl font-bold">Organizations</h1>
             <p className="text-muted-foreground">Manage all organizations</p>
           </div>
-          <Button onClick={() => { resetForm(); setModalOpen(true); }}>
+          <Button
+            onClick={() => {
+              resetForm();
+              setModalOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Organization
           </Button>
@@ -391,18 +473,31 @@ const Organizations = () => {
                         <TableCell>{org.industry}</TableCell>
                         <TableCell>{org.country}</TableCell>
                         <TableCell>
-                          <Badge variant={org.status === "active" ? "default" : "secondary"}>
+                          <Badge
+                            variant={
+                              org.status === "active" ? "default" : "secondary"
+                            }
+                          >
                             {org.status || "Active"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(org)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(org)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDeleteDialog({ open: true, orgId: org._id || null })}
+                            onClick={() =>
+                              setDeleteDialog({
+                                open: true,
+                                orgId: org._id || null,
+                              })
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -411,7 +506,10 @@ const Organizations = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-muted-foreground"
+                      >
                         No organizations found
                       </TableCell>
                     </TableRow>
@@ -424,12 +522,16 @@ const Organizations = () => {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}>
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ open, orgId: null })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Organization</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this organization? This action cannot be undone.
+              Are you sure you want to delete this organization? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -440,18 +542,24 @@ const Organizations = () => {
       </AlertDialog>
 
       {/* Create/Edit Organization Modal */}
-      <Dialog open={modalOpen} onOpenChange={(open) => {
-        setModalOpen(open);
-        if (!open) resetForm();
-      }}>
+      <Dialog
+        open={modalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) resetForm();
+        }}
+      >
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0">
           <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle>{editingOrg ? "Edit Organization" : "Create Organization"}</DialogTitle>
+            <DialogTitle>
+              {editingOrg ? "Edit Organization" : "Create Organization"}
+            </DialogTitle>
             <DialogDescription>
-              Fill in the organization details below. Fields marked with * are required.
+              Fill in the organization details below. Fields marked with * are
+              required.
             </DialogDescription>
           </DialogHeader>
-          
+
           <ScrollArea className="max-h-[calc(90vh-120px)] px-6">
             <form onSubmit={handleSubmit} className="space-y-4 pb-6">
               {/* Company Name */}
@@ -462,7 +570,9 @@ const Organizations = () => {
                 <Input
                   id="organizationName"
                   value={formData.organizationName}
-                  onChange={(e) => handleChange("organizationName", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("organizationName", e.target.value)
+                  }
                   required
                 />
               </div>
@@ -548,7 +658,9 @@ const Organizations = () => {
                     id="phoneNumber"
                     type="tel"
                     value={formData.phoneNumber}
-                    onChange={(e) => handleChange("phoneNumber", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("phoneNumber", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -557,10 +669,12 @@ const Organizations = () => {
               {/* Branding Section */}
               <div className="space-y-3 border rounded-lg p-4 bg-muted/50">
                 <h3 className="font-semibold">Branding</h3>
-                
+
                 {/* Logo Upload */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="logo">Organization Logo (PNG recommended)</Label>
+                  <Label htmlFor="logo">
+                    Organization Logo (PNG recommended)
+                  </Label>
                   <Input
                     id="logo"
                     type="file"
@@ -568,13 +682,13 @@ const Organizations = () => {
                     onChange={handleLogoChange}
                   />
                   {previewSrc && (
-                    <div 
+                    <div
                       className="mt-2 w-24 h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-background"
                       style={{ borderColor: formData.accentColor }}
                     >
-                      <img 
-                        src={previewSrc} 
-                        alt="Logo preview" 
+                      <img
+                        src={previewSrc}
+                        alt="Logo preview"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -589,16 +703,26 @@ const Organizations = () => {
                       type="button"
                       className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
                       style={{ background: formData.gradientTop }}
-                      onClick={() => document.getElementById(gradTopId)?.click()}
+                      onClick={() =>
+                        document.getElementById(gradTopId)?.click()
+                      }
                       title={`Top: ${formData.gradientTop}`}
                     >
-                      <SlidersHorizontal size={16} className="text-white drop-shadow" />
+                      <SlidersHorizontal
+                        size={16}
+                        className="text-white drop-shadow"
+                      />
                     </button>
                     <input
                       id={gradTopId}
                       type="color"
                       value={formData.gradientTop}
-                      onChange={(e) => handleChange("gradientTop", e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        handleChange(
+                          "gradientTop",
+                          e.target.value.toUpperCase()
+                        )
+                      }
                       className="sr-only"
                     />
 
@@ -606,20 +730,30 @@ const Organizations = () => {
                       type="button"
                       className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
                       style={{ background: formData.gradientBottom }}
-                      onClick={() => document.getElementById(gradBottomId)?.click()}
+                      onClick={() =>
+                        document.getElementById(gradBottomId)?.click()
+                      }
                       title={`Bottom: ${formData.gradientBottom}`}
                     >
-                      <SlidersHorizontal size={16} className="text-white drop-shadow" />
+                      <SlidersHorizontal
+                        size={16}
+                        className="text-white drop-shadow"
+                      />
                     </button>
                     <input
                       id={gradBottomId}
                       type="color"
                       value={formData.gradientBottom}
-                      onChange={(e) => handleChange("gradientBottom", e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        handleChange(
+                          "gradientBottom",
+                          e.target.value.toUpperCase()
+                        )
+                      }
                       className="sr-only"
                     />
 
-                    <button
+                    {/* <button
                       type="button"
                       className="w-12 h-12 rounded border flex items-center justify-center cursor-pointer"
                       style={{ background: formData.accentColor }}
@@ -634,10 +768,12 @@ const Organizations = () => {
                       value={formData.accentColor}
                       onChange={(e) => handleChange("accentColor", e.target.value.toUpperCase())}
                       className="sr-only"
-                    />
+                    /> */}
                   </div>
-                  <p className="text-xs text-muted-foreground">Style: Linear 180°</p>
-                  
+                  <p className="text-xs text-muted-foreground">
+                    Style: Linear 180°
+                  </p>
+
                   {/* Gradient Preview */}
                   <div
                     className="w-full h-20 rounded"
@@ -645,7 +781,9 @@ const Organizations = () => {
                       background: `linear-gradient(180deg, ${formData.gradientTop} 0%, ${formData.gradientBottom} 100%)`,
                     }}
                   />
-                  <p className="text-xs text-muted-foreground">*Will be used to style the report cover.</p>
+                  <p className="text-xs text-muted-foreground">
+                    *Will be used to style the report cover.
+                  </p>
                 </div>
               </div>
 
@@ -671,7 +809,9 @@ const Organizations = () => {
                       type="url"
                       placeholder="https://"
                       value={formData.facebookUrl}
-                      onChange={(e) => handleChange("facebookUrl", e.target.value)}
+                      onChange={(e) =>
+                        handleChange("facebookUrl", e.target.value)
+                      }
                     />
                   </div>
 
@@ -682,7 +822,9 @@ const Organizations = () => {
                       type="url"
                       placeholder="https://"
                       value={formData.linkedinUrl}
-                      onChange={(e) => handleChange("linkedinUrl", e.target.value)}
+                      onChange={(e) =>
+                        handleChange("linkedinUrl", e.target.value)
+                      }
                     />
                   </div>
 
@@ -739,44 +881,122 @@ const Organizations = () => {
               </div>
 
               {/* Competitors */}
-              <div className="space-y-1.5">
-                <Label>
-                  Competitors <span className="text-destructive">*</span>
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type a competitor and press Enter"
-                    value={competitorInput}
-                    onChange={(e) => setCompetitorInput(e.target.value)}
-                    onKeyDown={handleCompetitorKeyDown}
-                  />
-                  <Button type="button" onClick={handleAddCompetitor} size="sm">
-                    Add
-                  </Button>
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="font-medium">
+                    Suggested Competitors{" "}
+                    <span className="text-red-500">*</span>
+                  </span>
+                </label>
+
+                {/* Suggested competitor chips */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {fetchCompetitorSuggestions.length > 0 ? (
+                    fetchCompetitorSuggestions.map((competitor, idx) => {
+                      const isSelected = formData.competitors.some(
+                        (c) =>
+                          c.toLowerCase().trim() ===
+                          competitor.toLowerCase().trim()
+                      );
+
+                      return (
+                        <span
+                          key={idx}
+                          className={`px-3 py-1 rounded-full cursor-pointer text-sm border 
+              ${
+                isSelected
+                  ? "bg-primary text-white border-primary"
+                  : "bg-muted border"
+              }`}
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              competitors: isSelected
+                                ? prev.competitors.filter(
+                                    (c) =>
+                                      c.toLowerCase().trim() !==
+                                      competitor.toLowerCase().trim()
+                                  )
+                                : [...prev.competitors, competitor],
+                            }));
+                          }}
+                        >
+                          {competitor}
+
+                          {isSelected && (
+                            <button
+                              type="button"
+                              className="ml-2 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeCompetitor(competitor);
+                              }}
+                            >
+                              &times;
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Select Industry and Country to see competitor suggestions.
+                    </p>
+                  )}
                 </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.competitors.map((competitor, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
-                    >
-                      {competitor}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCompetitor(competitor)}
-                        className="hover:text-destructive"
+
+                {/* Manual add competitor */}
+                <label className="block">
+                  <span className="font-medium">Add Competitor</span>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      type="text"
+                      value={competitorInput}
+                      onChange={(e) => setCompetitorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCompetitor();
+                        }
+                      }}
+                      placeholder="Type a name and press Enter"
+                    />
+                    <Button type="button" onClick={addCompetitor}>
+                      Add
+                    </Button>
+                  </div>
+                </label>
+
+                {/* Selected competitor chips */}
+                {formData.competitors.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.competitors.map((c, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm flex items-center gap-1"
                       >
-                        <X size={14} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                        {c}
+                        <button
+                          type="button"
+                          onClick={() => removeCompetitor(c)}
+                          className="hover:text-red-500"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : editingOrg ? "Update Organization" : "Create Organization"}
+                  {saving
+                    ? "Saving..."
+                    : editingOrg
+                    ? "Update Organization"
+                    : "Create Organization"}
                 </Button>
                 <Button
                   type="button"

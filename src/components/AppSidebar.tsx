@@ -48,6 +48,9 @@ const mediaItems = [
   { title: "Online Media", icon: Globe, url: "/media/online" },
   { title: "Print Media", icon: Newspaper, url: "/media/print" },
   { title: "Social Media", icon: MessageCircle, url: "/media/social" },
+];
+
+const mediaSources = [
   { title: "Media Sources", icon: Paperclip, url: "/media/sources" },
 ];
 
@@ -88,6 +91,13 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
   ];
 
   const isActive = (path: string) => location.pathname.includes(path);
+
+  const managementItems =
+    user.role === "super_admin"
+      ? userItems 
+      : user.role === "org_admin"
+      ? userItems.filter((item) => item.title === "Settings") 
+      : [];
 
   const getNavClassName = (url: string) => {
     const active = isActive(url);
@@ -223,6 +233,23 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
+              {user.role === "super_admin" && (
+                <SidebarMenu>
+                  {mediaSources.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={orgId ? `${item.url}/${orgId}` : item.url}
+                          className={getNavClassName(item.url)}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -249,28 +276,30 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
         )}
 
         {/* User Management */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider px-2">
-            Management
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {userItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={orgId ? `${item.url}/${orgId}` : "/"}
-                      className={getNavClassName(item.url)}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {managementItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-xs font-normal text-muted-foreground/70 uppercase tracking-wider px-2">
+              Management
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {managementItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={orgId ? `${item.url}/${orgId}` : item.url}
+                        className={getNavClassName(item.url)}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="border-0 p-6">
         <SidebarMenu>

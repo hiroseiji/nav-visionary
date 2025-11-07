@@ -21,8 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, FileText, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, FileText, Plus, Minus, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import {
   Tooltip,
@@ -54,8 +53,7 @@ export default function Reports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleReports, setVisibleReports] = useState(20);
   const [dateSortOrder, setDateSortOrder] = useState<
     "ascending" | "descending"
   >("descending");
@@ -63,6 +61,9 @@ export default function Reports() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightedReportId = searchParams.get("highlight");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20); // backend default
+  const [totalReports, setTotalReports] = useState(0);
   const rowRefs = useRef<Record<string, HTMLTableRowElement>>({});
 
   // typed read from localStorage (avoid implicit any)
@@ -76,69 +77,55 @@ export default function Reports() {
   const selectedOrg = localStorage.getItem("selectedOrg");
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
+    if (user) {
+      fetchReports(1);
     }
+  }, [user, selectedOrg]);
 
-    const fetchReports = async () => {
-      setLoading(true);
-      try {
-        const orgId =
-          user.role === "super_admin" ? selectedOrg : user.organizationId;
-        if (!orgId) {
-          toast.error("Organization ID not found");
-          setReports([]);
-          return;
-        }
+  const fetchReports = async (pageNum = 1) => {
+    setLoading(true);
 
-        // Don't assume array vs paginated object
-        const res = await axios.get(
-          `${API_BASE}/reports/generated-reports2/${orgId}?t=${Date.now()}`
-        );
+    try {
+      const orgId =
+        user?.role === "super_admin" ? selectedOrg : user?.organizationId;
 
-        const data = res.data as unknown;
-        const list: Report[] = Array.isArray(data)
-          ? (data as Report[])
-          : Array.isArray((data as { items?: unknown })?.items)
-          ? ((data as { items: unknown }).items as Report[]) ?? []
-          : [];
-
-        setReports(list);
-      } catch (err: unknown) {
-        if (isAxiosError(err)) {
-          console.error(
-            "Failed to fetch reports:",
-            err.response?.status,
-            err.message
-          );
-        } else {
-          console.error("Failed to fetch reports:", err);
-        }
-        toast.error("Failed to load generated reports.");
-      } finally {
-        setLoading(false);
+      if (!orgId) {
+        toast.error("Organization ID not found");
+        return;
       }
-    };
 
-    fetchReports();
-  }, [user, selectedOrg, navigate]);
+      const res = await axios.get(
+        `${API_BASE}/reports/generated-reports2/${orgId}?page=${pageNum}&limit=${limit}`
+      );
 
+      const { items, total } = res.data;
+
+      if (pageNum === 1) {
+        // first load replaces everything
+        setReports(items);
+      } else {
+        // next pages append
+        setReports((prev) => [...prev, ...items]);
+      }
+
+      setTotalReports(total);
+      setPage(pageNum);
+    } catch (err) {
+      console.error("Failed to fetch reports:", err);
+      toast.error("Failed to load generated reports.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const baseList = searchQuery ? filteredReports : reports;
   const safeList = Array.isArray(baseList) ? baseList : [];
 
-  const sortedReports = [...safeList].sort((a, b) => {
+  const displayedReports = [...safeList].sort((a, b) => {
     const da = new Date(a.createdAt ?? a.created_at ?? 0).getTime();
     const db = new Date(b.createdAt ?? b.created_at ?? 0).getTime();
     return dateSortOrder === "ascending" ? da - db : db - da;
   });
-
-  const totalPages = itemsPerPage === 0 ? 1 : Math.ceil(sortedReports.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = itemsPerPage === 0 ? sortedReports.length : startIndex + itemsPerPage;
-  const displayedReports = itemsPerPage === 0 ? sortedReports : sortedReports.slice(startIndex, endIndex);
-
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -164,7 +151,7 @@ export default function Reports() {
     );
 
     setFilteredReports(filtered);
-    setCurrentPage(1);
+    setVisibleReports(20);
   };
 
   const formatModules = (modules: string[] | Record<string, boolean>) => {
@@ -319,12 +306,12 @@ export default function Reports() {
                                   user?.role === "super_admin"
                                     ? selectedOrg
                                     : user?.organizationId;
-                                
+
                                 if (!orgId) {
                                   toast.error("Organization ID not found");
                                   return;
                                 }
-                                
+
                                 navigate(`/report/${orgId}/${report._id}`);
                               }}
                             >
@@ -338,56 +325,34 @@ export default function Reports() {
                   </Table>
                 </div>
 
-                <div className="flex items-center justify-between px-2 py-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Show:</span>
-                    <Select
-                      value={itemsPerPage.toString()}
-                      onValueChange={(value) => {
-                        setItemsPerPage(Number(value));
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                        <SelectItem value="0">All</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <span className="text-sm text-muted-foreground">
-                      {itemsPerPage === 0
-                        ? `Showing all ${sortedReports.length} reports`
-                        : `Showing ${startIndex + 1}-${Math.min(endIndex, sortedReports.length)} of ${sortedReports.length}`}
-                    </span>
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {reports.length} of {totalReports} reports
+                  </p>
+                  <div className="flex gap-2">
+                    {visibleReports > 20 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setVisibleReports((prev) => Math.max(prev - 20, 20))
+                        }
+                      >
+                        <Minus className="h-4 w-4 mr-2" />
+                        Show Less
+                      </Button>
+                    )}
+                    {reports.length < totalReports && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchReports(page + 1)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Show More
+                      </Button>
+                    )}
                   </div>
-
-                  {itemsPerPage !== 0 && totalPages > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </>
             )}

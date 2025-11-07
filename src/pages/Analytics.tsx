@@ -2,14 +2,31 @@ import { useEffect, useState, useMemo, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileText, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CreateReportDialog } from "@/components/CreateReportDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import MapboxGeoCoverageMap from "@/components/MapboxGeoCoverageMap";
 import { Doughnut, Bar, Chart } from "react-chartjs-2";
 import {
@@ -28,6 +45,7 @@ import {
 import { ThemeContext } from "@/components/ThemeContext";
 import WordCloud from "react-wordcloud";
 import {
+  ContentTypeUI,
   generateOverYearsBarData,
   generateCountOverTimeChartData,
   generateTopJournalistChartData,
@@ -85,6 +103,7 @@ interface FacebookPost {
   source?: string;
   date?: string;
   createdAt?: string;
+  country?: string;
   reach?: number;
   [key: string]: unknown;
 }
@@ -162,43 +181,61 @@ interface ChartTooltipItem {
   };
 }
 
+type ContentType = "posts" | "articles" | "broadcast" | "printMedia";
+
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
-  const [contentType, setContentType] = useState("posts");
+  const [contentType, setContentType] = useState<ContentType>("posts");
   const [granularity, setGranularity] = useState("month");
   const [totalArticles, setTotalArticles] = useState(0);
   const [monthlyMentions, setMonthlyMentions] = useState(0);
   const [totalTopics, setTotalTopics] = useState(4);
   const [totalKeywords, setTotalKeywords] = useState(0);
   const [showCreateReport, setShowCreateReport] = useState(false);
-  const [organizationData, setOrganizationData] = useState<Organization | null>(null);
+  const [organizationData, setOrganizationData] = useState<Organization | null>(
+    null
+  );
   const [articles, setArticles] = useState<MediaArticle[]>([]);
   const [facebookPosts, setFacebookPosts] = useState<FacebookPost[]>([]);
-  const [broadcastArticles, setBroadcastArticles] = useState<MediaArticle[]>([]);
+  const [broadcastArticles, setBroadcastArticles] = useState<MediaArticle[]>(
+    []
+  );
   const [printArticles, setPrintArticles] = useState<MediaArticle[]>([]);
-  const [countOverTimeData, setCountOverTimeData] = useState<CountOverTimeItem[]>([]);
-  const [broadcastOverTimeData, setBroadcastOverTimeData] = useState<CountOverTimeItem[]>([]);
-  const [printOverTimeData, setPrintOverTimeData] = useState<CountOverTimeItem[]>([]);
-  const [keywordDistribution, setKeywordDistribution] = useState<KeywordDistribution>({});
-  const [wordCloudData, setWordCloudData] = useState<WordCloudData | null>(null);
-  const [geoCountryCounts, setGeoCountryCounts] = useState<Record<string, number>>({});
-  const [journalistChart, setJournalistChart] = useState<JournalistChartData | null>(null);
-  const [broadcastInsightsData, setBroadcastInsightsData] = useState<BroadcastInsightData | null>(null);
+  const [countOverTimeData, setCountOverTimeData] = useState<
+    CountOverTimeItem[]
+  >([]);
+  const [broadcastOverTimeData, setBroadcastOverTimeData] = useState<
+    CountOverTimeItem[]
+  >([]);
+  const [printOverTimeData, setPrintOverTimeData] = useState<
+    CountOverTimeItem[]
+  >([]);
+  const [keywordDistribution, setKeywordDistribution] =
+    useState<KeywordDistribution>({});
+  const [wordCloudData, setWordCloudData] = useState<WordCloudData | null>(
+    null
+  );
+  const [geoCountryCounts, setGeoCountryCounts] = useState<
+    Record<string, number>
+  >({});
+  const [journalistChart, setJournalistChart] =
+    useState<JournalistChartData | null>(null);
+  const [broadcastInsightsData, setBroadcastInsightsData] =
+    useState<BroadcastInsightData | null>(null);
   const [otherStations, setOtherStations] = useState<StationData[]>([]);
   const [otherStationNames, setOtherStationNames] = useState<string[]>([]);
   const [otherPrintSources, setOtherPrintSources] = useState<string[]>([]);
   const [otherOnlineSources, setOtherOnlineSources] = useState<string[]>([]);
-  
+
   const navigate = useNavigate();
   const { theme } = useContext(ThemeContext);
 
   const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
   const selectedOrg = localStorage.getItem("selectedOrg");
-  const orgId = user?.role === "super_admin" ? selectedOrg : user?.organizationId;
+  const orgId =
+    user?.role === "super_admin" ? selectedOrg : user?.organizationId;
 
-  const normalizedContentType = useMemo(() => {
-    return contentType === "printMedia" ? "print" : contentType;
-  }, [contentType]);
+  const normalizedContentType = contentType;
 
   const pastelColors = useMemo(
     () => [
@@ -241,12 +278,17 @@ export default function Analytics() {
         const orgResponse = await axios.get(orgUrl);
         setOrganizationData(orgResponse.data);
 
-        const [articlesRes, postsRes, broadcastRes, printRes] = await Promise.allSettled([
-          axios.get(`${orgUrl}/articles`),
-          axios.get(`${orgUrl}/posts`),
-          axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${selectedOrg}/broadcastMedia`),
-          axios.get(`https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${selectedOrg}/printMedia`),
-        ]);
+        const [articlesRes, postsRes, broadcastRes, printRes] =
+          await Promise.allSettled([
+            axios.get(`${orgUrl}/articles`),
+            axios.get(`${orgUrl}/posts`),
+            axios.get(
+              `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${selectedOrg}/broadcastMedia`
+            ),
+            axios.get(
+              `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/organizations/${selectedOrg}/printMedia`
+            ),
+          ]);
 
         if (articlesRes.status === "fulfilled") {
           setArticles(articlesRes.value.data.articles || []);
@@ -271,6 +313,45 @@ export default function Analytics() {
 
     fetchData();
   }, [selectedOrg, navigate]);
+
+  useEffect(() => {
+    type GeoItem = {
+      country?: string;
+      location?: string;
+      geo?: string;
+    };
+
+    let sourceData: GeoItem[] = [];
+
+    if (contentType === "posts") {
+      sourceData = facebookPosts;
+    } else if (contentType === "articles") {
+      sourceData = articles;
+    } else if (contentType === "broadcast") {
+      sourceData = broadcastArticles;
+    } else if (contentType === "printMedia") {
+      sourceData = printArticles;
+    }
+
+    const counts = sourceData.reduce<Record<string, number>>((acc, item) => {
+      const rawCountry = item.country ?? item.location ?? item.geo;
+      if (!rawCountry) return acc;
+
+      const formattedCountry = rawCountry
+        .trim()
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      acc[formattedCountry] = (acc[formattedCountry] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    console.log("Geo Coverage Counts:", counts);
+    setGeoCountryCounts(counts);
+  }, [contentType, facebookPosts, articles, broadcastArticles, printArticles]);
+
 
   // Fetch count over time
   useEffect(() => {
@@ -493,7 +574,10 @@ export default function Analytics() {
   // Process keyword distribution
   useEffect(() => {
     if (articles.length > 0) {
-      const keywordMap: Record<string, { count: number; sources: Set<string> }> = {};
+      const keywordMap: Record<
+        string,
+        { count: number; sources: Set<string> }
+      > = {};
 
       articles.forEach((article) => {
         article.matched_keywords?.forEach((keyword: string) => {
@@ -511,7 +595,7 @@ export default function Analytics() {
       Object.keys(keywordMap).forEach((key) => {
         finalKeywordMap[key] = {
           count: keywordMap[key].count,
-          sources: Array.from(keywordMap[key].sources)
+          sources: Array.from(keywordMap[key].sources),
         };
       });
 
@@ -675,7 +759,9 @@ export default function Analytics() {
           label: function (tooltipItem: TooltipItem<"doughnut">) {
             const label = tooltipItem.label;
             const value = tooltipItem.raw;
-            return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
+            return `${label}: ${
+              typeof value === "number" ? value.toLocaleString() : value
+            }`;
           },
         },
       },
@@ -724,6 +810,9 @@ export default function Analytics() {
             }`,
         },
       },
+      datalabels: {
+        display: false,
+      },
     },
     animation: { duration: 10 },
   };
@@ -751,11 +840,16 @@ export default function Analytics() {
       tooltip: {
         callbacks: {
           label: (tooltipItem: TooltipItem<"bar" | "line">) => {
-            const label = tooltipItem.dataset.label || '';
+            const label = tooltipItem.dataset.label || "";
             const value = tooltipItem.raw;
-            return `${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`;
+            return `${label}: ${
+              typeof value === "number" ? value.toLocaleString() : value
+            }`;
           },
         },
+      },
+      datalabels: {
+        display: false,
       },
     },
     scales: {
@@ -764,7 +858,7 @@ export default function Analytics() {
           display: false,
         },
         ticks: {
-          font: { 
+          font: {
             family: "Raleway",
             size: 11,
           },
@@ -778,13 +872,13 @@ export default function Analytics() {
         categoryPercentage: 0.7,
       },
       y1: {
-        type: 'linear' as const,
+        type: "linear" as const,
         display: true,
-        position: 'left' as const,
+        position: "left" as const,
         beginAtZero: true,
-        title: { 
-          display: true, 
-          text: "Volume", 
+        title: {
+          display: true,
+          text: "Volume",
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
           font: {
             size: 12,
@@ -792,7 +886,7 @@ export default function Analytics() {
             weight: "bold" as const,
           },
         },
-        grid: { 
+        grid: {
           color: "rgba(200, 200, 200, 0.2)",
           drawOnChartArea: true,
         },
@@ -805,13 +899,13 @@ export default function Analytics() {
         },
       },
       y2: {
-        type: 'linear' as const,
+        type: "linear" as const,
         display: true,
         position: "right" as const,
         beginAtZero: true,
-        title: { 
-          display: true, 
-          text: "Reach / AVE", 
+        title: {
+          display: true,
+          text: "Reach / AVE",
           color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
           font: {
             size: 12,
@@ -819,7 +913,7 @@ export default function Analytics() {
             weight: "bold" as const,
           },
         },
-        grid: { 
+        grid: {
           drawOnChartArea: false,
         },
         ticks: {
@@ -851,13 +945,12 @@ export default function Analytics() {
       "Dec",
     ],
     datasets: generateOverYearsBarData(
-      normalizedContentType,
+      contentType,
       facebookPosts,
       articles,
       broadcastArticles,
       broadcastOverTimeData,
-      printArticles,
-      printOverTimeData
+      printArticles
     ),
   };
 
@@ -882,14 +975,17 @@ export default function Analytics() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
+            <Button
               onClick={() => setShowCreateReport(true)}
               className="bg-[#1e40af] hover:bg-[#1e3a8a] text-white px-6 py-2.5 h-auto rounded-xl font-medium shadow-sm"
             >
               <FileText className="h-4 w-4 mr-2" />
               Create Report
             </Button>
-            <Select value={contentType} onValueChange={setContentType}>
+            <Select
+              value={contentType}
+              onValueChange={(v: ContentType) => setContentType(v)}
+            >
               <SelectTrigger className="w-[180px] bg-background border-input rounded-xl h-auto py-2.5 px-4 font-medium">
                 <SelectValue placeholder="Select content type" />
               </SelectTrigger>
@@ -900,7 +996,7 @@ export default function Analytics() {
                 <SelectItem value="printMedia">Print</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={granularity} onValueChange={setGranularity}>
+            {/* <Select value={granularity} onValueChange={setGranularity}>
               <SelectTrigger className="w-[140px] bg-background border-input rounded-xl h-auto py-2.5 px-4 font-medium">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
@@ -909,7 +1005,7 @@ export default function Analytics() {
                 <SelectItem value="week">Weekly</SelectItem>
                 <SelectItem value="month">Monthly</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </div>
 
@@ -991,14 +1087,16 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="flex flex-wrap gap-2 pt-2">
-                {["Online", "Broadcast", "Social", "Print"].slice(0, totalTopics).map((type, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
-                  >
-                    {type}
-                  </span>
-                ))}
+                {["Online", "Broadcast", "Social", "Print"]
+                  .slice(0, totalTopics)
+                  .map((type, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
+                    >
+                      {type}
+                    </span>
+                  ))}
               </div>
             </div>
 
@@ -1017,7 +1115,9 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-6xl font-bold">{totalKeywords.toLocaleString()}</p>
+                <p className="text-6xl font-bold">
+                  {totalKeywords.toLocaleString()}
+                </p>
                 <div className="flex items-center gap-2">
                   <div className="rounded-md p-1.5 bg-muted">
                     <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1046,9 +1146,12 @@ export default function Analytics() {
               <CardHeader>
                 <CardTitle>
                   {contentType === "posts" && "Social Posts Over the Years"}
-                  {contentType === "articles" && "Online Articles Over the Years"}
-                  {contentType === "broadcast" && "Broadcast Mentions Over the Years"}
-                  {contentType === "printMedia" && "Print Media Articles Over the Years"}
+                  {contentType === "articles" &&
+                    "Online Articles Over the Years"}
+                  {contentType === "broadcast" &&
+                    "Broadcast Mentions Over the Years"}
+                  {contentType === "printMedia" &&
+                    "Print Media Articles Over the Years"}
                 </CardTitle>
                 <CardDescription>
                   Historical trend of mentions over the past years
@@ -1060,122 +1163,136 @@ export default function Analytics() {
             </Card>
 
             {/* Content Volume Chart or Journalist Chart */}
-            {contentType === "printMedia" ? (
-              journalistChart && journalistChart.labels?.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top 15 Journalists by Volume and Tonality</CardTitle>
-                    <CardDescription>
-                      Print media journalists ranked by article count
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-96">
-                    <Bar
-                      data={{
-                        ...journalistChart,
-                        labels: journalistChart.labels.map((l: string) =>
-                          l === "0" || l.trim() === "" ? "Unknown" : l
-                        ),
-                      }}
-                      options={{
-                        indexAxis: "x",
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: "top",
-                            labels: {
-                              font: { family: "Raleway" },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              usePointStyle: true,
-                              pointStyle: "circle",
-                            },
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: (tooltipItem: TooltipItem<"bar">) =>
-                                `${tooltipItem.dataset.label}: ${typeof tooltipItem.raw === 'number' ? tooltipItem.raw.toLocaleString() : tooltipItem.raw}`,
-                            },
-                          },
-                        },
-                        scales: {
-                          x: {
-                            stacked: false,
-                            title: {
-                              display: true,
-                              text: "Journalist",
-                              font: {
-                                family: "Raleway",
-                                size: 14,
-                                weight: "bold",
+            {contentType === "printMedia"
+              ? journalistChart &&
+                journalistChart.labels?.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        Top 15 Journalists by Volume and Tonality
+                      </CardTitle>
+                      <CardDescription>
+                        Print media journalists ranked by article count
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-96">
+                      <Bar
+                        data={{
+                          ...journalistChart,
+                          labels: journalistChart.labels.map((l: string) =>
+                            l === "0" || l.trim() === "" ? "Unknown" : l
+                          ),
+                        }}
+                        options={{
+                          indexAxis: "x",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: "top",
+                              labels: {
+                                font: { family: "Raleway" },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                                usePointStyle: true,
+                                pointStyle: "circle",
                               },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
                             },
-                            ticks: {
-                              font: {
-                                family: "Raleway",
-                                size: 13,
-                                weight: "normal",
+                            tooltip: {
+                              callbacks: {
+                                label: (tooltipItem: TooltipItem<"bar">) =>
+                                  `${tooltipItem.dataset.label}: ${
+                                    typeof tooltipItem.raw === "number"
+                                      ? tooltipItem.raw.toLocaleString()
+                                      : tooltipItem.raw
+                                  }`,
                               },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
                             },
-                            grid: {
-                              color: "rgba(200, 200, 200, 0.2)",
-                              display: true,
+                            datalabels: {
+                              display: false,
                             },
                           },
-                          y: {
-                            stacked: false,
-                            title: {
-                              display: true,
-                              text: "Number of Articles",
-                              font: {
-                                family: "Raleway",
-                                size: 14,
-                                weight: "bold",
+                          scales: {
+                            x: {
+                              stacked: false,
+                              title: {
+                                display: true,
+                                text: "Journalist",
+                                font: {
+                                  family: "Raleway",
+                                  size: 14,
+                                  weight: "bold",
+                                },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
                               },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              ticks: {
+                                font: {
+                                  family: "Raleway",
+                                  size: 13,
+                                  weight: "normal",
+                                },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              grid: {
+                                color: "rgba(200, 200, 200, 0.2)",
+                                display: true,
+                              },
                             },
-                            ticks: {
-                              stepSize: 1,
-                              font: { family: "Raleway" },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            },
-                            grid: {
-                              color: "rgba(200, 200, 200, 0.2)",
-                              display: true,
+                            y: {
+                              stacked: false,
+                              title: {
+                                display: true,
+                                text: "Number of Articles",
+                                font: {
+                                  family: "Raleway",
+                                  size: 14,
+                                  weight: "bold",
+                                },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              ticks: {
+                                stepSize: 1,
+                                font: { family: "Raleway" },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              grid: {
+                                color: "rgba(200, 200, 200, 0.2)",
+                                display: true,
+                              },
                             },
                           },
-                        },
-                        animation: { duration: 1000 },
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-              )
-            ) : (
-              countOverTimeData.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Content Volume per Reach & AVE</CardTitle>
-                    <CardDescription>
-                      Tracking media content volume over time with reach and AVE metrics
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-96">
-                    <Chart
-                      type="bar"
-                      data={generateCountOverTimeChartData(
-                        countOverTimeData,
-                        normalizedContentType,
-                        granularity
-                      )}
-                      options={chartOptions}
-                    />
-                  </CardContent>
-                </Card>
-              )
-            )}
+                          animation: { duration: 1000 },
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                )
+              : countOverTimeData.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Content Volume per Reach & AVE</CardTitle>
+                      <CardDescription>
+                        Tracking media content volume over time with reach and
+                        AVE metrics
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-96">
+                      <Chart
+                        type="bar"
+                        data={generateCountOverTimeChartData(
+                          countOverTimeData,
+                          contentType, // or normalizedContentType, both fine
+                          granularity as "day" | "week" | "month" | "year"
+                        )}
+                        options={chartOptions}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
           </TabsContent>
 
           <TabsContent value="keywords" className="space-y-6">
@@ -1221,8 +1338,10 @@ export default function Analytics() {
                 <CardTitle>
                   {contentType === "posts" && "Mentions Composition by Source"}
                   {contentType === "articles" && "Top Keyword Trends Online"}
-                  {contentType === "printMedia" && "Print Media Mentions by News Source"}
-                  {contentType === "broadcast" && "Sentiment Breakdown by Station"}
+                  {contentType === "printMedia" &&
+                    "Print Media Mentions by News Source"}
+                  {contentType === "broadcast" &&
+                    "Sentiment Breakdown by Station"}
                 </CardTitle>
                 <CardDescription>
                   Distribution of mentions across different sources
@@ -1231,7 +1350,9 @@ export default function Analytics() {
               <CardContent className="h-96">
                 {contentType === "broadcast" ? (
                   broadcastInsightsData?.datasets?.length &&
-                  broadcastInsightsData?.datasets[0]?.data?.some((v: number) => v > 0) ? (
+                  broadcastInsightsData?.datasets[0]?.data?.some(
+                    (v: number) => v > 0
+                  ) ? (
                     <Bar
                       data={broadcastInsightsData}
                       options={{
@@ -1243,17 +1364,27 @@ export default function Analytics() {
                             position: "top",
                             labels: {
                               font: { family: "Raleway" },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
                               usePointStyle: true,
                               pointStyle: "circle",
                             },
                           },
                           tooltip: {
                             callbacks: {
-                              label: function (tooltipItem: TooltipItem<"bar">) {
-                                return `${tooltipItem.dataset.label}: ${typeof tooltipItem.raw === 'number' ? tooltipItem.raw.toLocaleString() : tooltipItem.raw}`;
+                              label: function (
+                                tooltipItem: TooltipItem<"bar">
+                              ) {
+                                return `${tooltipItem.dataset.label}: ${
+                                  typeof tooltipItem.raw === "number"
+                                    ? tooltipItem.raw.toLocaleString()
+                                    : tooltipItem.raw
+                                }`;
                               },
                             },
+                          },
+                          datalabels: {
+                            display: false,
                           },
                         },
                         scales: {
@@ -1267,11 +1398,13 @@ export default function Analytics() {
                                 size: 14,
                                 weight: "bold",
                               },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
                             },
                             ticks: {
                               font: { family: "Raleway" },
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
                             },
                             grid: {
                               display: true,
@@ -1287,7 +1420,8 @@ export default function Analytics() {
                                 weight: "normal",
                               },
                               padding: 5,
-                              color: theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
                             },
                             grid: {
                               display: true,
@@ -1316,18 +1450,20 @@ export default function Analytics() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="geography" className="space-y-6">
+          <TabsContent value="geography" className="space-y-8">
             <Card>
               <CardHeader>
                 <CardTitle>Geographic Coverage</CardTitle>
                 <CardDescription>
-                  Distribution of mentions across different countries
+                  Distribution of mentions across different countries 
+                  ({contentType.charAt(0).toUpperCase() + contentType.slice(1)})
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <MapboxGeoCoverageMap 
-                  countryCounts={geoCountryCounts} 
+              <CardContent className="h-96">
+                <MapboxGeoCoverageMap
+                  countryCounts={geoCountryCounts}
                   showTitle={false}
+                  containerStyle={{ width: "100%", height: "100%" }}
                 />
               </CardContent>
             </Card>
@@ -1339,7 +1475,11 @@ export default function Analytics() {
             open={showCreateReport}
             onOpenChange={setShowCreateReport}
             organizationId={orgId}
-            organizationName={(organizationData as Organization | null)?.organizationName || (organizationData as Organization | null)?.name || "Organization"}
+            organizationName={
+              (organizationData as Organization | null)?.organizationName ||
+              (organizationData as Organization | null)?.name ||
+              "Organization"
+            }
             user={{
               firstName: user.firstName || "",
               lastName: user.lastName || "",

@@ -773,7 +773,7 @@ export default function OnlineMedia() {
                     <TableRow>
                       <TableHead>Source</TableHead>
                       <TableHead>Headline</TableHead>
-                      <TableHead>Summary</TableHead>
+                      {/* <TableHead>Summary</TableHead> */}
                       <TableHead>Country</TableHead>
                       <TableHead
                         className="cursor-pointer hover:bg-muted/30"
@@ -852,7 +852,7 @@ export default function OnlineMedia() {
                           </div>
                         </TableCell>
                         <TableCell>{article.title}</TableCell>
-                        <TableCell>{article.snippet}</TableCell>
+                        {/* <TableCell>{article.snippet}</TableCell> */}
                         <TableCell>{article.country}</TableCell>
                         <TableCell>
                           {article.publication_date &&

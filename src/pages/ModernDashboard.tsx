@@ -722,7 +722,7 @@ useEffect(() => {
                 onArticleUpdate={async (articleId, updatedData) => {
                   try {
                     const response = await axios.put(
-                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/broadcast/${articleId}`,
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/broadcasts/${articleId}`,
                       updatedData,
                       {
                         headers: {
@@ -799,7 +799,7 @@ useEffect(() => {
                 onArticleUpdate={async (articleId, updatedData) => {
                   try {
                     const response = await axios.put(
-                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/printmedia/${articleId}`,
+                      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrg}/printMedia/${articleId}`,
                       updatedData,
                       {
                         headers: {
@@ -898,7 +898,7 @@ useEffect(() => {
                             : post
                         )
                       );
-                      toast.success("Social post updated successfully");
+                      toast.success("Post updated successfully");
                     }
                   } catch (error) {
                     console.error("Error updating social post:", error);

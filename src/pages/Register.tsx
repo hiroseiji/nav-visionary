@@ -100,13 +100,13 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // 1️⃣ Complete registration with backend
+      //  Complete registration with backend
       await axios.post(`${API_BASE}/api/auth/complete-registration`, {
         token,
         password: formData.password
       });
 
-      // 2️⃣ Log in automatically after registration
+      //  Log in automatically after registration
       const loginResponse = await axios.post(`${API_BASE}/login`, {
         email: formData.email,
         password: formData.password
@@ -116,7 +116,7 @@ export default function Register() {
       localStorage.setItem('token', userToken);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // 3️⃣ Role-based navigation
+      //  Role-based navigation
       if (user.role === 'org_admin') {
         const orgId =
           user.organizationId ||

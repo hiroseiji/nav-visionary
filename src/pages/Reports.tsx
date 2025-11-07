@@ -21,7 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Search, FileText, Plus, Minus, ArrowUpDown } from "lucide-react";
+import { Search, FileText, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import {
   Tooltip,
@@ -53,7 +54,8 @@ export default function Reports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleReports, setVisibleReports] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
+  const [currentPage, setCurrentPage] = useState(1);
   const [dateSortOrder, setDateSortOrder] = useState<
     "ascending" | "descending"
   >("descending");
@@ -126,13 +128,16 @@ export default function Reports() {
   const baseList = searchQuery ? filteredReports : reports;
   const safeList = Array.isArray(baseList) ? baseList : [];
 
-  const displayedReports = [...safeList]
-    .sort((a, b) => {
-      const da = new Date(a.createdAt ?? a.created_at ?? 0).getTime();
-      const db = new Date(b.createdAt ?? b.created_at ?? 0).getTime();
-      return dateSortOrder === "ascending" ? da - db : db - da;
-    })
-    .slice(0, visibleReports);
+  const sortedReports = [...safeList].sort((a, b) => {
+    const da = new Date(a.createdAt ?? a.created_at ?? 0).getTime();
+    const db = new Date(b.createdAt ?? b.created_at ?? 0).getTime();
+    return dateSortOrder === "ascending" ? da - db : db - da;
+  });
+
+  const totalPages = itemsPerPage === 0 ? 1 : Math.ceil(sortedReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = itemsPerPage === 0 ? sortedReports.length : startIndex + itemsPerPage;
+  const displayedReports = itemsPerPage === 0 ? sortedReports : sortedReports.slice(startIndex, endIndex);
 
 
   const handleSearch = (query: string) => {
@@ -159,7 +164,7 @@ export default function Reports() {
     );
 
     setFilteredReports(filtered);
-    setVisibleReports(20);
+    setCurrentPage(1);
   };
 
   const formatModules = (modules: string[] | Record<string, boolean>) => {
@@ -333,43 +338,56 @@ export default function Reports() {
                   </Table>
                 </div>
 
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {displayedReports.length} of{" "}
-                    {searchQuery ? filteredReports.length : reports.length}{" "}
-                    reports
-                  </p>
-                  <div className="flex gap-2">
-                    {visibleReports > 20 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setVisibleReports((prev) => Math.max(prev - 20, 20))
-                        }
-                      >
-                        <Minus className="h-4 w-4 mr-2" />
-                        Show Less
-                      </Button>
-                    )}
-                    {visibleReports <
-                      (searchQuery
-                        ? filteredReports.length
-                        : reports.length) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setVisibleReports((prev) =>
-                            Math.min(prev + 20, reports.length)
-                          )
-                        }
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Show More
-                      </Button>
-                    )}
+                <div className="flex items-center justify-between px-2 py-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Show:</span>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="0">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">
+                      {itemsPerPage === 0
+                        ? `Showing all ${sortedReports.length} reports`
+                        : `Showing ${startIndex + 1}-${Math.min(endIndex, sortedReports.length)} of ${sortedReports.length}`}
+                    </span>
                   </div>
+
+                  {itemsPerPage !== 0 && totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </>
             )}

@@ -1,7 +1,10 @@
 import { useState, useEffect, useId } from "react";
 import axios from "axios";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { fetchCountries } from "@/utils/dashboardUtils";
+import {
+  fetchCountries,
+  fetchCompetitorsFromGooglePlaces,
+} from "@/utils/dashboardUtils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -202,10 +205,13 @@ const Organizations = () => {
     }
   };
 
-  useEffect(() => {
-    fetchCompetitorSuggestions(formData.industry, formData.country);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.industry, formData.country]);
+ useEffect(() => {
+   if (formData.industry && formData.country) {
+     fetchCompetitorSuggestions(formData.industry, formData.country);
+   }
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [formData.industry, formData.country, formData.keywords]);
+
 
   const fetchOrganizations = async () => {
     try {
@@ -247,9 +253,47 @@ const Organizations = () => {
     setEditingOrg(null);
   };
 
-  const handleChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (name: string, value: any) => {
+    let updated = { ...formData, [name]: value };
+
+    //  Handle keywords as comma-separated list (if needed)
+    if (name === "keywords" && typeof value === "string") {
+      const keywordArray = value
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
+      if (keywordArray.length <= 30) {
+        updated.keywords = keywordArray;
+      } else {
+        toast.error("You can only enter up to 30 keywords.");
+        return;
+      }
+    }
+
+    //  Handle monitoringType checkboxes
+    if (name === "monitoringType") {
+      let updatedTypes = [...formData.monitoringType];
+      if (value.checked) {
+        updatedTypes.push(value.value);
+      } else {
+        updatedTypes = updatedTypes.filter((t) => t !== value.value);
+      }
+      updated.monitoringType = updatedTypes;
+    }
+
+    //  Save formData
+    setFormData(updated);
+
+    //  Immediately refresh competitor suggestions when industry/country change
+    if (name === "industry" || name === "country") {
+      if (updated.industry && updated.country) {
+        fetchCompetitorSuggestions(updated.industry, updated.country);
+      } else {
+        setSuggestedCompetitors([]);
+      }
+    }
   };
+
 
   const handleAddKeyword = () => {
     const trimmed = keywordInput.trim();
@@ -293,13 +337,6 @@ const Organizations = () => {
         competitors: [...prev.competitors, trimmed],
       }));
       setCompetitorInput("");
-    }
-  };
-
-  const handleCompetitorKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddCompetitor();
     }
   };
 
@@ -601,7 +638,7 @@ const Organizations = () => {
           if (!open) resetForm();
         }}
       >
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0">
+        <DialogContent className="sm:max-w-[740px] max-h-[90vh] p-6">
           <DialogHeader className="px-6 pt-6 pb-2">
             <DialogTitle>
               {editingOrg ? "Edit Organization" : "Create Organization"}
@@ -954,12 +991,11 @@ const Organizations = () => {
                       return (
                         <span
                           key={idx}
-                          className={`px-3 py-1 rounded-full cursor-pointer text-sm border 
-              ${
-                isSelected
-                  ? "bg-primary text-white border-primary"
-                  : "bg-muted border"
-              }`}
+                          className={`px-3 py-1 rounded-full cursor-pointer text-sm border ${
+                            isSelected
+                              ? "bg-primary text-white border-primary"
+                              : "bg-muted border"
+                          }`}
                           onClick={() => {
                             setFormData((prev) => ({
                               ...prev,

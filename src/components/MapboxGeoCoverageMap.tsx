@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
 import type React from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { ThemeContext } from "@/components/ThemeContext";
 
 interface MapboxGeoCoverageMapProps {
   countryCounts: Record<string, number>; // e.g. { Botswana: 12, "United States": 5 }
@@ -19,6 +20,8 @@ const MapboxGeoCoverageMap = ({
 }: MapboxGeoCoverageMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === "dark";
 
   useEffect(() => {
     if (!mapContainer.current || !MAPBOX_TOKEN) return;
@@ -29,7 +32,7 @@ const MapboxGeoCoverageMap = ({
     if (!mapRef.current) {
       const map = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/light-v11",
+        style: isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11",
         projection: { name: "globe" },
         zoom: 1.5,
         center: [20, 0],
@@ -49,7 +52,7 @@ const MapboxGeoCoverageMap = ({
           },
           "source-layer": "country_boundaries",
           paint: {
-            "fill-color": "hsl(0, 0%, 95%)",
+            "fill-color": isDark ? "hsl(0, 0%, 20%)" : "hsl(0, 0%, 95%)",
             "fill-opacity": 0.1,
           },
         });
@@ -64,7 +67,7 @@ const MapboxGeoCoverageMap = ({
           },
           "source-layer": "country_boundaries",
           paint: {
-            "line-color": "hsl(0, 0%, 80%)",
+            "line-color": isDark ? "hsl(0, 0%, 40%)" : "hsl(0, 0%, 80%)",
             "line-width": 0.7,
           },
         });
@@ -88,7 +91,10 @@ const MapboxGeoCoverageMap = ({
             .forEach((p) => p.remove());
 
           if (countryName && mentions > 0) {
-            new mapboxgl.Popup({ closeButton: false })
+            new mapboxgl.Popup({ 
+              closeButton: false,
+              className: isDark ? 'mapbox-popup-dark' : 'mapbox-popup-light'
+            })
               .setLngLat(e.lngLat)
               .setHTML(
                 `<strong>${countryName}</strong><br/>${mentions} mention${
@@ -125,7 +131,7 @@ const MapboxGeoCoverageMap = ({
       
       // If no data, just use default colors
       if (entries.length === 0) {
-        map.setPaintProperty("country-fills", "fill-color", "hsl(0, 0%, 95%)");
+        map.setPaintProperty("country-fills", "fill-color", isDark ? "hsl(0, 0%, 20%)" : "hsl(0, 0%, 95%)");
         map.setPaintProperty("country-fills", "fill-opacity", 0.08);
         return;
       }
@@ -150,7 +156,7 @@ const MapboxGeoCoverageMap = ({
       });
 
       // defaults
-      colorExpr.push("hsl(0, 0%, 95%)");
+      colorExpr.push(isDark ? "hsl(0, 0%, 20%)" : "hsl(0, 0%, 95%)");
       opacityExpr.push(0.08);
 
       map.setPaintProperty("country-fills", "fill-color", colorExpr);
@@ -161,10 +167,28 @@ const MapboxGeoCoverageMap = ({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [countryCounts]);
+  }, [countryCounts, isDark]);
 
   return (
     <div className="w-full h-full" style={containerStyle}>
+      <style>{`
+        .mapbox-popup-dark .mapboxgl-popup-content {
+          background-color: hsl(var(--popover)) !important;
+          color: hsl(var(--popover-foreground)) !important;
+          border: 1px solid hsl(var(--border));
+        }
+        .mapbox-popup-dark .mapboxgl-popup-tip {
+          border-top-color: hsl(var(--popover)) !important;
+        }
+        .mapbox-popup-light .mapboxgl-popup-content {
+          background-color: hsl(var(--popover)) !important;
+          color: hsl(var(--popover-foreground)) !important;
+          border: 1px solid hsl(var(--border));
+        }
+        .mapbox-popup-light .mapboxgl-popup-tip {
+          border-top-color: hsl(var(--popover)) !important;
+        }
+      `}</style>
       {showTitle && (
         <h3 className="text-lg font-semibold mb-4">Geographic Coverage</h3>
       )}

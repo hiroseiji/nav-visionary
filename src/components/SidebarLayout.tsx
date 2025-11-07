@@ -59,7 +59,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           const response = await axios.get(
             `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrgId}`
           );
-          setOrgAlias(response.data.alias || response.data.organizationName || '');
+          setOrgAlias(response.data?.organization?.alias || response.data?.alias || '');
         } catch (error) {
           console.error('Error fetching organization alias:', error);
         }

@@ -328,11 +328,16 @@ export function SentimentTrend({
                 pointHoverRadius: Math.max(3, basePointRadius * 1.8),
                 pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
+                pointBorderWidth: 0,
+                pointHoverBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
+                pointHoverBorderWidth: 0,
                 fill: {
                   target: "origin",
                   above: "rgba(11,179,123,0.08)",
                   below: "rgba(239,68,68,0.10)",
                 },
+                // @ts-expect-error - Custom property for HaloPointsPlugin
+                _drawHalo: true,
                 datalabels: { display: false },
                 order: 2,
               },

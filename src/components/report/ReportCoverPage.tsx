@@ -16,6 +16,31 @@ export const ReportCoverPage = ({
   reportCreatedAt,
   organizationLogoUrl
 }: ReportCoverPageProps) => {
+  // Parse and validate the date
+  const formatReportDate = () => {
+    if (!reportCreatedAt) return new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+    
+    const date = new Date(reportCreatedAt);
+    if (isNaN(date.getTime())) {
+      // Invalid date, return current date
+      return new Date().toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+    
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   return (
     <div
       className="relative overflow-hidden rounded-3xl min-h-[100vh] flex flex-col"
@@ -43,11 +68,7 @@ export const ReportCoverPage = ({
       <div className="relative z-10 p-8 flex items-end justify-between">
         <div className="space-y-1">
           <p className="text-lg font-semibold opacity-95">
-            {new Date(reportCreatedAt).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatReportDate()}
           </p>
         </div>
         {organizationLogoUrl && (

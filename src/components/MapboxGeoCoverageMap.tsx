@@ -139,8 +139,10 @@ const MapboxGeoCoverageMap = ({
 
       entries.forEach(([name, count]) => {
         const intensity = maxCount > 0 ? count / maxCount : 0;
-        const color = `hsl(0, 85%, ${100 - intensity * 50}%)`;
-        const opacity = 0.2 + intensity * 0.8;
+        // Ensure even low counts are visibly colored (lightness from 75% to 40%)
+        const color = `hsl(0, 85%, ${75 - intensity * 35}%)`;
+        // Higher minimum opacity so all countries with data are clearly visible
+        const opacity = 0.5 + intensity * 0.5;
 
         // Match by country name in vector tiles (name_en property)
         colorExpr.push(["==", ["get", "name_en"], name], color);
@@ -179,7 +181,7 @@ const MapboxGeoCoverageMap = ({
         <div className="flex items-center gap-2">
           <div
             className="w-8 h-4 rounded"
-            style={{ background: "hsl(0, 85%, 50%)" }}
+            style={{ background: "hsl(0, 85%, 40%)" }}
           />
           <span className="text-sm text-muted-foreground">High</span>
         </div>

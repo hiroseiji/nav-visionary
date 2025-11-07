@@ -1,7 +1,6 @@
-import React from 'react';
-import { Search, Bell, Plus, FileText, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bell, Plus, FileText, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -11,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import axios from 'axios';
 
 interface DashboardHeaderProps {
   organizationName: string;
@@ -29,13 +29,24 @@ export function DashboardHeader({
   onImportData,
   onSearch
 }: DashboardHeaderProps) {
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [orgAlias, setOrgAlias] = useState<string>('');
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    onSearch?.(value);
-  };
+  useEffect(() => {
+    const selectedOrgId = localStorage.getItem('selectedOrg') || localStorage.getItem('selectedOrgId');
+    const fetchOrganizationAlias = async () => {
+      if (selectedOrgId) {
+        try {
+          const response = await axios.get(
+            `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrgId}`
+          );
+          setOrgAlias(response.data.alias || response.data.organizationName || '');
+        } catch (error) {
+          console.error('Error fetching organization alias:', error);
+        }
+      }
+    };
+    fetchOrganizationAlias();
+  }, []);
 
   const userInitials = userName
     .split(' ')
@@ -46,31 +57,11 @@ export function DashboardHeader({
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-6">
-        {/* Logo/Brand */}
-        <div className="flex items-center space-x-2 mr-8">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">D</span>
-          </div>
-          <span className="font-semibold text-lg hidden sm:inline-block">Donezo</span>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex-1 max-w-sm">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search task"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-10 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                ⌘F
-              </kbd>
-            </div>
-          </div>
+        {/* Organization Alias */}
+        <div className="flex-1 flex items-center">
+          <h1 className="text-2xl font-bold tracking-wide uppercase text-foreground">
+            {orgAlias}
+          </h1>
         </div>
 
         {/* Right side actions */}

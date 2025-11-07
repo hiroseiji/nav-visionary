@@ -29,15 +29,24 @@ export const generateOverYearsBarData = (
     if (contentType === "broadcast") {
         const yearMap = {};
 
-        broadcastOverTimeData.forEach((item) => {
-            if (!item.date || typeof item.count !== "number") return;
+        if (!broadcastOverTimeData || broadcastOverTimeData.length === 0) {
+            return [];
+        }
 
-            const date = new Date(item.date);
+        broadcastOverTimeData.forEach((item) => {
+            if (!item.date && !item._id) return;
+            
+            const dateStr = item.date || `${item._id.year}-${String(item._id.month).padStart(2, "0")}`;
+            const date = new Date(dateStr);
+            
+            if (isNaN(date.getTime())) return;
+
             const year = date.getFullYear();
             const month = date.getMonth();
+            const count = Number(item.count) || 0;
 
             if (!yearMap[year]) yearMap[year] = new Array(12).fill(0);
-            yearMap[year][month] += item.count;
+            yearMap[year][month] += count;
         });
 
         return Object.entries(yearMap).map(([year, monthlyCounts], index) => ({
@@ -49,23 +58,27 @@ export const generateOverYearsBarData = (
         }));
     }
 
-    // --- Default for other content types ---
-    if (contentType === "posts") {
-        sourceData = facebookPosts;
-    } else if (contentType === "articles") {
-        sourceData = articles;
-    } else if (contentType === "print") {
+    if (contentType === "printMedia" || contentType === "print") {
         const yearMap = {};
 
-        printOverTimeData.forEach((item) => {
-            if (!item.date || typeof item.count !== "number") return;
+        if (!printOverTimeData || printOverTimeData.length === 0) {
+            return [];
+        }
 
-            const date = new Date(item.date);
+        printOverTimeData.forEach((item) => {
+            if (!item.date && !item._id) return;
+            
+            const dateStr = item.date || `${item._id.year}-${String(item._id.month).padStart(2, "0")}`;
+            const date = new Date(dateStr);
+            
+            if (isNaN(date.getTime())) return;
+
             const year = date.getFullYear();
             const month = date.getMonth();
+            const count = Number(item.count) || 0;
 
             if (!yearMap[year]) yearMap[year] = new Array(12).fill(0);
-            yearMap[year][month] += item.count;
+            yearMap[year][month] += count;
         });
 
         return Object.entries(yearMap).map(([year, monthlyCounts], index) => ({
@@ -77,16 +90,30 @@ export const generateOverYearsBarData = (
         }));
     }
 
+    // Default for posts and articles
+    if (contentType === "posts") {
+        sourceData = facebookPosts || [];
+    } else if (contentType === "articles") {
+        sourceData = articles || [];
+    }
+
+    if (sourceData.length === 0) {
+        return [];
+    }
 
     const yearData = sourceData.reduce((acc, item) => {
         const rawDate =
             item.createdTime ||
             item.publication_date ||
             item.publicationDate ||
-            item.mentionDT;
+            item.mentionDT ||
+            item.date ||
+            item.createdAt;
+
+        if (!rawDate) return acc;
 
         const date = new Date(rawDate);
-        if (isNaN(date)) return acc;
+        if (isNaN(date.getTime())) return acc;
 
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -107,59 +134,100 @@ export const generateOverYearsBarData = (
 };
 
 
-export const generateCountOverTimeChartData = (countOverTimeData, contentType, granularity, normalizedContentType) => ({
-    labels: countOverTimeData.map((item) => {
-        const fallbackDate =
-            item.date ||
-            `${item._id?.year}-${String(item._id?.month || 1).padStart(2, "0")}`;
+export const generateCountOverTimeChartData = (countOverTimeData, contentType, granularity) => {
+    if (!countOverTimeData || countOverTimeData.length === 0) {
+        return {
+            labels: [],
+            datasets: [
+                {
+                    label: `${contentType} Count`,
+                    data: [],
+                    backgroundColor: "rgb(66, 162, 241)",
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    yAxisID: "y1",
+                },
+                {
+                    label: "Total AVE",
+                    data: [],
+                    backgroundColor: "rgb(17, 221, 81)",
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    yAxisID: "y2",
+                },
+                {
+                    label: "Total Reach",
+                    data: [],
+                    backgroundColor: "rgb(147, 79, 255)",
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    yAxisID: "y2",
+                },
+            ],
+        };
+    }
 
-        if (granularity === "week") {
-            return fallbackDate.includes("W")
-                ? fallbackDate
-                : `${fallbackDate.split("-")[0]}-WXX`;
-        } else if (granularity === "day") {
-            return new Date(fallbackDate).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-            });
-        } else if (granularity === "month") {
-            return fallbackDate;
-        } else {
-            return fallbackDate.split("-")[0]; // year only
-        }
-    }),
+    return {
+        labels: countOverTimeData.map((item) => {
+            const fallbackDate =
+                item.date ||
+                `${item._id?.year}-${String(item._id?.month || 1).padStart(2, "0")}`;
 
-    datasets: [
-        {
-            label: `${contentType} Count`,
-            data: countOverTimeData.map((item) => item.count || 0),
-            backgroundColor: "rgb(66, 162, 241)",
-            borderWidth: 1,
-            borderRadius: 5,
-            yAxisID: "y1",
-        },
-        {
-            label: "Total AVE",
-            data: countOverTimeData.map((item) => item.totalAVE || 0),
-            backgroundColor: "rgb(17, 221, 81)",
-            borderWidth: 1,
-            borderRadius: 5,
-            yAxisID: "y2",
-        },
-        {
-            label: "Total Reach",
-            data: countOverTimeData.map((item) => item.totalReach || 0),
-            backgroundColor: "rgb(147, 79, 255)",
-            borderWidth: 1,
-            borderRadius: 5,
-            yAxisID: "y2",
-        },
-    ],
-});
+            if (granularity === "week") {
+                return fallbackDate.includes("W")
+                    ? fallbackDate
+                    : `${fallbackDate.split("-")[0]}-WXX`;
+            } else if (granularity === "day") {
+                const dateObj = new Date(fallbackDate);
+                return isNaN(dateObj.getTime()) 
+                    ? fallbackDate 
+                    : dateObj.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                    });
+            } else if (granularity === "month") {
+                return fallbackDate;
+            } else {
+                return String(fallbackDate).split("-")[0]; // year only
+            }
+        }),
+
+        datasets: [
+            {
+                label: `${contentType} Count`,
+                data: countOverTimeData.map((item) => Number(item.count) || 0),
+                backgroundColor: "rgb(66, 162, 241)",
+                borderWidth: 1,
+                borderRadius: 5,
+                yAxisID: "y1",
+            },
+            {
+                label: "Total AVE",
+                data: countOverTimeData.map((item) => Number(item.totalAVE) || 0),
+                backgroundColor: "rgb(17, 221, 81)",
+                borderWidth: 1,
+                borderRadius: 5,
+                yAxisID: "y2",
+            },
+            {
+                label: "Total Reach",
+                data: countOverTimeData.map((item) => Number(item.totalReach) || 0),
+                backgroundColor: "rgb(147, 79, 255)",
+                borderWidth: 1,
+                borderRadius: 5,
+                yAxisID: "y2",
+            },
+        ],
+    };
+};
 
 
 export const generateTopJournalistChartData = (journalistStats) => {
+    if (!journalistStats || journalistStats.length === 0) {
+        return { labels: [], datasets: [] };
+    }
+
     const backgroundColors = {
         Positive: "rgb(12, 217, 94)",
         Neutral: "rgb(255, 182, 55)",
@@ -168,22 +236,23 @@ export const generateTopJournalistChartData = (journalistStats) => {
     };
 
     // List of top journalists
-    const labels = journalistStats.map((j) =>
-        j.journalist.length > 30
-            ? `${j.journalist.substring(0, 30)}...`
-            : j.journalist
-    );
+    const labels = journalistStats.map((j) => {
+        const journalist = j.journalist || "Unknown";
+        return journalist.length > 30
+            ? `${journalist.substring(0, 30)}...`
+            : journalist;
+    });
 
     // Prepare sentiment datasets for clustered bars
     const sentimentTypes = ["Positive", "Neutral", "Negative", "Mixed"];
 
     const datasets = sentimentTypes.map((sentiment) => ({
         label: sentiment,
-        data: journalistStats.map((j) => j.sentimentCounts?.[sentiment] || 0),
+        data: journalistStats.map((j) => Number(j.sentimentCounts?.[sentiment]) || 0),
         backgroundColor: backgroundColors[sentiment],
         borderWidth: 1,
-        barPercentage: 0.8, // Controls bar width within category
-        categoryPercentage: 0.9, // Controls space between categories
+        barPercentage: 0.8,
+        categoryPercentage: 0.9,
     }));
 
     return { labels, datasets };

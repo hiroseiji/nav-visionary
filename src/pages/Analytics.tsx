@@ -45,7 +45,6 @@ import {
 import { ThemeContext } from "@/components/ThemeContext";
 import WordCloud from "react-wordcloud";
 import {
-  ContentTypeUI,
   generateOverYearsBarData,
   generateCountOverTimeChartData,
   generateTopJournalistChartData,
@@ -1332,8 +1331,8 @@ export default function Analytics() {
                         type="bar"
                         data={generateCountOverTimeChartData(
                           countOverTimeData,
-                          contentType, // or normalizedContentType, both fine
-                          granularity as "day" | "week" | "month" | "year"
+                          contentType,
+                          granularity
                         )}
                         options={chartOptions}
                       />

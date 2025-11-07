@@ -374,26 +374,15 @@ export default function Analytics() {
     console.log("Total items:", sourceData.length);
     if (sourceData.length > 0) {
       console.log("First item sample:", sourceData[0]);
-      console.log("First item keys:", Object.keys(sourceData[0]));
-      // Check which country field exists
-      const firstItem = sourceData[0];
-      console.log("Country fields check:", {
-        country: firstItem.country,
-        location: firstItem.location,
-        geo: firstItem.geo,
-        mention_country: firstItem.mention_country,
-        Country: firstItem.Country
-      });
+      console.log("Country value:", sourceData[0].country);
     }
 
     // Aggregate country counts from selected content type
     const counts = sourceData.reduce<Record<string, number>>((acc, item) => {
-      // Try multiple possible field names for country data
-      const rawCountry = item.country ?? item.location ?? item.geo ?? item.mention_country ?? item.Country;
-      if (!rawCountry) return acc;
+      if (!item.country) return acc;
 
       // Normalize country names (title case)
-      const formattedCountry = String(rawCountry)
+      const formattedCountry = String(item.country)
         .trim()
         .toLowerCase()
         .split(" ")
@@ -406,7 +395,7 @@ export default function Analytics() {
 
     console.log(`${contentType} - Geo Coverage Counts:`, counts);
     console.log(`${contentType} - Items with country data:`, 
-      sourceData.filter(item => item.country || item.location || item.geo).length
+      sourceData.filter(item => item.country).length
     );
     console.log("Unique countries:", Object.keys(counts).length);
     

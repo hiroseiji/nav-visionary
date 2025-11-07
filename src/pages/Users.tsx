@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users as UsersIcon, Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { Users as UsersIcon, Plus, Pencil, Trash2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface User {
@@ -52,6 +52,14 @@ const Users = () => {
     open: false,
     userId: null,
   });
+
+  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = itemsPerPage === 0 ? 1 : Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = itemsPerPage === 0 ? users.length : startIndex + itemsPerPage;
+  const displayedUsers = itemsPerPage === 0 ? users : users.slice(startIndex, endIndex);
 
   useEffect(() => {
     fetchUsers();
@@ -308,8 +316,8 @@ const Users = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.length > 0 ? (
-                      users.map((user) => (
+                    {displayedUsers.length > 0 ? (
+                      displayedUsers.map((user) => (
                         <TableRow key={user._id}>
                           <TableCell className="font-medium">
                             {user.firstName} {user.lastName}
@@ -365,6 +373,60 @@ const Users = () => {
                     )}
                   </TableBody>
                 </Table>
+              )}
+
+              {users.length > 0 && (
+                <div className="flex items-center justify-between px-2 py-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Show:</span>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="0">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">
+                      {itemsPerPage === 0
+                        ? `Showing all ${users.length} users`
+                        : `Showing ${startIndex + 1}-${Math.min(endIndex, users.length)} of ${users.length}`}
+                    </span>
+                  </div>
+
+                  {itemsPerPage !== 0 && totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>

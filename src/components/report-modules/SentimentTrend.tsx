@@ -324,10 +324,8 @@ export function SentimentTrend({
                 },
                 pointRadius: basePointRadius,
                 pointHoverRadius: Math.max(3, basePointRadius * 1.8),
-                pointBackgroundColor: (ctx: { dataIndex: number }) =>
-                  colorAt(ctx.dataIndex),
-                pointBorderColor: (ctx: { dataIndex: number }) =>
-                  colorAt(ctx.dataIndex),
+                pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
+                pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 fill: {
                   target: "origin",
                   above: "rgba(11,179,123,0.08)",
@@ -386,10 +384,7 @@ export function SentimentTrend({
                   color: textColor,
                   font: { family: "Raleway", size: 13 },
                   generateLabels(chart) {
-                    const labels =
-                      ChartJS.defaults.plugins.legend.labels.generateLabels(
-                        chart
-                      );
+                    const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
                     labels.forEach((l) => {
                       if (l.text === "Sentiment") {
                         l.pointStyle = makeGradientRing(11, 3);
@@ -408,10 +403,7 @@ export function SentimentTrend({
                 titleFont: { family: "Raleway", size: 12, weight: "bold" },
                 bodyFont: { family: "Raleway", size: 12 },
                 callbacks: {
-                  label: (ctx: {
-                    dataset: { label?: string };
-                    parsed: { y: number };
-                  }) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
+                  label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
                 },
               },
               subtitle: {
@@ -434,9 +426,7 @@ export function SentimentTrend({
                             xScaleID: "x",
                             xMin: a.date,
                             xMax: a.date,
-                            borderColor:
-                              getSpikeColor(a.type) ||
-                              "rgba(11, 179, 123, 0.17)",
+                            borderColor: getSpikeColor(a.type) || "rgba(11, 179, 123, 0.17)",
                             borderDash: [4, 4],
                             borderWidth: 1,
                             drawTime: "afterDatasetsDraw",

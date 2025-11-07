@@ -181,7 +181,7 @@ interface ChartTooltipItem {
   };
 }
 
-type ContentType = "posts" | "articles" | "broadcast" | "printMedia";
+type ContentType = "posts" | "articles" | "broadcast" | "printmedia";
 
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
@@ -369,7 +369,7 @@ export default function Analytics() {
       sourceData = articles;
     } else if (contentType === "broadcast") {
       sourceData = broadcastArticles;
-    } else if (contentType === "printMedia") {
+    } else if (contentType === "printmedia") {
       sourceData = printArticles;
     }
 
@@ -537,7 +537,7 @@ export default function Analytics() {
   // Fetch top journalists for print media
   useEffect(() => {
     const fetchTopPrintJournalists = async () => {
-      if (contentType !== "printMedia") return;
+      if (contentType !== "printmedia") return;
 
       const startDate = new Date(2024, 0, 1);
       const endDate = new Date(2024, 6, 30);
@@ -761,7 +761,7 @@ export default function Analytics() {
     }
 
     // Print Media (By Publication)
-    if (contentType === "printMedia" && printArticles.length > 0) {
+    if (contentType === "printmedia" && printArticles.length > 0) {
       const sourceMap: Record<string, number> = {};
 
       printArticles.forEach((article) => {
@@ -1121,7 +1121,7 @@ export default function Analytics() {
                 <SelectItem value="posts">Social Posts</SelectItem>
                 <SelectItem value="articles">Online Media</SelectItem>
                 <SelectItem value="broadcast">Broadcast</SelectItem>
-                <SelectItem value="printMedia">Print</SelectItem>
+                <SelectItem value="printmedia">Print</SelectItem>
               </SelectContent>
             </Select>
             {/* <Select value={granularity} onValueChange={setGranularity}>
@@ -1267,7 +1267,7 @@ export default function Analytics() {
                     {contentType === 'posts' && 'Social Media'}
                     {contentType === 'articles' && 'Online Articles'}
                     {contentType === 'broadcast' && 'Broadcast Media'}
-                    {contentType === 'printMedia' && 'Print Media'}
+                    {contentType === 'printmedia' && 'Print Media'}
                   </span>
                 </div>
               </div>
@@ -1294,7 +1294,7 @@ export default function Analytics() {
                     "Online Articles Over the Years"}
                   {contentType === "broadcast" &&
                     "Broadcast Mentions Over the Years"}
-                  {contentType === "printMedia" &&
+                  {contentType === "printmedia" &&
                     "Print Media Articles Over the Years"}
                 </CardTitle>
                 <CardDescription>
@@ -1307,9 +1307,9 @@ export default function Analytics() {
             </Card>
 
             {/* Content Volume Chart */}
-            {((contentType === "printMedia" && printOverTimeData.length > 0) ||
+            {((contentType === "printmedia" && printOverTimeData.length > 0) ||
               (contentType === "broadcast" && broadcastOverTimeData.length > 0) ||
-              (contentType !== "printMedia" && contentType !== "broadcast" && countOverTimeData.length > 0)) && (
+              (contentType !== "printmedia" && contentType !== "broadcast" && countOverTimeData.length > 0)) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Content Volume per Reach & AVE</CardTitle>
@@ -1322,7 +1322,7 @@ export default function Analytics() {
                   <Chart
                     type="bar"
                     data={generateCountOverTimeChartData(
-                      contentType === "printMedia" 
+                      contentType === "printmedia" 
                         ? printOverTimeData 
                         : contentType === "broadcast"
                         ? broadcastOverTimeData
@@ -1375,7 +1375,7 @@ export default function Analytics() {
 
           <TabsContent value="sources" className="space-y-6">
             {/* Pie/Doughnut Chart */}
-            {contentType !== "printMedia" && (
+            {contentType !== "printmedia" && (
               <Card>
                 <CardHeader>
                   <CardTitle>
@@ -1492,7 +1492,7 @@ export default function Analytics() {
             )}
 
             {/* Top Journalists Chart for Print Media */}
-            {contentType === "printMedia" &&
+            {contentType === "printmedia" &&
               journalistChart &&
               journalistChart.labels?.length > 0 && (
                 <Card>
@@ -1607,7 +1607,7 @@ export default function Analytics() {
               <CardHeader>
                 <CardTitle>Geographic Coverage</CardTitle>
                 <CardDescription>
-                  Distribution of mentions for {contentType === "printMedia" ? "Print Media" : contentType.charAt(0).toUpperCase() + contentType.slice(1)}
+                  Distribution of mentions for {contentType === "printmedia" ? "Print Media" : contentType.charAt(0).toUpperCase() + contentType.slice(1)}
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-96">

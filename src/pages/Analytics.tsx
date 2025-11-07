@@ -357,23 +357,27 @@ export default function Analytics() {
       [key: string]: unknown;
     };
 
-    // Combine ALL data sources for the map
-    const allSourceData: GeoItem[] = [
-      ...articles,
-      ...facebookPosts,
-      ...broadcastArticles,
-      ...printArticles,
-    ];
+    // Filter by selected content type
+    let sourceData: GeoItem[] = [];
 
-    console.log("=== Combined Geographic Data ===");
-    console.log("Total items across all sources:", allSourceData.length);
-    console.log("Articles:", articles.length);
-    console.log("Posts:", facebookPosts.length);
-    console.log("Broadcast:", broadcastArticles.length);
-    console.log("Print:", printArticles.length);
+    if (contentType === "posts") {
+      sourceData = facebookPosts;
+    } else if (contentType === "articles") {
+      sourceData = articles;
+    } else if (contentType === "broadcast") {
+      sourceData = broadcastArticles;
+    } else if (contentType === "printMedia") {
+      sourceData = printArticles;
+    }
 
-    // Aggregate country counts from all sources
-    const counts = allSourceData.reduce<Record<string, number>>((acc, item) => {
+    console.log(`=== ${contentType} Geographic Data ===`);
+    console.log("Total items:", sourceData.length);
+    if (sourceData.length > 0) {
+      console.log("First item sample:", sourceData[0]);
+    }
+
+    // Aggregate country counts from selected content type
+    const counts = sourceData.reduce<Record<string, number>>((acc, item) => {
       const rawCountry = item.country ?? item.location ?? item.geo;
       if (!rawCountry) return acc;
 
@@ -389,14 +393,14 @@ export default function Analytics() {
       return acc;
     }, {});
 
-    console.log("All Countries - Geo Coverage Counts:", counts);
-    console.log("Total items with country data:", 
-      allSourceData.filter(item => item.country || item.location || item.geo).length
+    console.log(`${contentType} - Geo Coverage Counts:`, counts);
+    console.log(`${contentType} - Items with country data:`, 
+      sourceData.filter(item => item.country || item.location || item.geo).length
     );
     console.log("Unique countries:", Object.keys(counts).length);
     
     setGeoCountryCounts(counts);
-  }, [facebookPosts, articles, broadcastArticles, printArticles]);
+  }, [contentType, facebookPosts, articles, broadcastArticles, printArticles]);
 
 
   // Fetch count over time
@@ -1556,7 +1560,7 @@ export default function Analytics() {
               <CardHeader>
                 <CardTitle>Geographic Coverage</CardTitle>
                 <CardDescription>
-                  Distribution of mentions across all content types (Articles, Posts, Broadcast, Print Media)
+                  Distribution of mentions for {contentType === "printMedia" ? "Print Media" : contentType.charAt(0).toUpperCase() + contentType.slice(1)}
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-96">

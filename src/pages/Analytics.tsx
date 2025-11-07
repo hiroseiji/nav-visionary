@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FileText, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
+import { FileText, ArrowUpRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -188,8 +188,10 @@ export default function Analytics() {
   const [granularity, setGranularity] = useState("month");
   const [totalArticles, setTotalArticles] = useState(0);
   const [monthlyMentions, setMonthlyMentions] = useState(0);
-  const [totalTopics, setTotalTopics] = useState(4);
-  const [totalKeywords, setTotalKeywords] = useState(0);
+  const [totalTopics, setTotalTopics] = useState(0); // Now represents total AVE
+  const [totalKeywords, setTotalKeywords] = useState(0); // Now represents active topics count
+  const [yearTrend, setYearTrend] = useState<'increase' | 'decrease' | 'same'>('same');
+  const [monthTrend, setMonthTrend] = useState<'increase' | 'decrease' | 'same'>('same');
   const [showCreateReport, setShowCreateReport] = useState(false);
   const [organizationData, setOrganizationData] = useState<Organization | null>(
     null
@@ -565,60 +567,88 @@ export default function Analytics() {
   // Calculate metrics
   useEffect(() => {
     const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    const total = countOverTimeData
-      .filter((item) => item.contentType === contentType)
-      .reduce((sum, item) => sum + (item.count || 0), 0);
+    // Card 1: Total Mentions (all time for current content type)
+    const allData = [
+      ...articles.map(a => ({ 
+        date: a.publication_date || a.publicationDate || a.mentionDT, 
+        type: 'articles' as const,
+        ave: (a.ave as number) || 0 
+      })),
+      ...facebookPosts.map(p => ({ 
+        date: p.date || p.createdAt, 
+        type: 'posts' as const,
+        ave: ((p as any).ave as number) || 0
+      })),
+      ...broadcastArticles.map(b => ({ 
+        date: b.publication_date || b.publicationDate || b.mentionDT, 
+        type: 'broadcast' as const,
+        ave: (b.ave as number) || 0
+      })),
+      ...printArticles.map(p => ({ 
+        date: p.publication_date || p.publicationDate || p.mentionDT, 
+        type: 'printMedia' as const,
+        ave: (p.ave as number) || 0
+      }))
+    ];
+
+    // Filter by current content type
+    const currentTypeData = allData.filter(d => d.type === contentType);
+    const total = currentTypeData.length;
     setTotalArticles(total);
 
-    const thisMonth = countOverTimeData.find((item) => {
-      if (item.contentType !== contentType) return false;
-      const date = new Date(item.date || item._id);
-      return (
-        date.getMonth() === now.getMonth() &&
-        date.getFullYear() === now.getFullYear()
-      );
-    });
-    setMonthlyMentions(thisMonth?.count || 0);
+    // Calculate year-over-year trend for Card 1
+    const currentYearCount = currentTypeData.filter(d => {
+      const date = new Date(d.date);
+      return date.getFullYear() === currentYear;
+    }).length;
 
-    let value = 0;
-    if (contentType === "articles") {
-      value = articles
-        .filter((article) => {
-          const date = new Date(article.publication_date);
-          return (
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()
-          );
-        })
-        .reduce((sum, article) => sum + (article.reach || 0), 0);
-    } else if (contentType === "posts") {
-      value = facebookPosts
-        .filter((post) => {
-          const date = new Date(post.date || post.createdAt);
-          return (
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()
-          );
-        })
-        .reduce((sum, post) => sum + (post.reach || 0), 0);
-    }
+    const previousYearCount = currentTypeData.filter(d => {
+      const date = new Date(d.date);
+      return date.getFullYear() === currentYear - 1;
+    }).length;
 
-    setTotalKeywords(value);
+    const yearTrend = currentYearCount > previousYearCount ? 'increase' : 
+                     currentYearCount < previousYearCount ? 'decrease' : 'same';
 
-    const types =
-      (facebookPosts.length > 0 ? 1 : 0) +
-      (articles.length > 0 ? 1 : 0) +
-      (broadcastArticles.length > 0 ? 1 : 0) +
-      (printArticles.length > 0 ? 1 : 0);
-    setTotalTopics(types);
+    // Card 2: This Month Mentions
+    const thisMonthCount = currentTypeData.filter(d => {
+      const date = new Date(d.date);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    }).length;
+    setMonthlyMentions(thisMonthCount);
+
+    // Calculate month-over-month trend for Card 2
+    const lastMonthCount = currentTypeData.filter(d => {
+      const date = new Date(d.date);
+      return date.getMonth() === lastMonth && date.getFullYear() === lastMonthYear;
+    }).length;
+
+    const monthTrend = thisMonthCount > lastMonthCount ? 'increase' : 
+                      thisMonthCount < lastMonthCount ? 'decrease' : 'same';
+
+    // Card 3: All Active Topics/Keywords from organization
+    const activeTopics = organizationData?.keywords || [];
+    setTotalKeywords(activeTopics.length);
+
+    // Card 4: Total AVE from all media types
+    const totalAVE = allData.reduce((sum, item) => sum + item.ave, 0);
+    setTotalTopics(Math.round(totalAVE));
+
+    // Store trends in state
+    setYearTrend(yearTrend);
+    setMonthTrend(monthTrend);
   }, [
     contentType,
     articles,
     facebookPosts,
     broadcastArticles,
     printArticles,
-    countOverTimeData,
+    organizationData,
   ]);
 
   // Process keyword distribution
@@ -1108,6 +1138,7 @@ export default function Analytics() {
 
         <TooltipProvider>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Card 1: Total Mentions (All Time) */}
             <div
               className="rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-primary-foreground"
               style={{ background: "var(--gradient-primary)" }}
@@ -1121,7 +1152,7 @@ export default function Analytics() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Total number of brand mentions across all channels</p>
+                    <p>Total mentions over all years</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -1131,15 +1162,20 @@ export default function Analytics() {
                 </p>
                 <div className="flex items-center gap-2">
                   <div className="rounded-md p-1.5 bg-primary-foreground/10">
-                    <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
+                    {yearTrend === 'increase' && <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />}
+                    {yearTrend === 'decrease' && <TrendingDown className="h-3.5 w-3.5 text-primary-foreground" />}
+                    {yearTrend === 'same' && <Minus className="h-3.5 w-3.5 text-primary-foreground" />}
                   </div>
                   <span className="text-sm text-primary-foreground/80">
-                    Increased from last month
+                    {yearTrend === 'increase' && 'Increased from last year'}
+                    {yearTrend === 'decrease' && 'Decreased from last year'}
+                    {yearTrend === 'same' && 'Same as last year'}
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* Card 2: This Month */}
             <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-base font-medium">This Month</h4>
@@ -1160,15 +1196,20 @@ export default function Analytics() {
                 </p>
                 <div className="flex items-center gap-2">
                   <div className="rounded-md p-1.5 bg-muted">
-                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    {monthTrend === 'increase' && <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {monthTrend === 'decrease' && <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {monthTrend === 'same' && <Minus className="h-3.5 w-3.5 text-muted-foreground" />}
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    Increased from last month
+                    {monthTrend === 'increase' && 'Increased from last month'}
+                    {monthTrend === 'decrease' && 'Decreased from last month'}
+                    {monthTrend === 'same' && 'Same as last month'}
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* Card 3: Active Topics/Keywords */}
             <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-base font-medium">Active Topics</h4>
@@ -1179,27 +1220,36 @@ export default function Analytics() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Active media channels being monitored</p>
+                    <p>Tracked keywords and topics</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2">
-                {["Online", "Broadcast", "Social", "Print"]
-                  .slice(0, totalTopics)
-                  .map((type, idx) => (
+              <div className="space-y-3">
+                <p className="text-6xl font-bold">
+                  {totalKeywords}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {organizationData?.keywords?.slice(0, 3).map((keyword, idx) => (
                     <span
                       key={idx}
                       className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
                     >
-                      {type}
+                      {keyword}
                     </span>
                   ))}
+                  {(organizationData?.keywords?.length || 0) > 3 && (
+                    <span className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md">
+                      +{(organizationData?.keywords?.length || 0) - 3} more
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
+            {/* Card 4: Total AVE */}
             <div className="bg-card rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-base font-medium">Monthly Reach</h4>
+                <h4 className="text-base font-medium">Total AVE</h4>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="rounded-full p-2 border-2 border-[#1e40af] hover:border-[#1e3a8a] cursor-help transition-colors">
@@ -1207,20 +1257,17 @@ export default function Analytics() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Estimated audience reach this month</p>
+                    <p>Advertising Value Equivalent across all media</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-6xl font-bold">
-                  {totalKeywords.toLocaleString()}
+                <p className="text-5xl font-bold">
+                  BWP {totalTopics.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-2">
-                  <div className="rounded-md p-1.5 bg-muted">
-                    <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
-                  </div>
                   <span className="text-sm text-muted-foreground">
-                    Reach metric
+                    All media types
                   </span>
                 </div>
               </div>

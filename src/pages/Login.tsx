@@ -117,7 +117,7 @@ export default function Login() {
             <img 
               src={theme === 'dark' ? "/socialDark.png" : "/social.png"} 
               alt="Social Light" 
-              className="w-20 h-20 mx-auto mb-6 rounded-full" 
+              className="w-28 h-28 mx-auto mb-6 rounded-full" 
             />
           </div>
 

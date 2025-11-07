@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { ThemeContext } from "@/components/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ export default function Register() {
     lastName: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const { theme } = useContext(ThemeContext);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -66,13 +68,14 @@ export default function Register() {
         <div className="max-w-md space-y-6">
           <h1 className="text-5xl font-bold">Join Us Today!</h1>
           <p className="text-xl text-primary-foreground/90">
-            Create your account and start tracking your media presence across all platforms.
+            Create your account and start tracking your media presence across
+            all platforms.
           </p>
           <div className="pt-8">
             <img
-              src="/social.jpg"
+              src={theme === "dark" ? "/socialDark.png" : "/social.png"}
               alt="Social Light"
-              className="w-full max-w-sm rounded-lg shadow-2xl"
+              className="w-28 h-28 mx-auto mb-6 rounded-full"
             />
           </div>
         </div>
@@ -82,11 +85,17 @@ export default function Register() {
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:hidden mb-8">
-            <img src="/social.jpg" alt="Social Light" className="w-32 h-32 mx-auto mb-4 rounded-full" />
+            <img
+              src="/social.jpg"
+              alt="Social Light"
+              className="w-32 h-32 mx-auto mb-4 rounded-full"
+            />
           </div>
 
           <div className="space-y-2 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-foreground">Create Account</h2>
+            <h2 className="text-3xl font-bold text-foreground">
+              Create Account
+            </h2>
             <p className="text-muted-foreground">Sign up to get started</p>
           </div>
 
@@ -99,7 +108,12 @@ export default function Register() {
                   type="text"
                   placeholder="John"
                   value={credentials.firstName}
-                  onChange={(e) => setCredentials({ ...credentials, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setCredentials({
+                      ...credentials,
+                      firstName: e.target.value,
+                    })
+                  }
                   required
                   disabled={loading}
                 />
@@ -111,7 +125,9 @@ export default function Register() {
                   type="text"
                   placeholder="Doe"
                   value={credentials.lastName}
-                  onChange={(e) => setCredentials({ ...credentials, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, lastName: e.target.value })
+                  }
                   required
                   disabled={loading}
                 />
@@ -125,7 +141,9 @@ export default function Register() {
                 type="email"
                 placeholder="you@example.com"
                 value={credentials.email}
-                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                onChange={(e) =>
+                  setCredentials({ ...credentials, email: e.target.value })
+                }
                 required
                 disabled={loading}
               />
@@ -139,7 +157,9 @@ export default function Register() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
                   value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, password: e.target.value })
+                  }
                   required
                   disabled={loading}
                   className="pr-10"
@@ -150,7 +170,11 @@ export default function Register() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -164,7 +188,10 @@ export default function Register() {
                   placeholder="Re-enter your password"
                   value={credentials.confirmPassword}
                   onChange={(e) =>
-                    setCredentials({ ...credentials, confirmPassword: e.target.value })
+                    setCredentials({
+                      ...credentials,
+                      confirmPassword: e.target.value,
+                    })
                   }
                   required
                   disabled={loading}
@@ -176,7 +203,11 @@ export default function Register() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -198,14 +229,19 @@ export default function Register() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or
+              </span>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary font-semibold hover:underline">
+              <Link
+                to="/login"
+                className="text-primary font-semibold hover:underline"
+              >
                 Sign In
               </Link>
             </p>

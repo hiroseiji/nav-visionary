@@ -1,10 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { ArrowDownUp, Search } from 'lucide-react';
+import { ArrowDownUp } from 'lucide-react';
 import { AiOutlineUserSwitch } from 'react-icons/ai';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ThemeContext } from "./ThemeContext";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,7 +24,7 @@ interface SidebarLayoutProps {
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [orgAlias, setOrgAlias] = useState("");
   const [selectedOrg, setSelectedOrg] = useState("");
   const [showOrgSelect, setShowOrgSelect] = useState(false);
   const [organizations, setOrganizations] = useState<Array<{ _id: string; organizationName: string }>>([]);
@@ -52,6 +51,23 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     }
   }, [user?.role]);
 
+  useEffect(() => {
+    const selectedOrgId = localStorage.getItem('selectedOrg') || localStorage.getItem('selectedOrgId');
+    const fetchOrganizationAlias = async () => {
+      if (selectedOrgId) {
+        try {
+          const response = await axios.get(
+            `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/organizations/${selectedOrgId}`
+          );
+          setOrgAlias(response.data.alias || response.data.organizationName || '');
+        } catch (error) {
+          console.error('Error fetching organization alias:', error);
+        }
+      }
+    };
+    fetchOrganizationAlias();
+  }, []);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen max-h-screen flex w-full max-w-full bg-background p-6 overflow-hidden">
@@ -64,18 +80,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               <div className="flex h-20 items-center px-8 gap-6">
                 <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
 
-                {/* Search Bar */}
-                <div className="flex-1 max-w-md">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search for articles"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-card text-foreground border border-border rounded-full font-light"
-                    />
-                  </div>
+                {/* Organization Alias */}
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold tracking-wide uppercase text-foreground">
+                    {orgAlias}
+                  </h1>
                 </div>
 
                 <div className="flex-1" />

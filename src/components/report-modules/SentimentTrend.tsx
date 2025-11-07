@@ -257,7 +257,6 @@ export function SentimentTrend({
     const colorAt = (i: number) => CAT_COLORS[dayCats[i] as keyof typeof CAT_COLORS] || CAT_COLORS.positive;
 
     const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
-    const industryLabel = organizationData?.organization?.industry;
     
     // Calculate dynamic point radius based on data density
     const basePointRadius = dataCount > 150 ? 0.8 : dataCount > 100 ? 1.0 : dataCount > 60 ? 1.3 : dataCount > 30 ? 1.5 : 2.0;
@@ -280,7 +279,7 @@ export function SentimentTrend({
                     {
                       type: "line" as const,
                       label: "Industry Trend",
-                      data: industryLabel as (number | null)[],
+                      data: industry as (number | null)[],
                       borderColor: industryColor,
                       borderWidth: 2,
                       pointRadius: 0,

@@ -295,8 +295,8 @@ export default function Analytics() {
           console.log("Total articles:", articlesData.length);
           if (articlesData.length > 0) {
             console.log("First article sample:", articlesData[0]);
-            console.log("Countries in first 10 articles:", 
-              articlesData.slice(0, 10).map((a: any) => a.country)
+          console.log("Countries in first 10 articles:", 
+            articlesData.slice(0, 10).map((a: MediaArticle) => a.country)
             );
           }
           setArticles(articlesData);
@@ -307,8 +307,8 @@ export default function Analytics() {
           console.log("Total posts:", postsData.length);
           if (postsData.length > 0) {
             console.log("First post sample:", postsData[0]);
-            console.log("Countries in first 10 posts:", 
-              postsData.slice(0, 10).map((p: any) => p.country)
+          console.log("Countries in first 10 posts:", 
+            postsData.slice(0, 10).map((p: FacebookPost) => p.country)
             );
           }
           setFacebookPosts(postsData);
@@ -319,8 +319,8 @@ export default function Analytics() {
           console.log("Total broadcast:", broadcastData.length);
           if (broadcastData.length > 0) {
             console.log("First broadcast sample:", broadcastData[0]);
-            console.log("Countries in first 10 broadcast:", 
-              broadcastData.slice(0, 10).map((b: any) => b.country)
+          console.log("Countries in first 10 broadcast:", 
+            broadcastData.slice(0, 10).map((b: MediaArticle) => b.country)
             );
           }
           setBroadcastArticles(broadcastData);
@@ -331,8 +331,8 @@ export default function Analytics() {
           console.log("Total print:", printData.length);
           if (printData.length > 0) {
             console.log("First print sample:", printData[0]);
-            console.log("Countries in first 10 print:", 
-              printData.slice(0, 10).map((p: any) => p.country)
+          console.log("Countries in first 10 print:", 
+            printData.slice(0, 10).map((p: MediaArticle) => p.country)
             );
           }
           setPrintArticles(printData);
@@ -354,7 +354,7 @@ export default function Analytics() {
       country?: string;
       location?: string;
       geo?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     };
 
     let sourceData: GeoItem[] = [];

@@ -582,7 +582,7 @@ export default function Analytics() {
       ...facebookPosts.map(p => ({ 
         date: p.date || p.createdAt, 
         type: 'posts' as const,
-        ave: ((p as any).ave as number) || 0
+        ave: (p.ave as number) || 0
       })),
       ...broadcastArticles.map(b => ({ 
         date: b.publication_date || b.publicationDate || b.mentionDT, 
@@ -1262,8 +1262,8 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-5xl font-bold">
-                  BWP {totalTopics.toLocaleString()}
+                <p className="text-3xl font-bold">
+                  {totalTopics.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">

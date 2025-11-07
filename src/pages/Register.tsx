@@ -187,7 +187,7 @@ export default function Register() {
           </p>
           <div className="pt-8">
             <img
-              src={theme === "dark" ? "/socialDark.png" : "/social.png"}
+              src={theme === "dark" ? `${import.meta.env.BASE_URL}socialDark.png` : `${import.meta.env.BASE_URL}social.png`}
               alt="Social Light"
               className="w-28 h-28 mx-auto mb-6 rounded-full"
             />
@@ -200,7 +200,7 @@ export default function Register() {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:hidden mb-8">
             <img
-              src={theme === "dark" ? "/socialDark.png" : "/social.png"}
+              src={theme === "dark" ? `${import.meta.env.BASE_URL}socialDark.png` : `${import.meta.env.BASE_URL}social.png`}
               alt="Social Light"
               className="w-32 h-32 mx-auto mb-4 rounded-full"
             />

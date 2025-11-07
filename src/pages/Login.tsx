@@ -115,7 +115,7 @@ export default function Login() {
           {/* Logo at top - always visible */}
           <div className="text-center mb-8">
             <img 
-              src={theme === 'dark' ? "/socialDark.png" : "/social.png"} 
+              src={theme === 'dark' ? `${import.meta.env.BASE_URL}socialDark.png` : `${import.meta.env.BASE_URL}social.png`} 
               alt="Social Light" 
               className="w-28 h-28 mx-auto mb-6 rounded-full" 
             />

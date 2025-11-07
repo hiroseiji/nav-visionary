@@ -300,7 +300,7 @@ export const ReportModulePage = ({
       <div className="border-b px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img 
-            src="/socialDark.png" 
+            src={`${import.meta.env.BASE_URL}socialDark.png`}
             alt="Social Light" 
             className="h-8 w-auto"
           />

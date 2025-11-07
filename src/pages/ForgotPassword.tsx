@@ -19,7 +19,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_BASE}/forgot-password`, { email });
+      await axios.post(`${API_BASE}/api/auth/forgot-password`, { email });
       setEmailSent(true);
       toast.success("Password reset instructions sent to your email");
     } catch (error: unknown) {

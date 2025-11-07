@@ -290,16 +290,52 @@ export default function Analytics() {
           ]);
 
         if (articlesRes.status === "fulfilled") {
-          setArticles(articlesRes.value.data.articles || []);
+          const articlesData = articlesRes.value.data.articles || [];
+          console.log("=== ARTICLES API Response ===");
+          console.log("Total articles:", articlesData.length);
+          if (articlesData.length > 0) {
+            console.log("First article sample:", articlesData[0]);
+            console.log("Countries in first 10 articles:", 
+              articlesData.slice(0, 10).map((a: any) => a.country)
+            );
+          }
+          setArticles(articlesData);
         }
         if (postsRes.status === "fulfilled") {
-          setFacebookPosts(postsRes.value.data.posts || []);
+          const postsData = postsRes.value.data.posts || [];
+          console.log("=== POSTS API Response ===");
+          console.log("Total posts:", postsData.length);
+          if (postsData.length > 0) {
+            console.log("First post sample:", postsData[0]);
+            console.log("Countries in first 10 posts:", 
+              postsData.slice(0, 10).map((p: any) => p.country)
+            );
+          }
+          setFacebookPosts(postsData);
         }
         if (broadcastRes.status === "fulfilled") {
-          setBroadcastArticles(broadcastRes.value.data || []);
+          const broadcastData = broadcastRes.value.data || [];
+          console.log("=== BROADCAST API Response ===");
+          console.log("Total broadcast:", broadcastData.length);
+          if (broadcastData.length > 0) {
+            console.log("First broadcast sample:", broadcastData[0]);
+            console.log("Countries in first 10 broadcast:", 
+              broadcastData.slice(0, 10).map((b: any) => b.country)
+            );
+          }
+          setBroadcastArticles(broadcastData);
         }
         if (printRes.status === "fulfilled") {
-          setPrintArticles(printRes.value.data || []);
+          const printData = printRes.value.data || [];
+          console.log("=== PRINT API Response ===");
+          console.log("Total print:", printData.length);
+          if (printData.length > 0) {
+            console.log("First print sample:", printData[0]);
+            console.log("Countries in first 10 print:", 
+              printData.slice(0, 10).map((p: any) => p.country)
+            );
+          }
+          setPrintArticles(printData);
         }
 
         setLoading(false);

@@ -417,9 +417,9 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
               <div className="flex items-center justify-between py-6 border-b">
                 <div className="flex items-center gap-4">
                   <BsBarChartFill className="h-16 w-16 text-primary" />
-                  <span className="font-semibold text-xl">Volume</span>
+                  <span className="font-semibold text-1xl">Volume</span>
                 </div>
-                <span className="text-2xl font-bold">
+                <span className="text-1xl font-bold">
                   {fmtInt(totals?.volume)}
                 </span>
               </div>
@@ -427,17 +427,17 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
               <div className="flex items-center justify-between py-6 border-b">
                 <div className="flex items-center gap-4">
                   <FaGlobeAfrica className="h-16 w-16 text-primary" />
-                  <span className="font-semibold text-xl">Regions</span>
+                  <span className="font-semibold text-1xl">Regions</span>
                 </div>
-                <span className="text-2xl font-bold">{regionText}</span>
+                <span className="text-1xl font-bold">{regionText}</span>
               </div>
 
               <div className="flex items-center justify-between py-6 border-b">
                 <div className="flex items-center gap-4">
                   <BsMegaphone className="h-16 w-16 text-primary" />
-                  <span className="font-semibold text-xl">Reach</span>
+                  <span className="font-semibold text-1xl">Reach</span>
                 </div>
-                <span className="text-2xl font-bold">
+                <span className="text-1xl font-bold">
                   {fmtInt(totals?.reach)}
                 </span>
               </div>
@@ -445,18 +445,22 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
               <div className="flex items-center justify-between py-6 border-b">
                 <div className="flex items-center gap-4">
                   <FaQuoteLeft className="h-16 w-16 text-primary" />
-                  <span className="font-semibold text-xl">Language</span>
+                  <span className="font-semibold text-1xl">Language</span>
                 </div>
-                <span className="text-2xl font-bold">{languageText}</span>
+                <span className="text-1xl font-bold">{languageText}</span>
               </div>
 
               <div className="flex items-center justify-between py-6">
                 <div className="flex items-center gap-4">
                   <IoCalendarNumberSharp className="h-16 w-16 text-primary" />
-                  <span className="font-semibold text-xl">Time Period</span>
+                  <span className="font-semibold text-1xl">Time Period</span>
                 </div>
-                <span className="text-2xl font-bold">{timePeriodText}</span>
+                <span className="text-1xl font-bold">{timePeriodText}</span>
               </div>
+              <p className="text-xs text-muted-foreground italic mt-6">
+                *Volume refers to mentions across selected sources, regions and
+                time period.
+              </p>
             </CardContent>
           </Card>
 
@@ -479,15 +483,20 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
                       key={mt}
                       open={openMediaSections[mt] ?? index === 0}
                       onOpenChange={(open) =>
-                        setOpenMediaSections((prev) => ({ ...prev, [mt]: open }))
+                        setOpenMediaSections((prev) => ({
+                          ...prev,
+                          [mt]: open,
+                        }))
                       }
                     >
                       <CollapsibleTrigger className="w-full">
-                        <div className="flex items-center justify-between font-bold text-primary mt-4 mb-2 hover:text-primary/80 transition-colors">
+                        <div className="flex items-center justify-between text-white/80 mt-4 mb-2 text-xs font-normal uppercase hover:text-white/60 transition-colors">
                           <h4>{mediaTypeLabels[mt] || mt}</h4>
                           <ChevronDown
                             className={`h-5 w-5 transition-transform ${
-                              openMediaSections[mt] ?? index === 0 ? "rotate-180" : ""
+                              openMediaSections[mt] ?? index === 0
+                                ? "rotate-180"
+                                : ""
                             }`}
                           />
                         </div>
@@ -504,11 +513,6 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
                     </Collapsible>
                   ))}
               </ol>
-
-              <p className="text-xs text-muted-foreground italic mt-6">
-                *Volume refers to mentions across selected sources, regions and
-                time period.
-              </p>
             </CardContent>
           </Card>
         </div>

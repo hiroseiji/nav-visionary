@@ -1282,8 +1282,6 @@ export default function Analytics() {
                 <CardTitle>
                   {contentType === "posts" && "Mentions Composition by Source"}
                   {contentType === "articles" && "Top Keyword Trends Online"}
-                  {contentType === "printMedia" &&
-                    "Print Media Mentions by News Source"}
                   {contentType === "broadcast" &&
                     "Sentiment Breakdown by Station"}
                 </CardTitle>

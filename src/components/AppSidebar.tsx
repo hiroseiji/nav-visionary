@@ -301,26 +301,26 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           </SidebarGroup>
         )}
       </SidebarContent>
-      <SidebarFooter className="border-0 p-6 pb-8">
+      <SidebarFooter className="border-0 p-6">
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem>
             {!collapsed ? (
-              <div className="px-3 py-2 flex justify-center">
+              <div className="px-3 py-2">
                 <button
                   onClick={toggleTheme}
-                  className="relative inline-flex h-7 w-24 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted border-2 dark:border-white/20 border-black/20"
+                  className="relative inline-flex h-10 w-24 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-muted border-2 dark:border-white/20 border-black/20"
                 >
                   <span
                     className={cn(
-                      "inline-flex h-6 w-6 transform items-center justify-center rounded-full bg-background shadow-md transition-all duration-300 border dark:border-white/30 border-black/30",
-                      theme === "dark" ? "translate-x-[4.25rem]" : "translate-x-0.5"
+                      "inline-flex h-8 w-8 transform items-center justify-center rounded-full bg-background shadow-md transition-all duration-300 border dark:border-white/30 border-black/30",
+                      theme === "dark" ? "translate-x-14" : "translate-x-1"
                     )}
                   >
                     {theme === "light" ? (
-                      <Sun className="h-4 w-4 text-foreground" />
+                      <Sun className="h-5 w-5 text-foreground" />
                     ) : (
-                      <Moon className="h-4 w-4 text-foreground" />
+                      <Moon className="h-5 w-5 text-foreground" />
                     )}
                   </span>
                 </button>
@@ -343,10 +343,7 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}
-              className={cn(
-                "w-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
-                collapsed ? "justify-center" : "justify-start"
-              )}
+              className="w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               <LogOut className="h-4 w-4" />
               {!collapsed && <span>Logout</span>}

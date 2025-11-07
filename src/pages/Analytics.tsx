@@ -1209,7 +1209,9 @@ export default function Analytics() {
             </Card>
 
             {/* Content Volume Chart */}
-            {countOverTimeData.length > 0 && (
+            {((contentType === "printMedia" && printOverTimeData.length > 0) ||
+              (contentType === "broadcast" && broadcastOverTimeData.length > 0) ||
+              (contentType !== "printMedia" && contentType !== "broadcast" && countOverTimeData.length > 0)) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Content Volume per Reach & AVE</CardTitle>
@@ -1222,7 +1224,11 @@ export default function Analytics() {
                   <Chart
                     type="bar"
                     data={generateCountOverTimeChartData(
-                      countOverTimeData,
+                      contentType === "printMedia" 
+                        ? printOverTimeData 
+                        : contentType === "broadcast"
+                        ? broadcastOverTimeData
+                        : countOverTimeData,
                       contentType,
                       granularity
                     )}

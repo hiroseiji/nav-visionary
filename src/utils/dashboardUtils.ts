@@ -448,7 +448,7 @@ export const fetchCompetitorsFromGooglePlaces = async (industry: string, country
         );
 
         if (response.data.status === "OK") {
-            return response.data.results.map((place: any) => place.name);
+            return response.data.results.map((place: { name: string }) => place.name);
         } else {
             console.warn("Google Places API returned:", response.data.status);
             return [];
@@ -461,12 +461,12 @@ export const fetchCompetitorsFromGooglePlaces = async (industry: string, country
 
 // Handle scrape
 export const handleScrape = async (
-    organizationName,
-    setScraping,
-    setArticles,
-    setFilteredArticles,
-    setDisplayedArticles,
-    setTotalArticles
+    organizationName: string,
+    setScraping: (scraping: boolean) => void,
+    setArticles: (articles: Article[]) => void,
+    setFilteredArticles: (articles: Article[]) => void,
+    setDisplayedArticles: (articles: Article[]) => void,
+    setTotalArticles: (count: number) => void
 ) => {
     setScraping(true);
     try {

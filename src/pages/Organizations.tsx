@@ -210,7 +210,7 @@ const Organizations = () => {
     setEditingOrg(null);
   };
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string | { checked: boolean; value: string }) => {
     // Handle keywords as comma-separated list
     if (name === "keywords" && typeof value === "string") {
       const keywordArray = value
@@ -226,7 +226,7 @@ const Organizations = () => {
     }
 
     // Handle monitoringType checkboxes
-    if (name === "monitoringType") {
+    if (name === "monitoringType" && typeof value === "object") {
       let updatedTypes = [...formData.monitoringType];
       if (value.checked) {
         updatedTypes.push(value.value);

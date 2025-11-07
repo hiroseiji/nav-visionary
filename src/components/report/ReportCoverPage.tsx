@@ -44,7 +44,7 @@ export const ReportCoverPage = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl min-h-[100vh] flex flex-col"
+      className="relative overflow-hidden rounded-3xl min-h-[120vh] flex flex-col"
       style={{
         background: `linear-gradient(180deg, ${gradientTop} 0%, ${gradientBottom} 100%)`,
         color: "white",
@@ -56,7 +56,11 @@ export const ReportCoverPage = ({
         className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
       />
       <div className="relative z-10 pt-16 pb-8 flex justify-center">
-        <img src={socialLightLogo} alt="Social Light" className="h-24 w-auto" />
+        <img
+          src={socialLightLogo}
+          alt="Social Light"
+          className="h-28 w-auto" // or h-32, h-36
+        />
       </div>
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-8 -mt-20">
         <h1 className="text-6xl font-bold mb-6 tracking-tight">
@@ -67,7 +71,7 @@ export const ReportCoverPage = ({
         </p>
       </div>
       <div className="relative z-10 p-8 flex items-end justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1 pb-10">
           <p className="text-lg font-semibold opacity-95">
             {formatDateRange()}
           </p>
@@ -82,7 +86,7 @@ export const ReportCoverPage = ({
           </div>
         )}
       </div>
-      <div className="relative z-10 bg-black/20 py-3 px-8 flex items-center justify-between text-sm">
+      <div className="relative z-10 bg-black/20 font-light py-4 px-10 flex items-center justify-between text-xs">
         <span className="opacity-80">
           © Social Light Botswana | {new Date().getFullYear()}
         </span>

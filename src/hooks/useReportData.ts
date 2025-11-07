@@ -54,6 +54,13 @@ export interface Report {
   createdAt: string;
   created_at?: string;
   organizationId?: string;
+  startDate?: string;
+  endDate?: string;
+  filters?: {
+    startDate?: string;
+    endDate?: string;
+    [key: string]: unknown;
+  };
 
   articles?: MediaBucket;
   printmedia?: MediaBucket;

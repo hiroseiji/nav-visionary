@@ -1277,119 +1277,121 @@ export default function Analytics() {
 
           <TabsContent value="sources" className="space-y-6">
             {/* Pie/Doughnut Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {contentType === "posts" && "Mentions Composition by Source"}
-                  {contentType === "articles" && "Top Keyword Trends Online"}
-                  {contentType === "broadcast" &&
-                    "Sentiment Breakdown by Station"}
-                </CardTitle>
-                <CardDescription>
-                  Distribution of mentions across different sources
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="h-96">
-                {contentType === "broadcast" ? (
-                  broadcastInsightsData?.datasets?.length &&
-                  broadcastInsightsData?.datasets[0]?.data?.some(
-                    (v: number) => v > 0
-                  ) ? (
-                    <Bar
-                      data={broadcastInsightsData}
-                      options={{
-                        indexAxis: "x",
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: "top",
-                            labels: {
-                              font: { family: "Raleway" },
-                              color:
-                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              usePointStyle: true,
-                              pointStyle: "circle",
+            {contentType !== "printMedia" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {contentType === "posts" && "Mentions Composition by Source"}
+                    {contentType === "articles" && "Top Keyword Trends Online"}
+                    {contentType === "broadcast" &&
+                      "Sentiment Breakdown by Station"}
+                  </CardTitle>
+                  <CardDescription>
+                    Distribution of mentions across different sources
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="h-96">
+                  {contentType === "broadcast" ? (
+                    broadcastInsightsData?.datasets?.length &&
+                    broadcastInsightsData?.datasets[0]?.data?.some(
+                      (v: number) => v > 0
+                    ) ? (
+                      <Bar
+                        data={broadcastInsightsData}
+                        options={{
+                          indexAxis: "x",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: "top",
+                              labels: {
+                                font: { family: "Raleway" },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                                usePointStyle: true,
+                                pointStyle: "circle",
+                              },
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: function (
+                                  tooltipItem: TooltipItem<"bar">
+                                ) {
+                                  return `${tooltipItem.dataset.label}: ${
+                                    typeof tooltipItem.raw === "number"
+                                      ? tooltipItem.raw.toLocaleString()
+                                      : tooltipItem.raw
+                                  }`;
+                                },
+                              },
+                            },
+                            datalabels: {
+                              display: false,
                             },
                           },
-                          tooltip: {
-                            callbacks: {
-                              label: function (
-                                tooltipItem: TooltipItem<"bar">
-                              ) {
-                                return `${tooltipItem.dataset.label}: ${
-                                  typeof tooltipItem.raw === "number"
-                                    ? tooltipItem.raw.toLocaleString()
-                                    : tooltipItem.raw
-                                }`;
+                          scales: {
+                            x: {
+                              stacked: false,
+                              title: {
+                                display: true,
+                                text: "Mentions by Sentiment",
+                                font: {
+                                  family: "Raleway",
+                                  size: 14,
+                                  weight: "bold",
+                                },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              ticks: {
+                                font: { family: "Raleway" },
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              grid: {
+                                display: true,
+                                color: "rgba(200, 200, 200, 0.21)",
+                              },
+                            },
+                            y: {
+                              stacked: false,
+                              ticks: {
+                                font: {
+                                  family: "Raleway",
+                                  size: 13,
+                                  weight: "normal",
+                                },
+                                padding: 5,
+                                color:
+                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              },
+                              grid: {
+                                display: true,
+                                color: "rgba(200, 200, 200, 0.2)",
                               },
                             },
                           },
-                          datalabels: {
-                            display: false,
+                          animation: {
+                            duration: 1500,
                           },
-                        },
-                        scales: {
-                          x: {
-                            stacked: false,
-                            title: {
-                              display: true,
-                              text: "Mentions by Sentiment",
-                              font: {
-                                family: "Raleway",
-                                size: 14,
-                                weight: "bold",
-                              },
-                              color:
-                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            },
-                            ticks: {
-                              font: { family: "Raleway" },
-                              color:
-                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            },
-                            grid: {
-                              display: true,
-                              color: "rgba(200, 200, 200, 0.21)",
-                            },
-                          },
-                          y: {
-                            stacked: false,
-                            ticks: {
-                              font: {
-                                family: "Raleway",
-                                size: 13,
-                                weight: "normal",
-                              },
-                              padding: 5,
-                              color:
-                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                            },
-                            grid: {
-                              display: true,
-                              color: "rgba(200, 200, 200, 0.2)",
-                            },
-                          },
-                        },
-                        animation: {
-                          duration: 1500,
-                        },
-                      }}
-                    />
+                        }}
+                      />
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-muted-foreground">
+                        No broadcast insights data available yet.
+                      </div>
+                    )
+                  ) : pieData?.datasets?.[0]?.data?.some((v: number) => v > 0) ? (
+                    <Doughnut data={pieData} options={pieOptions} />
                   ) : (
                     <div className="h-full flex items-center justify-center text-muted-foreground">
-                      No broadcast insights data available yet.
+                      No composition data available yet.
                     </div>
-                  )
-                ) : pieData?.datasets?.[0]?.data?.some((v: number) => v > 0) ? (
-                  <Doughnut data={pieData} options={pieOptions} />
-                ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground">
-                    No composition data available yet.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Top Journalists Chart for Print Media */}
             {contentType === "printMedia" &&

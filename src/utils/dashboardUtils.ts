@@ -440,16 +440,15 @@ export const fetchCountries = async (): Promise<string[]> => {
   }
 };
 
-export const fetchCompetitorsFromGooglePlaces = async (industry, country) => {
+export const fetchCompetitorsFromGooglePlaces = async (industry: string, country: string) => {
     try {
         const response = await axios.get(
-            `https://sociallightbw-backend-34f7586fa57c.herokuapp.com
-/api/competitors`,
+            `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/competitors`,
             { params: { industry, country } }
         );
 
         if (response.data.status === "OK") {
-            return response.data.results.map(place => place.name);
+            return response.data.results.map((place: any) => place.name);
         } else {
             console.warn("Google Places API returned:", response.data.status);
             return [];

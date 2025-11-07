@@ -980,7 +980,9 @@ const Organizations = () => {
 
                 {/* Suggested competitor chips */}
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {suggestedCompetitors.length > 0 ? (
+                  {suggestionsLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading suggestions...</p>
+                  ) : suggestedCompetitors.length > 0 ? (
                     suggestedCompetitors.map((competitor, idx) => {
                       const isSelected = formData.competitors.some(
                         (c) =>

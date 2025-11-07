@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { FileText, ArrowUpRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -1225,23 +1226,19 @@ export default function Analytics() {
                 </Tooltip>
               </div>
               <div className="space-y-3">
-                <p className="text-6xl font-bold">
-                  {totalKeywords}
-                </p>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {organizationData?.keywords?.slice(0, 3).map((keyword, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                  {(organizationData?.keywords?.length || 0) > 3 && (
-                    <span className="px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground rounded-md">
-                      +{(organizationData?.keywords?.length || 0) - 3} more
-                    </span>
-                  )}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Social Media
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Online Media
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Broadcast Media
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Print Media
+                  </Badge>
                 </div>
               </div>
             </div>

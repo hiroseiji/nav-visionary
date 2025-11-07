@@ -5,8 +5,15 @@ import {
   FaQuoteLeft,
 } from "react-icons/fa";
 import { IoCalendarNumberSharp } from "react-icons/io5";
+import { ChevronDown } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useState } from "react";
 import { moduleLabels } from "@/utils/reportConstants";
-import { Report } from "@/hooks/useReportData"; 
+import { Report } from "@/hooks/useReportData";
 
 /* ====== Types (no 'any') ====== */
 type Totals = { volume?: number; reach?: number; ave?: number };
@@ -124,6 +131,7 @@ interface ReportContentsPageProps {
 
 /* ====== Component ====== */
 export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavigateToPage }: ReportContentsPageProps) => {
+  const [openMediaSections, setOpenMediaSections] = useState<Record<string, boolean>>({});
   /* ---- Languages & date range (typed) ---- */
   const summarizeLanguagesFromReport = (r: ReportLike): string => {
     const arr =
@@ -406,48 +414,48 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
           {/* Left: Metrics */}
           <Card className="border-2">
             <CardContent className="p-6 space-y-6">
-              <div className="flex items-center justify-between py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <BsBarChartFill className="h-6 w-6 text-primary" />
-                  <span className="font-semibold">Volume</span>
+              <div className="flex items-center justify-between py-6 border-b">
+                <div className="flex items-center gap-4">
+                  <BsBarChartFill className="h-16 w-16 text-primary" />
+                  <span className="font-semibold text-xl">Volume</span>
                 </div>
-                <span className="text-lg font-bold">
+                <span className="text-2xl font-bold">
                   {fmtInt(totals?.volume)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <FaGlobeAfrica className="h-6 w-6 text-primary" />
-                  <span className="font-semibold">Regions</span>
+              <div className="flex items-center justify-between py-6 border-b">
+                <div className="flex items-center gap-4">
+                  <FaGlobeAfrica className="h-16 w-16 text-primary" />
+                  <span className="font-semibold text-xl">Regions</span>
                 </div>
-                <span className="text-lg font-bold">{regionText}</span>
+                <span className="text-2xl font-bold">{regionText}</span>
               </div>
 
-              <div className="flex items-center justify-between py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <BsMegaphone className="h-6 w-6 text-primary" />
-                  <span className="font-semibold">Reach</span>
+              <div className="flex items-center justify-between py-6 border-b">
+                <div className="flex items-center gap-4">
+                  <BsMegaphone className="h-16 w-16 text-primary" />
+                  <span className="font-semibold text-xl">Reach</span>
                 </div>
-                <span className="text-lg font-bold">
+                <span className="text-2xl font-bold">
                   {fmtInt(totals?.reach)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <FaQuoteLeft className="h-6 w-6 text-primary" />
-                  <span className="font-semibold">Language</span>
+              <div className="flex items-center justify-between py-6 border-b">
+                <div className="flex items-center gap-4">
+                  <FaQuoteLeft className="h-16 w-16 text-primary" />
+                  <span className="font-semibold text-xl">Language</span>
                 </div>
-                <span className="text-lg font-bold">{languageText}</span>
+                <span className="text-2xl font-bold">{languageText}</span>
               </div>
 
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-3">
-                  <IoCalendarNumberSharp className="h-6 w-6 text-primary" />
-                  <span className="font-semibold">Time Period</span>
+              <div className="flex items-center justify-between py-6">
+                <div className="flex items-center gap-4">
+                  <IoCalendarNumberSharp className="h-16 w-16 text-primary" />
+                  <span className="font-semibold text-xl">Time Period</span>
                 </div>
-                <span className="text-lg font-bold">{timePeriodText}</span>
+                <span className="text-2xl font-bold">{timePeriodText}</span>
               </div>
             </CardContent>
           </Card>
@@ -466,21 +474,34 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
 
                 {mediaOrder
                   .filter((mt) => groupedByMedia[mt]?.length)
-                  .map((mt) => (
-                    <li key={mt} className="space-y-2">
-                      <div className="text-sm uppercase tracking-wide text-muted-foreground">
-                        {mediaTypeLabels[mt] || mt}
-                      </div>
-                      <ul className="space-y-1">
-                        {groupedByMedia[mt].map((row) => (
+                  .map((mt, index) => (
+                    <Collapsible
+                      key={mt}
+                      open={openMediaSections[mt] ?? index === 0}
+                      onOpenChange={(open) =>
+                        setOpenMediaSections((prev) => ({ ...prev, [mt]: open }))
+                      }
+                    >
+                      <CollapsibleTrigger className="w-full">
+                        <div className="flex items-center justify-between font-bold text-primary mt-4 mb-2 hover:text-primary/80 transition-colors">
+                          <h4>{mediaTypeLabels[mt] || mt}</h4>
+                          <ChevronDown
+                            className={`h-5 w-5 transition-transform ${
+                              openMediaSections[mt] ?? index === 0 ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1">
+                        {(groupedByMedia[mt] || []).map((item) => (
                           <ContentsRow
-                            key={`${row.mediaType}:${row.module}`}
-                            label={moduleLabels[row.module] || row.module}
-                            page={row.page}
+                            key={item.module}
+                            label={moduleLabels[item.module] || item.module}
+                            page={item.page}
                           />
                         ))}
-                      </ul>
-                    </li>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
               </ol>
 

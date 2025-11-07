@@ -158,6 +158,7 @@ const HaloPointsPlugin = {
   id: "haloPoints",
   afterDatasetsDraw(chart: ChartJS) {
     const { ctx } = chart;
+    const isDarkMode = document.documentElement.classList.contains('dark');
 
     chart.data.datasets.forEach((ds, i: number) => {
       // @ts-expect-error - Custom property
@@ -178,8 +179,8 @@ const HaloPointsPlugin = {
 
         const prev = meta.data[idx - 1] as typeof pointEl;
         const next = meta.data[idx + 1] as typeof pointEl;
-        const dxPrev = prev?.x !== undefined ? Math.abs(pointEl.x - prev.x) : Infinity;
-        const dxNext = next?.x !== undefined ? Math.abs(pointEl.x - next.x) : Infinity;
+        const dxPrev = Number.isFinite(prev?.x) ? Math.abs(pointEl.x - prev.x) : Infinity;
+        const dxNext = Number.isFinite(next?.x) ? Math.abs(pointEl.x - next.x) : Infinity;
         const nearestDx = Math.min(dxPrev, dxNext);
 
         const spacing = nearestDx / (pr * 3);
@@ -191,7 +192,8 @@ const HaloPointsPlugin = {
 
         const haloR = Math.max(3, pr * scale);
 
-        const baseAlpha = 0.25;
+        // Theme-aware opacity
+        const baseAlpha = isDarkMode ? 0.5 : 0.25;
         const alpha = 0.25 * baseAlpha + 0.75 * baseAlpha * ease;
 
         const fillCol = pointEl.options?.backgroundColor || "#0bb37b";

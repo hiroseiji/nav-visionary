@@ -437,7 +437,6 @@ export function SentimentTrend({
                 : undefined,
             },
           },
-          plugins: [HaloPointsPlugin],
         });
       }
     }

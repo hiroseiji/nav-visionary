@@ -66,6 +66,11 @@ All colors MUST be HSL.
     --sentiment-negative: 0 84% 60%;
     --sentiment-negative-light: 0 84% 95%;
 
+    --chart-online: 217 91% 60%;
+    --chart-social: 160 84% 39%;
+    --chart-broadcast: 45 93% 47%;
+    --chart-print: 0 84% 60%;
+
     --radius: 1rem;
 
     --sidebar-background: 220 14% 96%;
@@ -120,6 +125,11 @@ All colors MUST be HSL.
     --sentiment-positive-light: 160 64% 20%;
     --sentiment-negative: 0 72% 51%;
     --sentiment-negative-light: 0 72% 20%;
+
+    --chart-online: 217 91% 60%;
+    --chart-social: 160 64% 49%;
+    --chart-broadcast: 45 93% 47%;
+    --chart-print: 0 72% 51%;
 
     --sidebar-background: 217 33% 10%;
     --sidebar-foreground: 210 40% 98%;

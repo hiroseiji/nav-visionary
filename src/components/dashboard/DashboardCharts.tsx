@@ -66,19 +66,19 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   const lineChartConfig = {
     online: {
       label: "Online Articles",
-      color: "#3b82f6",
+      color: "hsl(var(--chart-online))",
     },
     social: {
       label: "Social Media",
-      color: "#10b981",
+      color: "hsl(var(--chart-social))",
     },
     broadcast: {
       label: "Broadcast",
-      color: "#f59e0b",
+      color: "hsl(var(--chart-broadcast))",
     },
     print: {
       label: "Print Media",
-      color: "#ef4444",
+      color: "hsl(var(--chart-print))",
     },
   } satisfies ChartConfig;
 
@@ -101,15 +101,30 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
       })
       .reverse(); 
 
+    const getColorClass = (dataKey: string) => {
+      switch (dataKey) {
+        case 'online':
+          return 'text-chart-online';
+        case 'social':
+          return 'text-chart-social';
+        case 'broadcast':
+          return 'text-chart-broadcast';
+        case 'print':
+          return 'text-chart-print';
+        default:
+          return 'text-foreground';
+      }
+    };
+
     return (
-      <div className="bg-white/95 dark:bg-neutral-900/95 border rounded px-3 py-2 text-sm shadow">
-        <div className="font-medium mb-1">{label}</div>
+      <div className="bg-card/95 border border-border rounded px-3 py-2 text-sm shadow-lg">
+        <div className="font-medium mb-1.5 text-foreground">{label}</div>
         {items.map((it) => (
           <div
             key={`${String(it.dataKey)}-${it.color}`}
-            style={{ color: it.color }}
+            className={`${getColorClass(String(it.dataKey))} font-medium`}
           >
-            {(it.name as string) ?? String(it.dataKey)} :{" "}
+            {(it.name as string) ?? String(it.dataKey)}:{" "}
             {it.value as ValueType}
           </div>
         ))}
@@ -141,7 +156,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     const keys = order ?? Object.keys(config);
 
     return (
-      <div className="flex flex-wrap items-center gap-4 text-sm text-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-4 mt-4 text-sm text-foreground">
         {keys.map((key) => {
           const { label, color } = config[key];
           return (
@@ -153,7 +168,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
                   background: hexToRgba(color, 0.25),
                 }}
               />
-              <span className="leading-none text-xs md:text-[13px]">
+              <span className="leading-none text-sm font-medium">
                 {label}
               </span>
             </div>
@@ -212,20 +227,20 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
             <ComposedChart data={lineData}>
               <defs>
                 <linearGradient id="colorOnline" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-online))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-online))" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorSocial" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-social))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-social))" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorBroadcast" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-broadcast))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-broadcast))" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorPrint" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-print))" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-print))" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -262,37 +277,37 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
               <Line
                 type="monotone"
                 dataKey="online"
-                stroke="#3b82f6"
+                stroke="hsl(var(--chart-online))"
                 strokeWidth={2}
                 name="Online Articles"
-                dot={{ fill: "#3b82f6", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "hsl(var(--chart-online))", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
                 dataKey="social"
-                stroke="#10b981"
+                stroke="hsl(var(--chart-social))"
                 strokeWidth={2}
                 name="Social Media"
-                dot={{ fill: "#10b981", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "hsl(var(--chart-social))", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
                 dataKey="broadcast"
-                stroke="#f59e0b"
+                stroke="hsl(var(--chart-broadcast))"
                 strokeWidth={2}
                 name="Broadcast"
-                dot={{ fill: "#f59e0b", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "hsl(var(--chart-broadcast))", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
               <Line
                 type="monotone"
                 dataKey="print"
-                stroke="#ef4444"
+                stroke="hsl(var(--chart-print))"
                 strokeWidth={2}
                 name="Print Media"
-                dot={{ fill: "#ef4444", strokeWidth: 0, r: 4 }}
+                dot={{ fill: "hsl(var(--chart-print))", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
             </ComposedChart>

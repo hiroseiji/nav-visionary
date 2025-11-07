@@ -69,19 +69,16 @@ const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 function dynamicPointRadius(
   chart: ChartJS,
-  { min = 1.5, max = 1.6, pxPerUnit = 10 } = {}
+  dataCount: number
 ) {
-  const x = chart.scales.x;
-  const n = chart.data?.labels?.length ?? 0;
-  if (!x || n <= 1) return (min + max) / 2;
-
-  const span = x.getPixelForTick(n - 1) - x.getPixelForTick(0);
-  const avgPx = span / (n - 1);
-  const r = (avgPx / pxPerUnit) * max;
-  return clamp1(r, min, max);
+  // More aggressive scaling based on data density
+  if (dataCount > 150) return 0.8; // Very small for high density
+  if (dataCount > 100) return 1.0;
+  if (dataCount > 60) return 1.3;
+  if (dataCount > 30) return 1.5;
+  return 2.0; // Larger for smaller datasets
 }
 
-const TICK_EVERY_DAYS = 4;
 const month3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const daysBetween = (a: Date, b: Date) =>
@@ -91,16 +88,35 @@ const daysBetween = (a: Date, b: Date) =>
       86400000
   );
 
-const fourDayTickCallback = (labels: string[]) => (val: string | number, idx: number) => {
-  const first = new Date(labels[0]);
-  const cur = new Date(labels[idx]);
-  if (isNaN(first.getTime()) || isNaN(cur.getTime())) {
-    if (idx % TICK_EVERY_DAYS !== 0 && idx !== labels.length - 1) return "";
-    return labels[idx];
+// Adaptive tick callback - shows fewer labels when there's more data
+const adaptiveTickCallback = (labels: string[]) => {
+  // Determine skip interval based on data density
+  const dataCount = labels.length;
+  let skipInterval: number;
+  
+  if (dataCount > 150) {
+    skipInterval = 10; // Show every 10th day
+  } else if (dataCount > 100) {
+    skipInterval = 7; // Show every 7th day
+  } else if (dataCount > 60) {
+    skipInterval = 5; // Show every 5th day
+  } else if (dataCount > 30) {
+    skipInterval = 4; // Show every 4th day
+  } else {
+    skipInterval = 2; // Show every 2nd day for small datasets
   }
-  const d = daysBetween(first, cur);
-  if (d % TICK_EVERY_DAYS !== 0 && idx !== labels.length - 1) return "";
-  return `${cur.getDate()}-${month3[cur.getMonth()]}`;
+  
+  return (val: string | number, idx: number) => {
+    const first = new Date(labels[0]);
+    const cur = new Date(labels[idx]);
+    if (isNaN(first.getTime()) || isNaN(cur.getTime())) {
+      if (idx % skipInterval !== 0 && idx !== labels.length - 1) return "";
+      return labels[idx];
+    }
+    const d = daysBetween(first, cur);
+    if (d % skipInterval !== 0 && idx !== labels.length - 1) return "";
+    return `${cur.getDate()}-${month3[cur.getMonth()]}`;
+  };
 };
 
 function makeGradientRing(size = 22, thickness = 7) {
@@ -229,6 +245,7 @@ export function SentimentTrend({
     const subtitleColor = isDarkMode ? '#aaaaaa' : '#666666';
 
     const labels = data.map((d) => d.date);
+    const dataCount = labels.length;
     const numOrNull = (v: number) => (Number.isFinite(v) ? v : null);
     const safe = (v: number) => (v === 0.25 ? null : numOrNull(v));
 
@@ -240,6 +257,9 @@ export function SentimentTrend({
     const colorAt = (i: number) => CAT_COLORS[dayCats[i] as keyof typeof CAT_COLORS] || CAT_COLORS.positive;
 
     const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
+    
+    // Calculate dynamic point radius based on data density
+    const basePointRadius = dataCount > 150 ? 0.8 : dataCount > 100 ? 1.0 : dataCount > 60 ? 1.3 : dataCount > 30 ? 1.5 : 2.0;
 
     // Sentiment chart
     if (sentimentCanvasRef.current) {
@@ -276,7 +296,7 @@ export function SentimentTrend({
                 type: "line" as const,
                 label: "Sentiment Trend",
                 data: smoothSent as (number | null)[],
-                borderWidth: (ctx: { chart: ChartJS }) => Math.max(2, dynamicPointRadius(ctx.chart) * 0.6),
+                borderWidth: Math.max(1.5, basePointRadius * 0.8),
                 borderColor: "#e0c80c",
                 backgroundColor: "rgba(214,191,21,0.05)",
                 pointRadius: 0,
@@ -295,15 +315,15 @@ export function SentimentTrend({
                 tension: 0.35,
                 spanGaps: true,
                 cubicInterpolationMode: "monotone" as const,
-                borderWidth: (ctx: { chart: ChartJS }) => Math.max(1, dynamicPointRadius(ctx.chart) * 0.75),
+                borderWidth: Math.max(0.8, basePointRadius * 0.9),
                 segment: {
                   borderColor: (ctx: { p0DataIndex: number }) => {
                     const i = ctx.p0DataIndex ?? 0;
                     return colorAt(i);
                   },
                 },
-                pointRadius: (ctx: { chart: ChartJS }) => dynamicPointRadius(ctx.chart),
-                pointHoverRadius: (ctx: { chart: ChartJS }) => Math.max(4, dynamicPointRadius(ctx.chart) * 1.6),
+                pointRadius: basePointRadius,
+                pointHoverRadius: Math.max(3, basePointRadius * 1.8),
                 pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
                 fill: {
@@ -331,7 +351,7 @@ export function SentimentTrend({
                   maxRotation: 0,
                   font: { family: "Raleway", size: 12 },
                   color: textColor,
-                  callback: fourDayTickCallback(labels),
+                  callback: adaptiveTickCallback(labels),
                 },
               },
               y1: {
@@ -489,7 +509,7 @@ export function SentimentTrend({
                   maxRotation: 0,
                   font: { family: "Raleway", size: 12 },
                   color: textColor,
-                  callback: fourDayTickCallback(labels),
+                  callback: adaptiveTickCallback(labels),
                 },
               },
               y: {

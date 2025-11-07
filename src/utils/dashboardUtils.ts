@@ -470,7 +470,7 @@ export const handleScrape = async (
 ) => {
     setScraping(true);
     try {
-        const response = await axios.get("http://localhost:5001/scrape", {
+        const response = await axios.get("http://54.163.230.129:5001:5001/scrape", {
             params: { organizationName },
         });
 

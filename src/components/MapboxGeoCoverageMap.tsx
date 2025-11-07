@@ -121,23 +121,28 @@ const MapboxGeoCoverageMap = ({
       const map = mapRef.current;
       if (!map || !map.getLayer("country-fills")) return;
 
-      const values = Object.values(countryCounts || {});
-      const maxCount = values.length ? Math.max(...values) : 0;
+      const entries = Object.entries(countryCounts || {}).filter(([_, count]) => count > 0);
+      
+      // If no data, just use default colors
+      if (entries.length === 0) {
+        map.setPaintProperty("country-fills", "fill-color", "hsl(0, 0%, 95%)");
+        map.setPaintProperty("country-fills", "fill-opacity", 0.08);
+        return;
+      }
 
-      // same idea as d3 scale: light -> red
+      const values = entries.map(([_, count]) => count);
+      const maxCount = Math.max(...values);
+
+      // Build Mapbox expression for choropleth
       const colorExpr: mapboxgl.Expression = ["case"];
       const opacityExpr: mapboxgl.Expression = ["case"];
 
-      Object.entries(countryCounts).forEach(([name, count]) => {
-        if (!count || count <= 0) return;
-
-        // normalize: look up by name_en/name directly
+      entries.forEach(([name, count]) => {
         const intensity = maxCount > 0 ? count / maxCount : 0;
         const color = `hsl(0, 85%, ${100 - intensity * 50}%)`;
         const opacity = 0.2 + intensity * 0.8;
 
-        // match by country name in vector tiles:
-        // name_en property is used in mapbox.country-boundaries-v1
+        // Match by country name in vector tiles (name_en property)
         colorExpr.push(["==", ["get", "name_en"], name], color);
         opacityExpr.push(["==", ["get", "name_en"], name], opacity);
       });

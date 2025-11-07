@@ -1228,16 +1228,16 @@ export default function Analytics() {
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    Social Media
+                    Social
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    Online Media
+                    Online
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    Broadcast Media
+                    Broadcast
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    Print Media
+                    Print
                   </Badge>
                 </div>
               </div>

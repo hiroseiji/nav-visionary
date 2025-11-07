@@ -318,6 +318,7 @@ export default function Analytics() {
       country?: string;
       location?: string;
       geo?: string;
+      [key: string]: any;
     };
 
     let sourceData: GeoItem[] = [];
@@ -330,6 +331,18 @@ export default function Analytics() {
       sourceData = broadcastArticles;
     } else if (contentType === "printMedia") {
       sourceData = printArticles;
+    }
+
+    // Debug: Log sample data to see what fields are available
+    console.log(`=== ${contentType} Data Sample ===`);
+    console.log("Total items:", sourceData.length);
+    if (sourceData.length > 0) {
+      console.log("First item keys:", Object.keys(sourceData[0]));
+      console.log("Sample country data:", {
+        country: sourceData[0]?.country,
+        location: sourceData[0]?.location,
+        geo: sourceData[0]?.geo,
+      });
     }
 
     const counts = sourceData.reduce<Record<string, number>>((acc, item) => {
@@ -347,7 +360,10 @@ export default function Analytics() {
       return acc;
     }, {});
 
-    console.log("Geo Coverage Counts:", counts);
+    console.log(`${contentType} - Geo Coverage Counts:`, counts);
+    console.log(`${contentType} - Items with country data:`, 
+      sourceData.filter(item => item.country || item.location || item.geo).length
+    );
     setGeoCountryCounts(counts);
   }, [contentType, facebookPosts, articles, broadcastArticles, printArticles]);
 

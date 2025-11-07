@@ -109,7 +109,7 @@ export const useReportData = (
         const orgIdToFetch = report.organizationId || orgId;
         if (orgIdToFetch) {
           const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
-          const orgRes = await axios.get<Organization>(orgUrl, {
+          const orgRes = await axios.get<{organization: Organization} | Organization>(orgUrl, {
             headers: {
               Accept: "application/json",
               "Cache-Control": "no-cache",
@@ -117,7 +117,9 @@ export const useReportData = (
             },
             validateStatus: (s) => s >= 200 && s < 300,
           });
-          setOrganizationData(orgRes.data);
+          // Handle both response formats: nested { organization: {...} } or direct {...}
+          const orgData = 'organization' in orgRes.data ? orgRes.data.organization : orgRes.data;
+          setOrganizationData(orgData);
         } else {
           setOrganizationData(null);
         }

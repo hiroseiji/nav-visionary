@@ -111,7 +111,9 @@ export function generateOverYearsBarData(
   facebookPosts: ReadonlyArray<Post>,
   articles: ReadonlyArray<Article>,
   broadcastArticles: ReadonlyArray<BroadcastArticle>,
-  printArticles: ReadonlyArray<PrintArticle>
+  broadcastOverTimeData: ReadonlyArray<OverTimePoint>,
+  printArticles: ReadonlyArray<PrintArticle>,
+  printOverTimeData: ReadonlyArray<OverTimePoint>
 ): Dataset[] {
   // Social Posts
   if (contentType === "posts") {
@@ -129,20 +131,24 @@ export function generateOverYearsBarData(
     return yearMapToDatasets(yearMap, "Articles");
   }
 
-  // Broadcast
+  // Broadcast - use overTimeData
   if (contentType === "broadcast") {
-    const yearMap = buildYearMonthCounts(broadcastArticles, (b) =>
-      toDate(b.mentionDT)
+    const yearMap = buildYearMonthCounts(
+      broadcastOverTimeData,
+      (item) => toDate(item.date ?? item._id),
+      (item) => item.count ?? 0
     );
     return yearMapToDatasets(yearMap, "Broadcast");
   }
 
-  // Print (UI says "printMedia", data says publicationDate/ publication_date)
+  // Print Media - use overTimeData
   if (contentType === "printMedia") {
-    const yearMap = buildYearMonthCounts(printArticles, (p) =>
-      toDate(p.publicationDate ?? p.publication_date)
+    const yearMap = buildYearMonthCounts(
+      printOverTimeData,
+      (item) => toDate(item.date ?? item._id),
+      (item) => item.count ?? 0
     );
-    return yearMapToDatasets(yearMap, "Print");
+    return yearMapToDatasets(yearMap, "Print Media");
   }
 
   return [];

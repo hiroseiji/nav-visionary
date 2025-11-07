@@ -950,7 +950,8 @@ export default function Analytics() {
       articles,
       broadcastArticles,
       broadcastOverTimeData,
-      printArticles
+      printArticles,
+      printOverTimeData
     ),
   };
 

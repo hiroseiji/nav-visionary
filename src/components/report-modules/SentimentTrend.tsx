@@ -257,6 +257,7 @@ export function SentimentTrend({
     const colorAt = (i: number) => CAT_COLORS[dayCats[i] as keyof typeof CAT_COLORS] || CAT_COLORS.positive;
 
     const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
+    const industryLabel = organizationData?.organization?.industry;
     
     // Calculate dynamic point radius based on data density
     const basePointRadius = dataCount > 150 ? 0.8 : dataCount > 100 ? 1.0 : dataCount > 60 ? 1.3 : dataCount > 30 ? 1.5 : 2.0;
@@ -279,7 +280,7 @@ export function SentimentTrend({
                     {
                       type: "line" as const,
                       label: "Industry Trend",
-                      data: industry as (number | null)[],
+                      data: industryLabel as (number | null)[],
                       borderColor: industryColor,
                       borderWidth: 2,
                       pointRadius: 0,
@@ -324,8 +325,10 @@ export function SentimentTrend({
                 },
                 pointRadius: basePointRadius,
                 pointHoverRadius: Math.max(3, basePointRadius * 1.8),
-                pointBackgroundColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
-                pointBorderColor: (ctx: { dataIndex: number }) => colorAt(ctx.dataIndex),
+                pointBackgroundColor: (ctx: { dataIndex: number }) =>
+                  colorAt(ctx.dataIndex),
+                pointBorderColor: (ctx: { dataIndex: number }) =>
+                  colorAt(ctx.dataIndex),
                 fill: {
                   target: "origin",
                   above: "rgba(11,179,123,0.08)",
@@ -384,7 +387,10 @@ export function SentimentTrend({
                   color: textColor,
                   font: { family: "Raleway", size: 13 },
                   generateLabels(chart) {
-                    const labels = ChartJS.defaults.plugins.legend.labels.generateLabels(chart);
+                    const labels =
+                      ChartJS.defaults.plugins.legend.labels.generateLabels(
+                        chart
+                      );
                     labels.forEach((l) => {
                       if (l.text === "Sentiment") {
                         l.pointStyle = makeGradientRing(11, 3);
@@ -403,7 +409,10 @@ export function SentimentTrend({
                 titleFont: { family: "Raleway", size: 12, weight: "bold" },
                 bodyFont: { family: "Raleway", size: 12 },
                 callbacks: {
-                  label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
+                  label: (ctx: {
+                    dataset: { label?: string };
+                    parsed: { y: number };
+                  }) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}`,
                 },
               },
               subtitle: {
@@ -426,7 +435,9 @@ export function SentimentTrend({
                             xScaleID: "x",
                             xMin: a.date,
                             xMax: a.date,
-                            borderColor: getSpikeColor(a.type) || "rgba(11, 179, 123, 0.17)",
+                            borderColor:
+                              getSpikeColor(a.type) ||
+                              "rgba(11, 179, 123, 0.17)",
                             borderDash: [4, 4],
                             borderWidth: 1,
                             drawTime: "afterDatasetsDraw",

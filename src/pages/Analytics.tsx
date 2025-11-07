@@ -1208,137 +1208,29 @@ export default function Analytics() {
               </CardContent>
             </Card>
 
-            {/* Content Volume Chart or Journalist Chart */}
-            {contentType === "printMedia"
-              ? journalistChart &&
-                journalistChart.labels?.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>
-                        Top 15 Journalists by Volume and Tonality
-                      </CardTitle>
-                      <CardDescription>
-                        Print media journalists ranked by article count
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-96">
-                      <Bar
-                        data={{
-                          ...journalistChart,
-                          labels: journalistChart.labels.map((l: string) =>
-                            l === "0" || l.trim() === "" ? "Unknown" : l
-                          ),
-                        }}
-                        options={{
-                          indexAxis: "x",
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: "top",
-                              labels: {
-                                font: { family: "Raleway" },
-                                color:
-                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                                usePointStyle: true,
-                                pointStyle: "circle",
-                              },
-                            },
-                            tooltip: {
-                              callbacks: {
-                                label: (tooltipItem: TooltipItem<"bar">) =>
-                                  `${tooltipItem.dataset.label}: ${
-                                    typeof tooltipItem.raw === "number"
-                                      ? tooltipItem.raw.toLocaleString()
-                                      : tooltipItem.raw
-                                  }`,
-                              },
-                            },
-                            datalabels: {
-                              display: false,
-                            },
-                          },
-                          scales: {
-                            x: {
-                              stacked: false,
-                              title: {
-                                display: true,
-                                text: "Journalist",
-                                font: {
-                                  family: "Raleway",
-                                  size: 14,
-                                  weight: "bold",
-                                },
-                                color:
-                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              },
-                              ticks: {
-                                font: {
-                                  family: "Raleway",
-                                  size: 13,
-                                  weight: "normal",
-                                },
-                                color:
-                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              },
-                              grid: {
-                                color: "rgba(200, 200, 200, 0.2)",
-                                display: true,
-                              },
-                            },
-                            y: {
-                              stacked: false,
-                              title: {
-                                display: true,
-                                text: "Number of Articles",
-                                font: {
-                                  family: "Raleway",
-                                  size: 14,
-                                  weight: "bold",
-                                },
-                                color:
-                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              },
-                              ticks: {
-                                stepSize: 1,
-                                font: { family: "Raleway" },
-                                color:
-                                  theme === "light" ? "#7a7a7a" : "#ffffffd2",
-                              },
-                              grid: {
-                                color: "rgba(200, 200, 200, 0.2)",
-                                display: true,
-                              },
-                            },
-                          },
-                          animation: { duration: 1000 },
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-                )
-              : countOverTimeData.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Content Volume per Reach & AVE</CardTitle>
-                      <CardDescription>
-                        Tracking media content volume over time with reach and
-                        AVE metrics
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-96">
-                      <Chart
-                        type="bar"
-                        data={generateCountOverTimeChartData(
-                          countOverTimeData,
-                          contentType,
-                          granularity
-                        )}
-                        options={chartOptions}
-                      />
-                    </CardContent>
-                  </Card>
-                )}
+            {/* Content Volume Chart */}
+            {countOverTimeData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Content Volume per Reach & AVE</CardTitle>
+                  <CardDescription>
+                    Tracking media content volume over time with reach and
+                    AVE metrics
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="h-96">
+                  <Chart
+                    type="bar"
+                    data={generateCountOverTimeChartData(
+                      countOverTimeData,
+                      contentType,
+                      granularity
+                    )}
+                    options={chartOptions}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="keywords" className="space-y-6">
@@ -1494,6 +1386,116 @@ export default function Analytics() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Top Journalists Chart for Print Media */}
+            {contentType === "printMedia" &&
+              journalistChart &&
+              journalistChart.labels?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Top 15 Journalists by Volume and Tonality
+                    </CardTitle>
+                    <CardDescription>
+                      Print media journalists ranked by article count
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-96">
+                    <Bar
+                      data={{
+                        ...journalistChart,
+                        labels: journalistChart.labels.map((l: string) =>
+                          l === "0" || l.trim() === "" ? "Unknown" : l
+                        ),
+                      }}
+                      options={{
+                        indexAxis: "x",
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: "top",
+                            labels: {
+                              font: { family: "Raleway" },
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                              usePointStyle: true,
+                              pointStyle: "circle",
+                            },
+                          },
+                          tooltip: {
+                            callbacks: {
+                              label: (tooltipItem: TooltipItem<"bar">) =>
+                                `${tooltipItem.dataset.label}: ${
+                                  typeof tooltipItem.raw === "number"
+                                    ? tooltipItem.raw.toLocaleString()
+                                    : tooltipItem.raw
+                                }`,
+                            },
+                          },
+                          datalabels: {
+                            display: false,
+                          },
+                        },
+                        scales: {
+                          x: {
+                            stacked: false,
+                            title: {
+                              display: true,
+                              text: "Journalist",
+                              font: {
+                                family: "Raleway",
+                                size: 14,
+                                weight: "bold",
+                              },
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            ticks: {
+                              font: {
+                                family: "Raleway",
+                                size: 13,
+                                weight: "normal",
+                              },
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              color: "rgba(200, 200, 200, 0.2)",
+                              display: true,
+                            },
+                          },
+                          y: {
+                            stacked: false,
+                            title: {
+                              display: true,
+                              text: "Number of Articles",
+                              font: {
+                                family: "Raleway",
+                                size: 14,
+                                weight: "bold",
+                              },
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            ticks: {
+                              stepSize: 1,
+                              font: { family: "Raleway" },
+                              color:
+                                theme === "light" ? "#7a7a7a" : "#ffffffd2",
+                            },
+                            grid: {
+                              color: "rgba(200, 200, 200, 0.2)",
+                              display: true,
+                            },
+                          },
+                        },
+                        animation: { duration: 1000 },
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              )}
           </TabsContent>
 
           <TabsContent value="geography" className="space-y-8">

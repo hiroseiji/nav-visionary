@@ -1,323 +1,191 @@
-// analyticsUtils.ts
+// analyticsUtils.js
 
-// --- Shared UI content types (frontend) ---
-export type ContentTypeUI = "posts" | "articles" | "broadcast" | "printMedia";
-
-// --- Base types used by charts ---
-
-type OverTimePoint = {
-  date?: string | Date;
-  _id?: string | Date;
-  count?: number;
-  reach?: number;
-  totalReach?: number;
-  ave?: number;
-  totalAve?: number;
-  totalAVE?: number;
-};
-
-type Post = {
-  date?: string | Date;
-  createdAt?: string | Date;
-  createdTime?: string | Date;
-};
-
-type Article = {
-  publication_date?: string | Date;
-  publicationDate?: string | Date;
-  mentionDT?: string | Date;
-};
-
-type BroadcastArticle = {
-  airDate?: string | Date;
-  mentionDT?: string | Date;
-};
-
-type PrintArticle = {
-  publication_date?: string | Date;
-  publicationDate?: string | Date;
-};
-
-export type Dataset = {
-  label: string;
-  data: number[];
-  backgroundColor: string;
-  borderColor: string;
-  borderRadius: number;
-};
-
-const GRADIENT_BLUES: ReadonlyArray<string> = [
-  "rgb(173, 216, 230)",
-  "rgb(100, 149, 237)",
-  "rgb(70, 130, 180)",
-  "rgb(0, 105, 148)",
-  "rgb(0, 75, 115)",
-];
-
-const BORDER_BLUES: ReadonlyArray<string> = [
-  "rgb(173, 216, 230)",
-  "rgb(100, 149, 237)",
-  "rgb(70, 130, 180)",
-  "rgb(0, 105, 148)",
-  "rgb(0, 75, 115)",
-];
-
-// --- Helpers ---
-
-function toDate(input?: string | Date): Date | null {
-  if (!input) return null;
-  const d = input instanceof Date ? input : new Date(input);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function buildYearMonthCounts<T>(
-  items: ReadonlyArray<T>,
-  pickDate: (item: T) => Date | null,
-  countForItem: (item: T) => number = () => 1
-): Record<number, number[]> {
-  const map: Record<number, number[]> = {};
-  for (const it of items) {
-    const d = pickDate(it);
-    if (!d) continue;
-    const year = d.getFullYear();
-    const month = d.getMonth(); // 0-11
-    if (!map[year]) map[year] = new Array(12).fill(0);
-    map[year][month] += countForItem(it);
-  }
-  return map;
-}
-
-function yearMapToDatasets(
-  yearMap: Record<number, number[]>,
-  labelPrefix: string
-): Dataset[] {
-  const years = Object.keys(yearMap)
-    .map((y) => Number(y))
-    .filter((y) => !Number.isNaN(y))
-    .sort((a, b) => a - b);
-
-  return years.map((year, idx) => ({
-    label: `${labelPrefix} in ${year}`,
-    data: yearMap[year],
-    backgroundColor: GRADIENT_BLUES[idx % GRADIENT_BLUES.length],
-    borderColor:   BORDER_BLUES[idx % BORDER_BLUES.length],
-    borderRadius: 5,
-  }));
-}
-
-// --- Over Years bar chart ---
-export function generateOverYearsBarData(
-  contentType: ContentTypeUI,
-  facebookPosts: ReadonlyArray<Post>,
-  articles: ReadonlyArray<Article>,
-  broadcastArticles: ReadonlyArray<BroadcastArticle>,
-  broadcastOverTimeData: ReadonlyArray<OverTimePoint>,
-  printArticles: ReadonlyArray<PrintArticle>,
-  printOverTimeData: ReadonlyArray<OverTimePoint>
-): Dataset[] {
-  // Social Posts
-  if (contentType === "posts") {
-    const yearMap = buildYearMonthCounts(facebookPosts, (p) =>
-      toDate(p.date ?? p.createdAt ?? p.createdTime)
-    );
-    return yearMapToDatasets(yearMap, "Posts");
-  }
-
-  // Online Articles
-  if (contentType === "articles") {
-    const yearMap = buildYearMonthCounts(articles, (a) =>
-      toDate(a.publication_date ?? a.publicationDate ?? a.mentionDT)
-    );
-    return yearMapToDatasets(yearMap, "Articles");
-  }
-
-  // Broadcast - use overTimeData
-  if (contentType === "broadcast") {
-    const yearMap = buildYearMonthCounts(
-      broadcastOverTimeData,
-      (item) => toDate(item.date ?? item._id),
-      (item) => item.count ?? 0
-    );
-    return yearMapToDatasets(yearMap, "Broadcast");
-  }
-
-  // Print Media - use overTimeData
-  if (contentType === "printMedia") {
-    const yearMap = buildYearMonthCounts(
-      printOverTimeData,
-      (item) => toDate(item.date ?? item._id),
-      (item) => item.count ?? 0
-    );
-    return yearMapToDatasets(yearMap, "Print Media");
-  }
-
-  return [];
-}
-
-// --- Content Volume per Reach & AVE chart ---
-
-type CleanedPoint = {
-  date: Date;
-  label: string;
-  volume: number;
-  reach: number | null;
-  ave: number | null;
-};
-
-export const generateCountOverTimeChartData = (
-  countOverTimeData: OverTimePoint[],
-  _contentType: string,          // kept for signature parity if you need it later
-  granularity: "day" | "week" | "month" | "year"
+export const generateOverYearsBarData = (
+    contentType,
+    facebookPosts,
+    articles,
+    broadcastArticles,
+    broadcastOverTimeData,
+    printArticles,
+    printOverTimeData
 ) => {
-  if (!Array.isArray(countOverTimeData)) {
-    return { labels: [], datasets: [] };
-  }
+    const gradientBlues = [
+        "rgba(173, 216, 230, 0.8)",
+        "rgba(100, 149, 237, 0.8)",
+        "rgba(70, 130, 180, 0.8)",
+        "rgba(0, 105, 148, 0.8)",
+        "rgba(0, 75, 115, 0.8)",
+    ];
+    const borderColors = [
+        "rgb(173, 216, 230)",
+        "rgb(100, 149, 237)",
+        "rgb(70, 130, 180)",
+        "rgb(0, 105, 148)",
+        "rgb(0, 75, 115)",
+    ];
 
-  const cleaned: CleanedPoint[] = countOverTimeData
-    .filter((item) => item?.date || item?._id)
-    .map((item) => {
-      const raw = (item.date ?? item._id) as string | Date;
-      const d = raw instanceof Date ? raw : new Date(raw);
+    let sourceData = [];
 
-      let label: string;
-      if (granularity === "month") {
-        label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      } else if (granularity === "year") {
-        label = d.getFullYear().toString();
-      } else if (granularity === "week") {
-        // Optional: you can format weeks differently; keeping simple:
-        label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      } else {
-        label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      }
+    if (contentType === "broadcast") {
+        const yearMap = {};
 
-      const aveFromTotal =
-        typeof item.totalAve === "number"
-          ? item.totalAve
-          : typeof item.totalAVE === "number"
-          ? item.totalAVE
-          : undefined;
+        broadcastOverTimeData.forEach((item) => {
+            if (!item.date || typeof item.count !== "number") return;
 
-      return {
-        date: d,
-        label,
-        volume: item.count ?? 0,
-        reach:
-          typeof item.reach === "number"
-            ? item.reach
-            : typeof item.totalReach === "number"
-            ? item.totalReach
-            : null,
-        ave:
-          typeof item.ave === "number"
-            ? item.ave
-            : typeof aveFromTotal === "number"
-            ? aveFromTotal
-            : null,
-      };
-    })
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+            const date = new Date(item.date);
+            const year = date.getFullYear();
+            const month = date.getMonth();
 
-  const labels = cleaned.map((i) => i.label);
+            if (!yearMap[year]) yearMap[year] = new Array(12).fill(0);
+            yearMap[year][month] += item.count;
+        });
 
-  return {
-    labels,
-    datasets: [
-      {
-        type: "bar" as const,
-        label: "Volume",
-        data: cleaned.map((i) => i.volume),
-        backgroundColor: "rgb(47, 162, 250)",
-        borderColor: "rgb(47, 162, 250)",
-        borderRadius: 4,
-        yAxisID: "y1",
-        barThickness: "flex" as const,
-        maxBarThickness: 30,
-      },
-      {
-        type: "bar" as const,
-        label: "Reach",
-        data: cleaned.map((i) => (i.reach ?? 0)),
-        backgroundColor: "rgb(0, 58, 152)",
-        borderColor: "rgb(0, 58, 152)",
-        borderRadius: 4,
-        yAxisID: "y2",
-        barThickness: "flex" as const,
-        maxBarThickness: 30,
-      },
-      {
-        type: "bar" as const,
-        label: "AVE",
-        data: cleaned.map((i) => (i.ave ?? 0)),
-        backgroundColor: "rgba(151, 154, 253, 1)",
-        borderColor: "rgba(151, 154, 253, 1)",
-        borderRadius: 4,
-        yAxisID: "y2",
-        barThickness: "flex" as const,
-        maxBarThickness: 30,
-      },
-    ],
-  };
+        return Object.entries(yearMap).map(([year, monthlyCounts], index) => ({
+            label: `Broadcast in ${year}`,
+            data: monthlyCounts,
+            backgroundColor: gradientBlues[index % gradientBlues.length],
+            borderColor: borderColors[index % borderColors.length],
+            borderRadius: 5,
+        }));
+    }
+
+    // --- Default for other content types ---
+    if (contentType === "posts") {
+        sourceData = facebookPosts;
+    } else if (contentType === "articles") {
+        sourceData = articles;
+    } else if (contentType === "print") {
+        const yearMap = {};
+
+        printOverTimeData.forEach((item) => {
+            if (!item.date || typeof item.count !== "number") return;
+
+            const date = new Date(item.date);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            if (!yearMap[year]) yearMap[year] = new Array(12).fill(0);
+            yearMap[year][month] += item.count;
+        });
+
+        return Object.entries(yearMap).map(([year, monthlyCounts], index) => ({
+            label: `Print Media in ${year}`,
+            data: monthlyCounts,
+            backgroundColor: gradientBlues[index % gradientBlues.length],
+            borderColor: borderColors[index % borderColors.length],
+            borderRadius: 5,
+        }));
+    }
+
+
+    const yearData = sourceData.reduce((acc, item) => {
+        const rawDate =
+            item.createdTime ||
+            item.publication_date ||
+            item.publicationDate ||
+            item.mentionDT;
+
+        const date = new Date(rawDate);
+        if (isNaN(date)) return acc;
+
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        if (!acc[year]) acc[year] = new Array(12).fill(0);
+        acc[year][month] += 1;
+
+        return acc;
+    }, {});
+
+    return Object.entries(yearData).map(([year, monthlyCounts], index) => ({
+        label: `${contentType.charAt(0).toUpperCase() + contentType.slice(1)} in ${year}`,
+        data: monthlyCounts,
+        backgroundColor: gradientBlues[index % gradientBlues.length],
+        borderColor: borderColors[index % borderColors.length],
+        borderRadius: 5,
+    }));
 };
 
-// --- Top Journalist chart ---
 
-type SentimentType = "Positive" | "Neutral" | "Negative" | "Mixed";
+export const generateCountOverTimeChartData = (countOverTimeData, contentType, granularity, normalizedContentType) => ({
+    labels: countOverTimeData.map((item) => {
+        const fallbackDate =
+            item.date ||
+            `${item._id?.year}-${String(item._id?.month || 1).padStart(2, "0")}`;
 
-type JournalistStat = {
-  journalist?: string;
-  sentimentCounts?: Partial<Record<SentimentType, number>>;
-};
-
-type JournalistDataset = {
-  label: SentimentType;
-  data: number[];
-  backgroundColor: string;
-  borderColor: string;
-  borderRadius: number;
-};
-
-export type JournalistChartData = {
-  labels: string[];
-  datasets: JournalistDataset[];
-};
-
-const SENTIMENTS: ReadonlyArray<SentimentType> = [
-  "Positive",
-  "Neutral",
-  "Negative",
-  "Mixed",
-];
-
-const COLORS: Record<SentimentType, string> = {
-  Positive: "rgb(12, 217, 94)",
-  Neutral: "rgb(255, 182, 55)",
-  Negative: "rgb(255, 88, 76)",
-  Mixed: "rgb(47, 162, 250)",
-};
-
-export function generateTopJournalistChartData(
-  data: ReadonlyArray<JournalistStat> | undefined | null
-): JournalistChartData {
-  if (!data || data.length === 0) {
-    return { labels: [], datasets: [] };
-  }
-
-  const labels = data.map((item) => {
-    const j = (item.journalist ?? "").trim();
-    return j === "" ? "Unknown" : j;
-  });
-
-  const datasets: JournalistDataset[] = SENTIMENTS.map((type) => ({
-    label: type,
-    data: data.map((item) => {
-      const v = item.sentimentCounts?.[type];
-      return typeof v === "number" && Number.isFinite(v) ? v : 0;
+        if (granularity === "week") {
+            return fallbackDate.includes("W")
+                ? fallbackDate
+                : `${fallbackDate.split("-")[0]}-WXX`;
+        } else if (granularity === "day") {
+            return new Date(fallbackDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+            });
+        } else if (granularity === "month") {
+            return fallbackDate;
+        } else {
+            return fallbackDate.split("-")[0]; // year only
+        }
     }),
-    backgroundColor: COLORS[type],
-    borderColor: COLORS[type],
-    borderRadius: 3,
-  }));
 
-  return { labels, datasets };
-}
+    datasets: [
+        {
+            label: `${contentType} Count`,
+            data: countOverTimeData.map((item) => item.count || 0),
+            backgroundColor: "rgb(66, 162, 241)",
+            borderWidth: 1,
+            borderRadius: 5,
+            yAxisID: "y1",
+        },
+        {
+            label: "Total AVE",
+            data: countOverTimeData.map((item) => item.totalAVE || 0),
+            backgroundColor: "rgb(17, 221, 81)",
+            borderWidth: 1,
+            borderRadius: 5,
+            yAxisID: "y2",
+        },
+        {
+            label: "Total Reach",
+            data: countOverTimeData.map((item) => item.totalReach || 0),
+            backgroundColor: "rgb(147, 79, 255)",
+            borderWidth: 1,
+            borderRadius: 5,
+            yAxisID: "y2",
+        },
+    ],
+});
+
+
+export const generateTopJournalistChartData = (journalistStats) => {
+    const backgroundColors = {
+        Positive: "rgb(12, 217, 94)",
+        Neutral: "rgb(255, 182, 55)",
+        Negative: "rgb(255, 88, 76)",
+        Mixed: "rgb(47, 162, 250)",
+    };
+
+    // List of top journalists
+    const labels = journalistStats.map((j) =>
+        j.journalist.length > 30
+            ? `${j.journalist.substring(0, 30)}...`
+            : j.journalist
+    );
+
+    // Prepare sentiment datasets for clustered bars
+    const sentimentTypes = ["Positive", "Neutral", "Negative", "Mixed"];
+
+    const datasets = sentimentTypes.map((sentiment) => ({
+        label: sentiment,
+        data: journalistStats.map((j) => j.sentimentCounts?.[sentiment] || 0),
+        backgroundColor: backgroundColors[sentiment],
+        borderWidth: 1,
+        barPercentage: 0.8, // Controls bar width within category
+        categoryPercentage: 0.9, // Controls space between categories
+    }));
+
+    return { labels, datasets };
+};
+

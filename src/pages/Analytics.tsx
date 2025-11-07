@@ -951,9 +951,55 @@ export default function Analytics() {
       broadcastArticles,
       broadcastOverTimeData,
       printArticles,
-      printOverTimeData
+      printOverTimeData,
     ),
   };
+
+  useEffect(() => {
+    const fetchBroadcastTimeline = async () => {
+      if (!selectedOrg) return;
+
+      try {
+        const res = await axios.get(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/analytics/${selectedOrg}/timeline?mediaType=broadcast`
+        );
+
+        const processed = res.data.map((item) => ({
+          date: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
+          count: item.count,
+        }));
+
+        setBroadcastOverTimeData(processed);
+      } catch (error) {
+        console.error("Error fetching broadcast timeline data:", error);
+      }
+    };
+
+    fetchBroadcastTimeline();
+  }, [selectedOrg]);
+
+  useEffect(() => {
+    const fetchPrintTimeline = async () => {
+      if (!selectedOrg) return;
+
+      try {
+        const res = await axios.get(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/analytics/${selectedOrg}/timeline?mediaType=print`
+        );
+
+        const processed = res.data.map((item) => ({
+          date: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
+          count: item.count,
+        }));
+
+        setPrintOverTimeData(processed);
+      } catch (error) {
+        console.error("Error fetching print timeline data:", error);
+      }
+    };
+
+    fetchPrintTimeline();
+  }, [selectedOrg]);
 
   if (loading) {
     return (

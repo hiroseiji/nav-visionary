@@ -393,6 +393,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                   pageNumber={currentPage}
                   organizationName={organizationName}
                   organizationLogoUrl={organizationData?.logoUrl}
+                  industryName={organizationData?.industry}
                 />
               )}
           </div>
@@ -430,6 +431,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 pageNumber={currentPage}
                 organizationName={organizationName}
                 organizationLogoUrl={organizationData?.logoUrl}
+                industryName={organizationData?.industry}
               />
             )}
         </div>

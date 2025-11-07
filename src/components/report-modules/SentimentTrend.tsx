@@ -38,6 +38,7 @@ ChartJS.register(
 interface SentimentTrendProps {
   data: SentimentPoint[];
   annotations?: SentimentAnnotation[];
+  industryName?: string;
 }
 
 // Color mapping for categories
@@ -216,6 +217,7 @@ ChartJS.register(HaloPointsPlugin);
 export function SentimentTrend({
   data,
   annotations = [],
+  industryName,
 }: SentimentTrendProps) {
   const sentimentChartRef = useRef<ChartJS | null>(null);
   const volumeChartRef = useRef<ChartJS | null>(null);
@@ -280,7 +282,7 @@ export function SentimentTrend({
                 ? [
                     {
                       type: "line" as const,
-                      label: "Industry Trend",
+                      label: industryName ? `${industryName} Industry Trend` : "Industry Trend",
                       data: industry as (number | null)[],
                       borderColor: industryColor,
                       borderWidth: 2,

@@ -121,6 +121,7 @@ type ReportModulePageProps = {
   pageNumber?: number;
   organizationName?: string;
   organizationLogoUrl?: string;
+  industryName?: string;
 };
 
 export const ReportModulePage = ({
@@ -130,6 +131,7 @@ export const ReportModulePage = ({
   pageNumber,
   organizationName,
   organizationLogoUrl,
+  industryName,
 }: ReportModulePageProps) => {
   const displayMediaType = mediaTypeLabels[mediaType] || mediaType;
   const displayModule = moduleLabels[moduleName] || moduleName;
@@ -216,6 +218,7 @@ export const ReportModulePage = ({
           <SentimentTrend
             data={sentimentData}
             annotations={sentimentAnnotations}
+            industryName={industryName}
           />
         );
 

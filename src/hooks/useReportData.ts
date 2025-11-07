@@ -43,6 +43,7 @@ export interface Organization {
   logoUrl?: string;
   gradientTop?: string;
   gradientBottom?: string;
+  industry?: string;
 }
 
 export interface Report {

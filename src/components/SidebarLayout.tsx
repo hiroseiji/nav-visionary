@@ -82,9 +82,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
                 {/* Organization Alias */}
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold tracking-wide uppercase text-foreground">
+                  <h3 className="text-xs font-semibold tracking-wide uppercase text-foreground">
                     {orgAlias}
-                  </h1>
+                  </h3>
                 </div>
 
                 <div className="flex-1" />
@@ -172,9 +172,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
             {/* Main content - with visual separation */}
             <main className="flex-1 bg-muted rounded-3xl p-6 overflow-hidden h-[calc(100vh-8rem)] min-w-0">
-              <div className="overflow-auto h-full w-full">
-                {children}
-              </div>
+              <div className="overflow-auto h-full w-full">{children}</div>
             </main>
           </div>
         </div>

@@ -374,15 +374,26 @@ export default function Analytics() {
     console.log("Total items:", sourceData.length);
     if (sourceData.length > 0) {
       console.log("First item sample:", sourceData[0]);
+      console.log("First item keys:", Object.keys(sourceData[0]));
+      // Check which country field exists
+      const firstItem = sourceData[0];
+      console.log("Country fields check:", {
+        country: firstItem.country,
+        location: firstItem.location,
+        geo: firstItem.geo,
+        mention_country: firstItem.mention_country,
+        Country: firstItem.Country
+      });
     }
 
     // Aggregate country counts from selected content type
     const counts = sourceData.reduce<Record<string, number>>((acc, item) => {
-      const rawCountry = item.country ?? item.location ?? item.geo;
+      // Try multiple possible field names for country data
+      const rawCountry = item.country ?? item.location ?? item.geo ?? item.mention_country ?? item.Country;
       if (!rawCountry) return acc;
 
       // Normalize country names (title case)
-      const formattedCountry = rawCountry
+      const formattedCountry = String(rawCountry)
         .trim()
         .toLowerCase()
         .split(" ")

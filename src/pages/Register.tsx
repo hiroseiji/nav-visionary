@@ -55,8 +55,8 @@ export default function Register() {
         const res = await axios.get(`${API_BASE}/api/users/validate-token/${token}`);
         setFormData(prev => ({ ...prev, email: res.data.email }));
         setTokenValid(true);
-      } catch (err: any) {
-        if (err.response?.status === 410) {
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 410) {
           navigate(`/expired-link?token=${token}`);
         } else {
           toast.error('This invitation link is invalid or expired.');
@@ -150,9 +150,12 @@ export default function Register() {
       } else {
         navigate(`/dashboard`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Registration error:', error);
-      toast.error(error.response?.data?.error || 'An error occurred. Please try again.');
+      const errorMessage = axios.isAxiosError(error) && error.response?.data?.error 
+        ? error.response.data.error 
+        : 'An error occurred. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

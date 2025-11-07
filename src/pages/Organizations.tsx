@@ -165,52 +165,9 @@ const Organizations = () => {
     setCountries(countryList);
   };
 
-  const fetchCompetitorSuggestions = async (
-    industry: string,
-    country: string
-  ) => {
-    if (!industry || !country) {
-      setSuggestedCompetitors([]);
-      return;
-    }
-    try {
-      setSuggestionsLoading(true);
-      const res = await axios.get(
-        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/competitors/suggest",
-        {
-          params: {
-            industry,
-            country,
-            // optional: send current keywords to improve suggestions
-            keywords: formData.keywords?.join(",") || "",
-          },
-        }
-      );
-      const names: string[] = Array.isArray(res.data) ? res.data : [];
-      // de-dupe against already added competitors
-      const clean = names
-        .filter((n) => !!n && typeof n === "string")
-        .filter(
-          (n) =>
-            !formData.competitors.some(
-              (c) => c.toLowerCase() === n.toLowerCase()
-            )
-        );
-      setSuggestedCompetitors(clean.slice(0, 15));
-    } catch (e) {
-      console.error("competitor suggestions error:", e);
-      setSuggestedCompetitors([]);
-    } finally {
-      setSuggestionsLoading(false);
-    }
-  };
+  // Removed - now using fetchCompetitorsFromGooglePlaces directly in handleChange
 
- useEffect(() => {
-   if (formData.industry && formData.country) {
-     fetchCompetitorSuggestions(formData.industry, formData.country);
-   }
-   // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [formData.industry, formData.country, formData.keywords]);
+  // Removed - now handled directly in handleChange
 
 
   const fetchOrganizations = async () => {
@@ -254,23 +211,21 @@ const Organizations = () => {
   };
 
   const handleChange = (name: string, value: any) => {
-    let updated = { ...formData, [name]: value };
-
-    //  Handle keywords as comma-separated list (if needed)
+    // Handle keywords as comma-separated list
     if (name === "keywords" && typeof value === "string") {
       const keywordArray = value
         .split(",")
         .map((k) => k.trim())
         .filter(Boolean);
       if (keywordArray.length <= 30) {
-        updated.keywords = keywordArray;
+        setFormData({ ...formData, keywords: keywordArray });
       } else {
         toast.error("You can only enter up to 30 keywords.");
-        return;
       }
+      return;
     }
 
-    //  Handle monitoringType checkboxes
+    // Handle monitoringType checkboxes
     if (name === "monitoringType") {
       let updatedTypes = [...formData.monitoringType];
       if (value.checked) {
@@ -278,16 +233,34 @@ const Organizations = () => {
       } else {
         updatedTypes = updatedTypes.filter((t) => t !== value.value);
       }
-      updated.monitoringType = updatedTypes;
+      setFormData({ ...formData, monitoringType: updatedTypes });
+      return;
     }
 
-    //  Save formData
-    setFormData(updated);
+    // Default branch - update form data
+    const updatedForm = { ...formData, [name]: value };
+    setFormData(updatedForm);
 
-    //  Immediately refresh competitor suggestions when industry/country change
+    // Refresh competitor suggestions when industry/country change
     if (name === "industry" || name === "country") {
-      if (updated.industry && updated.country) {
-        fetchCompetitorSuggestions(updated.industry, updated.country);
+      if (updatedForm.industry && updatedForm.country) {
+        setSuggestionsLoading(true);
+        fetchCompetitorsFromGooglePlaces(updatedForm.industry, updatedForm.country)
+          .then((suggestions) => {
+            const filteredSuggestions = suggestions
+              .filter(
+                (comp) =>
+                  comp.toLowerCase().trim() !==
+                  (updatedForm.organizationName || "").toLowerCase().trim()
+              )
+              .slice(0, 15);
+            setSuggestedCompetitors(filteredSuggestions);
+          })
+          .catch((err) => {
+            console.error("Error fetching competitors:", err);
+            setSuggestedCompetitors([]);
+          })
+          .finally(() => setSuggestionsLoading(false));
       } else {
         setSuggestedCompetitors([]);
       }

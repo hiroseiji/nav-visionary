@@ -599,13 +599,13 @@ export default function Competitors() {
                       </TableCell>
                       <TableCell className="py-4">
                         <div className="flex items-center gap-2">
-                          <button
+                          {/* <button
                             onClick={() => setEditingArticle(article._id)}
                             className="text-muted-foreground hover:text-foreground transition-colors"
                             title="Edit article"
                           >
                             <Pencil className="h-4 w-4" />
-                          </button>
+                          </button> */}
                           {user?.role === "super_admin" && (
                             <button
                               onClick={async () => {

@@ -635,8 +635,8 @@ export default function Analytics() {
     const activeTopics = organizationData?.keywords || [];
     setTotalKeywords(activeTopics.length);
 
-    // Card 4: Total AVE from all media types
-    const totalAVE = allData.reduce((sum, item) => sum + item.ave, 0);
+    // Card 4: Total AVE for current content type only
+    const totalAVE = currentTypeData.reduce((sum, item) => sum + item.ave, 0);
     setTotalTopics(Math.round(totalAVE));
 
     // Store trends in state
@@ -1257,7 +1257,7 @@ export default function Analytics() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Advertising Value Equivalent across all media</p>
+                    <p>Advertising Value Equivalent for selected media type</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -1267,7 +1267,10 @@ export default function Analytics() {
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
-                    All media types
+                    {contentType === 'posts' && 'Social Media'}
+                    {contentType === 'articles' && 'Online Articles'}
+                    {contentType === 'broadcast' && 'Broadcast Media'}
+                    {contentType === 'printMedia' && 'Print Media'}
                   </span>
                 </div>
               </div>

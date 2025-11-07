@@ -1,7 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, Globe, Megaphone, Calendar, MessageSquare } from "lucide-react";
+import { BsBarChartFill, BsMegaphone } from "react-icons/bs";
+import {
+  FaGlobeAfrica,
+  FaQuoteLeft,
+} from "react-icons/fa";
+import { IoCalendarNumberSharp } from "react-icons/io5";
 import { moduleLabels } from "@/utils/reportConstants";
-import { Report } from "@/hooks/useReportData";
+import { Report } from "@/hooks/useReportData"; 
 
 /* ====== Types (no 'any') ====== */
 type Totals = { volume?: number; reach?: number; ave?: number };
@@ -393,7 +398,9 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
   return (
     <Card className="min-h-[85vh]">
       <CardContent className="p-8">
-        <h2 className="text-3xl font-bold mb-8 text-foreground">Report Data & Contents</h2>
+        <h2 className="text-3xl font-bold mb-8 text-foreground">
+          Report Data & Contents
+        </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Left: Metrics */}
@@ -401,15 +408,17 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between py-4 border-b">
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="h-6 w-6 text-primary" />
+                  <BsBarChartFill className="h-6 w-6 text-primary" />
                   <span className="font-semibold">Volume</span>
                 </div>
-                <span className="text-lg font-bold">{fmtInt(totals?.volume)}</span>
+                <span className="text-lg font-bold">
+                  {fmtInt(totals?.volume)}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-4 border-b">
                 <div className="flex items-center gap-3">
-                  <Globe className="h-6 w-6 text-primary" />
+                  <FaGlobeAfrica className="h-6 w-6 text-primary" />
                   <span className="font-semibold">Regions</span>
                 </div>
                 <span className="text-lg font-bold">{regionText}</span>
@@ -417,15 +426,17 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
 
               <div className="flex items-center justify-between py-4 border-b">
                 <div className="flex items-center gap-3">
-                  <Megaphone className="h-6 w-6 text-primary" />
+                  <BsMegaphone className="h-6 w-6 text-primary" />
                   <span className="font-semibold">Reach</span>
                 </div>
-                <span className="text-lg font-bold">{fmtInt(totals?.reach)}</span>
+                <span className="text-lg font-bold">
+                  {fmtInt(totals?.reach)}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-4 border-b">
                 <div className="flex items-center gap-3">
-                  <MessageSquare className="h-6 w-6 text-primary" />
+                  <FaQuoteLeft className="h-6 w-6 text-primary" />
                   <span className="font-semibold">Language</span>
                 </div>
                 <span className="text-lg font-bold">{languageText}</span>
@@ -433,7 +444,7 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
 
               <div className="flex items-center justify-between py-4">
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-6 w-6 text-primary" />
+                  <IoCalendarNumberSharp className="h-6 w-6 text-primary" />
                   <span className="font-semibold">Time Period</span>
                 </div>
                 <span className="text-lg font-bold">{timePeriodText}</span>
@@ -446,7 +457,12 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
             <CardContent className="p-6">
               <h3 className="text-xl font-bold mb-6">Contents</h3>
               <ol className="space-y-3">
-                {execPageNumber && <ContentsRow label="Executive Summary" page={execPageNumber} />}
+                {execPageNumber && (
+                  <ContentsRow
+                    label="Executive Summary"
+                    page={execPageNumber}
+                  />
+                )}
 
                 {mediaOrder
                   .filter((mt) => groupedByMedia[mt]?.length)
@@ -469,7 +485,8 @@ export const ReportContentsPage = ({ reportData, modulesData, mediaTypes, onNavi
               </ol>
 
               <p className="text-xs text-muted-foreground italic mt-6">
-                *Volume refers to mentions across selected sources, regions and time period.
+                *Volume refers to mentions across selected sources, regions and
+                time period.
               </p>
             </CardContent>
           </Card>

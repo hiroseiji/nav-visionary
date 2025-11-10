@@ -220,6 +220,7 @@ export default function SocialMedia() {
     if (!newPost.message.trim())
       return toast.error("Post message is required.");
     if (!newPost.source) return toast.error("Platform is required.");
+    if (!newPost.sentiment) return toast.error("Sentiment is required.");
     if (!newPost.createdTime) return toast.error("Date published is required.");
     if (!newPost.reach || Number(newPost.reach) <= 0)
       return toast.error("Reach is required.");

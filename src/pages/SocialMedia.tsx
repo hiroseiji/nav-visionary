@@ -217,6 +217,7 @@ export default function SocialMedia() {
   const handleAddPost = async () => {
     // 1. Required field validation
     if (!newPost.pageName.trim()) return toast.error("Page name is required.");
+    if (!newPost.postId.trim()) return toast.error("Post ID is required.");
     if (!newPost.message.trim())
       return toast.error("Post message is required.");
     if (!newPost.source) return toast.error("Platform is required.");
@@ -533,6 +534,17 @@ export default function SocialMedia() {
                       setNewPost({ ...newPost, pageName: e.target.value })
                     }
                     placeholder="Page or account name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="postId">Post ID *</Label>
+                  <Input
+                    id="postId"
+                    value={newPost.postId}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, postId: e.target.value })
+                    }
+                    placeholder="Unique post identifier"
                   />
                 </div>
                 <div className="grid gap-2">

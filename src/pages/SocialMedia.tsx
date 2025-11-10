@@ -260,9 +260,9 @@ export default function SocialMedia() {
         }
       );
 
-      if (response.status === 201 && response.data.post) {
-        // Ensure selected sentiment reflects immediately in UI
-        const backendPost = response.data.post as SocialPost;
+      if (response.status === 201) {
+        // Backend returns the post directly in response.data
+        const backendPost = response.data as SocialPost;
         const patchedPost: SocialPost = {
           ...backendPost,
           sentiment: newPost.sentiment,

@@ -123,7 +123,6 @@ export default function SocialMedia() {
     sentiment: "",
     reach: 0,
     ave: 0,
-    link: "",
   });
 
   useEffect(() => {
@@ -217,6 +216,7 @@ export default function SocialMedia() {
   const handleAddPost = async () => {
     // 1. Required field validation
     if (!newPost.pageName.trim()) return toast.error("Page name is required.");
+    if (!newPost.postId.trim()) return toast.error("Post URL is required.");
     if (!newPost.message.trim())
       return toast.error("Post message is required.");
     if (!newPost.source) return toast.error("Platform is required.");
@@ -236,12 +236,11 @@ export default function SocialMedia() {
     // 2. Clean + structured payload (same style as print)
     const payload = {
       pageName: newPost.pageName.trim(),
-      postId: newPost.postId?.trim(), // fallback ID
+      postId: newPost.postId.trim(),
       message: newPost.message.trim(),
       source: finalSource.trim(),
       group: newPost.group.trim(),
       country: newPost.country.trim(),
-      link: newPost.link.trim(),
       createdTime: new Date(newPost.createdTime),
       reach: Number(newPost.reach),
       ave: Number(newPost.ave) || 0,
@@ -307,7 +306,6 @@ export default function SocialMedia() {
       reach: Number(newPost.reach),
       ave: Number(newPost.ave),
       sentiment: mapLabelToSentiment(newPost.sentiment),
-      link: newPost.link?.trim(),
     };
 
     // Snapshot for rollback
@@ -326,7 +324,6 @@ export default function SocialMedia() {
       reach: payload.reach ?? editingPost.reach,
       ave: payload.ave ?? editingPost.ave,
       sentiment: mapSentimentToLabel(payload.sentiment),
-      link: payload.link ?? editingPost.link,
     };
 
     // Optimistic UI update
@@ -440,7 +437,6 @@ export default function SocialMedia() {
       sentiment: sentimentLabel.toLowerCase(),
       reach: Number(post.reach ?? 0),
       ave: Number(post.ave ?? 0),
-      link: post.link ?? "",
     });
 
     setIsDialogOpen(true);
@@ -460,7 +456,6 @@ export default function SocialMedia() {
       sentiment: "neutral",
       reach: 0,
       ave: 0,
-      link: "",
     });
   };
 
@@ -536,12 +531,14 @@ export default function SocialMedia() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="link">Post Link</Label>
+                  <Label htmlFor="postId">
+                    Post URL <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    id="link"
-                    value={newPost.link}
+                    id="postId"
+                    value={newPost.postId}
                     onChange={(e) =>
-                      setNewPost({ ...newPost, link: e.target.value })
+                      setNewPost({ ...newPost, postId: e.target.value })
                     }
                     placeholder="https://..."
                   />

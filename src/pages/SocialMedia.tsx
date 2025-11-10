@@ -261,8 +261,13 @@ export default function SocialMedia() {
       );
 
       if (response.status === 201 && response.data.post) {
-        // Optimistic UI insert
-        setPosts((prev) => [response.data.post, ...prev]);
+        // Ensure selected sentiment reflects immediately in UI
+        const backendPost = response.data.post as SocialPost;
+        const patchedPost: SocialPost = {
+          ...backendPost,
+          sentiment: newPost.sentiment,
+        };
+        setPosts((prev) => [patchedPost, ...prev]);
         toast.success("Post added successfully");
       }
 

@@ -142,10 +142,10 @@ export function AppSidebar({ theme, toggleTheme }: AppSidebarProps) {
     <Sidebar
       className={cn(
         "bg-muted [&_[data-sidebar=sidebar]]:bg-muted [&_[data-sidebar=sidebar]]:text-foreground",
-        "ml-4 my-4 w-auto max-w-[280px] min-w-[260px]",
-        "h-[calc(100vh-2rem)]",
+        "ml-4 my-3 w-auto max-w-[280px] min-w-[260px]",
+        "h-[calc(101.3vh-2rem)]",
         "rounded-[24px]",
-        "overflow-hidden flex flex-col"
+        "overflow-hidden flex flex-col",
       )}
     >
       <SidebarHeader className="border-0 p-6">

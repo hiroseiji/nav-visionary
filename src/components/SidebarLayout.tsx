@@ -77,7 +77,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <div className="flex-1 flex flex-col gap-2 min-w-0 max-w-full h-full">
             {/* Header */}
             <header className="bg-muted rounded-3xl overflow-hidden shrink-0">
-              <div className="flex h-20 items-center px-8 gap-6">
+              <div className="flex h-16 items-center px-8 gap-6">
                 <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground" />
 
                 {/* Organization Alias */}

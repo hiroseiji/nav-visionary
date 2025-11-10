@@ -120,7 +120,7 @@ export default function SocialMedia() {
     group: "",
     country: "",
     createdTime: "",
-    sentiment: "neutral",
+    sentiment: "",
     reach: 0,
     ave: 0,
     link: "",
@@ -235,7 +235,7 @@ export default function SocialMedia() {
     // 2. Clean + structured payload (same style as print)
     const payload = {
       pageName: newPost.pageName.trim(),
-      postId: newPost.postId?.trim() || `${Date.now()}`, // fallback ID
+      postId: newPost.postId?.trim(), // fallback ID
       message: newPost.message.trim(),
       source: finalSource.trim(),
       group: newPost.group.trim(),

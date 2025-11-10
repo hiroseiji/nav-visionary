@@ -70,7 +70,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen max-h-screen flex w-full max-w-full bg-background p-6 overflow-hidden">
+      <div className="min-h-screen flex w-full max-w-full bg-background p-6">
         <div className="flex w-full max-w-full gap-3 items-start min-w-0">
           <AppSidebar theme={theme} toggleTheme={toggleTheme} />
 

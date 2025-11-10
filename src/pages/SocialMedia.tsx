@@ -623,9 +623,9 @@ export default function SocialMedia() {
                       }
                     >
                       <SelectTrigger id="sentiment">
-                        <SelectValue />
+                        <SelectValue placeholder="Select sentiment" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover">
                         <SelectItem value="positive">Positive</SelectItem>
                         <SelectItem value="neutral">Neutral</SelectItem>
                         <SelectItem value="negative">Negative</SelectItem>

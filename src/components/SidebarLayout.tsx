@@ -74,7 +74,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         <div className="flex w-full max-w-full gap-3 h-full min-w-0">
           <AppSidebar theme={theme} toggleTheme={toggleTheme} />
 
-          <div className="flex-1 flex flex-col gap-3 min-w-0 max-w-full h-full">
+          <div className="flex-1 flex flex-col gap-2 min-w-0 max-w-full h-full">
             {/* Header */}
             <header className="bg-muted rounded-3xl overflow-hidden shrink-0">
               <div className="flex h-20 items-center px-8 gap-6">

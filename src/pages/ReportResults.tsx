@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FileText, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Download, Eye, EyeOff } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,6 +130,7 @@ export default function ReportResults() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
+  const [showEmptyModules, setShowEmptyModules] = useState(false);
 
   // Build modules & pages with safe fallbacks so hooks run even while loading
   const modulesData = useMemo<ModulesByMedia>(() => {
@@ -173,8 +175,53 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     [modulesData]
   );
 
+  // Helper function to check if a module has data
+  const hasModuleData = (mediaType: MediaKey, moduleName: ModuleName): boolean => {
+    const formDataUnknown = (reportData as { formData?: unknown }).formData;
+    const formData = formDataUnknown && typeof formDataUnknown === "object" 
+      ? (formDataUnknown as Record<string, unknown>) 
+      : undefined;
+
+    const dataSource = {
+      ...(reportData || {}),
+      ...(formData ?? {}),
+    };
+
+    // Executive summary check
+    if (moduleName === "executiveSummary") {
+      const execData = (dataSource as any).executiveSummary;
+      return !!execData && (
+        (typeof execData === "object" && Object.keys(execData).length > 0) ||
+        (typeof execData === "string" && execData.trim().length > 0)
+      );
+    }
+
+    // Sentiment trend check
+    if (moduleName === "sentimentTrend") {
+      const mediaBucket = (dataSource as any)[mediaType];
+      const sentimentData = mediaBucket?.sentimentTrend || (dataSource as any).sentimentTrend || [];
+      return Array.isArray(sentimentData) && sentimentData.length > 0;
+    }
+
+    // Other modules
+    const mediaBucket = (dataSource as any)[mediaType];
+    const moduleData = mediaBucket?.[moduleName];
+    
+    if (!moduleData) return false;
+    
+    if (Array.isArray(moduleData)) {
+      return moduleData.length > 0;
+    }
+    
+    if (typeof moduleData === "object") {
+      return Object.keys(moduleData).length > 0;
+    }
+    
+    return !!moduleData;
+  };
+
   // --- Guarantee: Executive Summary is FIRST (exactly one), then everything else in natural order ---
-  const orderedModules: ModulePage[] = useMemo(() => {
+  const allModules: ModulePage[] = useMemo(() => {
     const all: ModulePage[] = [];
     for (const mediaType of mediaTypes) {
       const mods = modulesData[mediaType] || {};
@@ -198,6 +245,25 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     // If we found an exec, put it first; otherwise just the rest
     return execPick ? [execPick, ...rest] : rest;
   }, [mediaTypes, modulesData]);
+
+  // Filter modules based on showEmptyModules state
+  const orderedModules: ModulePage[] = useMemo(() => {
+    if (showEmptyModules || !reportData) {
+      return allModules;
+    }
+    
+    return allModules.filter((module) => 
+      hasModuleData(module.mediaType, module.module)
+    );
+  }, [allModules, showEmptyModules, reportData]);
+
+  // Count empty modules
+  const emptyModulesCount = useMemo(() => {
+    if (!reportData) return 0;
+    return allModules.filter((module) => 
+      !hasModuleData(module.mediaType, module.module)
+    ).length;
+  }, [allModules, reportData]);
 
   const pages: Page[] = useMemo<Page[]>(
     () => ["cover", "contents", ...orderedModules],
@@ -336,6 +402,40 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
   return (
     <SidebarLayout>
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-8 space-y-6">
+        {/* Empty Modules Alert */}
+        {emptyModulesCount > 0 && (
+          <Alert className="border-muted-foreground/20">
+            <AlertDescription className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>
+                  {showEmptyModules 
+                    ? `Showing all modules (${emptyModulesCount} with no data)`
+                    : `${emptyModulesCount} module${emptyModulesCount > 1 ? 's' : ''} excluded (no data)`
+                  }
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEmptyModules(!showEmptyModules)}
+              >
+                {showEmptyModules ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Hide Empty Modules
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Show All Modules
+                  </>
+                )}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"

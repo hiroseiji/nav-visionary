@@ -43,33 +43,75 @@ type ModulesByMedia = Record<string, Record<string, boolean>>; // mediaType -> {
 
 /* ---------- Helpers ---------- */
 function normalizeModules(mods: unknown): ModulesByMedia {
-  if (!mods || typeof mods !== "object" || Array.isArray(mods)) return {};
+  if (!mods || typeof mods !== "object") return {};
+
+  // Handle top-level: modules is an array of module names
+  if (Array.isArray(mods)) {
+    const inner: Record<string, boolean> = {};
+    for (const mod of mods) {
+      if (typeof mod === "string") inner[mod] = true;
+    }
+    return Object.keys(inner).length ? { articles: inner } : {};
+  }
 
   const obj = mods as Record<string, unknown>;
   const entries = Object.entries(obj);
 
-  // Flat shape? (every value is boolean)
-  if (entries.length && entries.every(([, v]) => typeof v === "boolean")) {
-    return { articles: obj as Record<string, boolean> }; // default bucket
+  // Case 1: flat map of booleans -> assume articles
+  if (
+    entries.length &&
+    entries.every(
+      ([, v]) =>
+        typeof v === "boolean" ||
+        (Array.isArray(v) && v.every((m) => typeof m === "string"))
+    )
+  ) {
+    const inner: Record<string, boolean> = {};
+    for (const [key, v] of entries) {
+      if (typeof v === "boolean") {
+        if (v) inner[key] = true;
+      } else if (Array.isArray(v)) {
+        v.forEach((m) => {
+          if (typeof m === "string") inner[m] = true;
+        });
+      }
+    }
+    return { articles: inner };
   }
 
-  // Nested shape
+  // Case 2: nested per-media
   const out: ModulesByMedia = {};
+
   for (const [media, val] of entries) {
-    if (val && typeof val === "object" && !Array.isArray(val)) {
+    if (!val) continue;
+
+    // modules.media = ["executiveSummary", "mediaSummary"]
+    if (Array.isArray(val)) {
+      const inner: Record<string, boolean> = {};
+      val.forEach((m) => {
+        if (typeof m === "string") inner[m] = true;
+      });
+      if (Object.keys(inner).length) out[media] = inner;
+      continue;
+    }
+
+    // modules.media = { moduleName: true | { ... } }
+    if (typeof val === "object") {
       const innerObj = val as Record<string, unknown>;
       const inner: Record<string, boolean> = {};
       for (const [mod, enabled] of Object.entries(innerObj)) {
-        if (typeof enabled === "boolean") inner[mod] = enabled;
-        else if (enabled && typeof enabled === "object") inner[mod] = true; // tolerate truthy objects
+        if (typeof enabled === "boolean") {
+          if (enabled) inner[mod] = true;
+        } else if (enabled && typeof enabled === "object") {
+          inner[mod] = true;
+        }
       }
       if (Object.keys(inner).length) out[media] = inner;
     }
   }
+
   return out;
 }
-
-
 
 type CreatedAtLike = { createdAt?: string; created_at?: string };
 const getReportCreatedAt = (r?: CreatedAtLike) =>

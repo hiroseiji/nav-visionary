@@ -47,8 +47,11 @@ export function CreateReportDialog({
   const [endDate, setEndDate] = useState<Date>();
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [reportType, setReportType] = useState<"full" | "custom">("custom");
-  const [selectedMediaModules, setSelectedMediaModules] = useState<MediaModules>({});
-  const [availableModules, setAvailableModules] = useState<Record<string, Module>>({});
+  const [selectedMediaModules, setSelectedMediaModules] =
+    useState<MediaModules>({});
+  const [availableModules, setAvailableModules] = useState<
+    Record<string, Module>
+  >({});
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
@@ -56,23 +59,46 @@ export function CreateReportDialog({
   const [reportId, setReportId] = useState<string | null>(null);
 
   const allMediaTypes = ["posts", "articles", "broadcast", "printmedia"];
-  const mediaTypeConfig: Record<string, { label: string; icon: LucideIcon; color: string }> = {
+  const mediaTypeMap: Record<string, string> = {
+    social: "posts",
+    online: "articles",
+    print: "printmedia",
+    broadcast: "broadcast",
+
+    // also allow backend keys to pass through safely
+    posts: "posts",
+    articles: "articles",
+    printmedia: "printmedia",
+  };
+
+  const mediaTypeConfig: Record<
+    string,
+    { label: string; icon: LucideIcon; color: string }
+  > = {
     posts: { label: "Social Media", icon: Share2, color: "text-blue-600" },
-    articles: { label: "Online Media", icon: Newspaper, color: "text-purple-600" },
+    articles: {
+      label: "Online Media",
+      icon: Newspaper,
+      color: "text-purple-600",
+    },
     broadcast: { label: "Broadcast Media", icon: Tv, color: "text-orange-600" },
-    printmedia: { label: "Print Media", icon: Radio, color: "text-green-600" }
+    printmedia: { label: "Print Media", icon: Radio, color: "text-green-600" },
   };
 
   // Fetch available modules and countries
   useEffect(() => {
     if (open) {
       axios
-        .get("https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-modules")
+        .get(
+          "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-modules"
+        )
         .then((response) => setAvailableModules(response.data))
         .catch((err) => console.error("Failed to load modules:", err));
 
       axios
-        .get("https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/available-countries")
+        .get(
+          "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/available-countries"
+        )
         .then((response) => setAvailableCountries(response.data))
         .catch((err) => console.error("Failed to load countries:", err));
     }
@@ -125,37 +151,37 @@ export function CreateReportDialog({
   }, [polling, reportId, navigate, organizationId, onOpenChange]);
 
   const handleModuleToggle = (mediaType: string, moduleKey: string) => {
-    setSelectedMediaModules(prev => {
+    setSelectedMediaModules((prev) => {
       const current = prev[mediaType] || [];
       const updated = current.includes(moduleKey)
-        ? current.filter(m => m !== moduleKey)
+        ? current.filter((m) => m !== moduleKey)
         : [...current, moduleKey];
-      
+
       if (updated.length === 0) {
         const { [mediaType]: _, ...rest } = prev;
         return rest;
       }
-      
+
       return { ...prev, [mediaType]: updated };
     });
   };
 
   const handleSelectAllModules = (mediaType: string) => {
-    const allModules = getModulesForMediaType(mediaType).map(m => m.key);
-    setSelectedMediaModules(prev => ({ ...prev, [mediaType]: allModules }));
+    const allModules = getModulesForMediaType(mediaType).map((m) => m.key);
+    setSelectedMediaModules((prev) => ({ ...prev, [mediaType]: allModules }));
   };
 
   const handleDeselectAllModules = (mediaType: string) => {
-    setSelectedMediaModules(prev => {
+    setSelectedMediaModules((prev) => {
       const { [mediaType]: _, ...rest } = prev;
       return rest;
     });
   };
 
   const toggleCountry = (country: string) => {
-    setSelectedCountries(prev => 
-      prev.includes(country) 
-        ? prev.filter(c => c !== country)
+    setSelectedCountries((prev) =>
+      prev.includes(country)
+        ? prev.filter((c) => c !== country)
         : [...prev, country]
     );
   };
@@ -184,33 +210,44 @@ export function CreateReportDialog({
     setLoading(true);
 
     try {
-      const modulesPerMediaType: Record<string, Record<string, boolean | { granularity: string }>> = {};
+      const modulesPerMediaType: Record<
+        string,
+        Record<string, boolean | { granularity: string }>
+      > = {};
 
       if (reportType === "full") {
         // Include all modules for all media types
-        allMediaTypes.forEach(mediaType => {
-          const moduleObject: Record<string, boolean | { granularity: string }> = {};
+        allMediaTypes.forEach((mediaType) => {
+          const moduleObject: Record<
+            string,
+            boolean | { granularity: string }
+          > = {};
           const allModules = Object.entries(availableModules)
             .filter(([_, mod]) => mod.mediaTypes.includes(mediaType))
             .map(([key]) => key);
 
           allModules.forEach((mod) => {
-            moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+            moduleObject[mod] =
+              mod === "sentimentTrend" ? { granularity: "month" } : true;
           });
 
           if (allModules.length > 0) {
-            modulesPerMediaType[mediaType] = moduleObject;
+            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
           }
         });
       } else {
         // Use selected modules
         Object.entries(selectedMediaModules).forEach(([mediaType, modules]) => {
           if (modules.length > 0) {
-            const moduleObject: Record<string, boolean | { granularity: string }> = {};
+            const moduleObject: Record<
+              string,
+              boolean | { granularity: string }
+            > = {};
             modules.forEach((mod) => {
-              moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+              moduleObject[mod] =
+                mod === "sentimentTrend" ? { granularity: "month" } : true;
             });
-            modulesPerMediaType[mediaType] = moduleObject;
+           modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
           }
         });
       }
@@ -224,7 +261,7 @@ export function CreateReportDialog({
           endDate: format(endDate, "yyyy-MM-dd"),
           modules: modulesPerMediaType,
           localOrGlobal: selectedCountries,
-          createdBy: `${user.firstName} ${user.lastName}`
+          createdBy: `${user.firstName} ${user.lastName}`,
         }
       );
 
@@ -259,7 +296,9 @@ export function CreateReportDialog({
 
         {polling && (
           <div className="space-y-2 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium">Generating report... {progress}%</p>
+            <p className="text-sm font-medium">
+              Generating report... {progress}%
+            </p>
             <Progress value={progress} />
           </div>
         )}
@@ -310,7 +349,10 @@ export function CreateReportDialog({
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    disabled={(date) => date > new Date() || (startDate ? date < startDate : false)}
+                    disabled={(date) =>
+                      date > new Date() ||
+                      (startDate ? date < startDate : false)
+                    }
                   />
                 </PopoverContent>
               </Popover>
@@ -324,10 +366,15 @@ export function CreateReportDialog({
               <div className="flex items-center space-x-2 pb-2 border-b">
                 <Checkbox
                   id="all-countries"
-                  checked={selectedCountries.length === availableCountries.length}
+                  checked={
+                    selectedCountries.length === availableCountries.length
+                  }
                   onCheckedChange={toggleAllCountries}
                 />
-                <label htmlFor="all-countries" className="text-sm font-medium cursor-pointer">
+                <label
+                  htmlFor="all-countries"
+                  className="text-sm font-medium cursor-pointer"
+                >
                   Select All
                 </label>
               </div>
@@ -349,8 +396,8 @@ export function CreateReportDialog({
           {/* Report Type */}
           <div className="space-y-3">
             <Label>Report Type</Label>
-            <RadioGroup 
-              value={reportType} 
+            <RadioGroup
+              value={reportType}
               onValueChange={(value) => {
                 setReportType(value as "full" | "custom");
                 if (value === "custom") {
@@ -382,11 +429,16 @@ export function CreateReportDialog({
                   const config = mediaTypeConfig[mediaType];
                   const Icon = config.icon;
                   const modules = getModulesForMediaType(mediaType);
-                  const selectedCount = selectedMediaModules[mediaType]?.length || 0;
+                  const selectedCount =
+                    selectedMediaModules[mediaType]?.length || 0;
                   const allSelected = selectedCount === modules.length;
 
                   return (
-                    <AccordionItem key={mediaType} value={mediaType} className="border rounded-lg px-4 mb-2">
+                    <AccordionItem
+                      key={mediaType}
+                      value={mediaType}
+                      className="border rounded-lg px-4 mb-2"
+                    >
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center gap-3 flex-1">
                           <Icon className={cn("h-5 w-5", config.color)} />
@@ -414,7 +466,9 @@ export function CreateReportDialog({
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDeselectAllModules(mediaType)}
+                              onClick={() =>
+                                handleDeselectAllModules(mediaType)
+                              }
                               disabled={selectedCount === 0}
                             >
                               Clear
@@ -422,14 +476,23 @@ export function CreateReportDialog({
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             {modules.map(({ key, label }) => (
-                              <div key={key} className="flex items-center space-x-2">
+                              <div
+                                key={key}
+                                className="flex items-center space-x-2"
+                              >
                                 <Checkbox
                                   id={`${mediaType}-${key}`}
-                                  checked={selectedMediaModules[mediaType]?.includes(key) || false}
-                                  onCheckedChange={() => handleModuleToggle(mediaType, key)}
+                                  checked={
+                                    selectedMediaModules[mediaType]?.includes(
+                                      key
+                                    ) || false
+                                  }
+                                  onCheckedChange={() =>
+                                    handleModuleToggle(mediaType, key)
+                                  }
                                 />
-                                <label 
-                                  htmlFor={`${mediaType}-${key}`} 
+                                <label
+                                  htmlFor={`${mediaType}-${key}`}
                                   className="text-sm cursor-pointer leading-tight"
                                 >
                                   {label}
@@ -447,7 +510,11 @@ export function CreateReportDialog({
           )}
 
           <div className="flex justify-end gap-2 pt-2 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading || polling}>

@@ -410,8 +410,8 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 gradientTop={gradientTop}
                 gradientBottom={gradientBottom}
                 organizationName={organizationName}
-                startDate={reportData?.startDate || reportData?.filters?.startDate || reportData?.formData?.startDate}
-                endDate={reportData?.endDate || reportData?.filters?.endDate || reportData?.formData?.endDate}
+                startDate={(reportData?.startDate || reportData?.formData?.startDate) as string}
+                endDate={(reportData?.endDate || reportData?.formData?.endDate) as string}
                 organizationLogoUrl={organizationData?.logoUrl}
               />
             )}
@@ -448,8 +448,8 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
               gradientTop={gradientTop}
               gradientBottom={gradientBottom}
               organizationName={organizationName}
-              startDate={reportData?.startDate || reportData?.filters?.startDate || reportData?.formData?.startDate}
-              endDate={reportData?.endDate || reportData?.filters?.endDate || reportData?.formData?.endDate}
+              startDate={(reportData?.startDate || reportData?.formData?.startDate) as string}
+              endDate={(reportData?.endDate || reportData?.formData?.endDate) as string}
               organizationLogoUrl={organizationData?.logoUrl}
             />
           )}

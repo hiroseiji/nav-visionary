@@ -8,6 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -78,6 +88,9 @@ export function CreateReportDialog({
   const [polling, setPolling] = useState(false);
   const [progress, setProgress] = useState(0);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateReport, setDuplicateReport] = useState<any>(null);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   const allMediaTypes = ["posts", "articles", "broadcast", "printmedia"];
   const mediaTypeMap: Record<string, string> = {
@@ -234,6 +247,82 @@ export function CreateReportDialog({
     }
   };
 
+  const checkForDuplicateReport = async () => {
+    try {
+      const response = await axios.get(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/generated-reports2/${organizationId}?page=1&limit=100`
+      );
+
+      const existingReports = response.data.items || [];
+      
+      // Compare dates, countries, and modules
+      const formattedStartDate = format(startDate!, "yyyy-MM-dd");
+      const formattedEndDate = format(endDate!, "yyyy-MM-dd");
+
+      const modulesPerMediaType: Record<string, Record<string, boolean | { granularity: string }>> = {};
+
+      if (reportType === "full") {
+        allMediaTypes.forEach((mediaType) => {
+          const moduleObject: Record<string, boolean | { granularity: string }> = {};
+          const allModules = Object.entries(availableModules)
+            .filter(([_, mod]) => mod.mediaTypes.includes(mediaType))
+            .map(([key]) => key);
+
+          allModules.forEach((mod) => {
+            moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+          });
+
+          if (allModules.length > 0) {
+            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
+          }
+        });
+      } else {
+        Object.entries(selectedMediaModules).forEach(([mediaType, modules]) => {
+          if (modules.length > 0) {
+            const moduleObject: Record<string, boolean | { granularity: string }> = {};
+            modules.forEach((mod) => {
+              moduleObject[mod] = mod === "sentimentTrend" ? { granularity: "month" } : true;
+            });
+            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
+          }
+        });
+      }
+
+      for (const report of existingReports) {
+        // Check if dates match
+        const reportStartDate = report.formData?.startDate || report.startDate;
+        const reportEndDate = report.formData?.endDate || report.endDate;
+        
+        if (reportStartDate !== formattedStartDate || reportEndDate !== formattedEndDate) {
+          continue;
+        }
+
+        // Check if countries match
+        const reportCountries = report.formData?.localOrGlobal || report.localOrGlobal || [];
+        const countriesMatch = 
+          selectedCountries.length === reportCountries.length &&
+          selectedCountries.every((c) => reportCountries.includes(c));
+
+        if (!countriesMatch) {
+          continue;
+        }
+
+        // Check if modules match
+        const reportModules = report.formData?.modules || report.modules || {};
+        const modulesMatch = JSON.stringify(modulesPerMediaType) === JSON.stringify(reportModules);
+
+        if (modulesMatch) {
+          return report; // Found duplicate
+        }
+      }
+
+      return null; // No duplicate found
+    } catch (error) {
+      console.error("Error checking for duplicates:", error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -247,6 +336,18 @@ export function CreateReportDialog({
       return;
     }
 
+    // Check for duplicate before proceeding
+    if (!pendingSubmit) {
+      const duplicate = await checkForDuplicateReport();
+      if (duplicate) {
+        setDuplicateReport(duplicate);
+        setShowDuplicateDialog(true);
+        return;
+      }
+    }
+
+    // Reset pending submit flag
+    setPendingSubmit(false);
     setLoading(true);
 
     try {
@@ -356,8 +457,46 @@ export function CreateReportDialog({
       });
   };
 
+  const handleViewExistingReport = () => {
+    setShowDuplicateDialog(false);
+    onOpenChange(false);
+    navigate(`/report/${organizationId}/${duplicateReport._id}`);
+  };
+
+  const handleCreateNewReport = async () => {
+    setShowDuplicateDialog(false);
+    setPendingSubmit(true);
+    // Trigger form submission by creating a synthetic event
+    const form = document.querySelector('form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate Report Found</AlertDialogTitle>
+            <AlertDialogDescription>
+              A report with the same date range, country scope, and modules already exists. 
+              Would you like to view the existing report or create a new one anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleViewExistingReport}>
+              View Existing Report
+            </AlertDialogAction>
+            <AlertDialogAction onClick={handleCreateNewReport}>
+              Create New Report
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto px-8">
           <DialogHeader>
             <DialogTitle>Create Report</DialogTitle>
@@ -585,5 +724,6 @@ export function CreateReportDialog({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

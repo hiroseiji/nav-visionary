@@ -233,7 +233,7 @@ export const useReportData = (
 
           // 2a: wrapper.reportData is itself a full doc (has _id, modules, etc)
           if (inner && typeof inner === "object" && "_id" in inner) {
-            const doc = inner as ViewReportResponseNew;
+            const doc = inner as unknown as ViewReportResponseNew;
 
             const startDate = doc.startDate ?? formData.startDate;
             const endDate = doc.endDate ?? formData.endDate;

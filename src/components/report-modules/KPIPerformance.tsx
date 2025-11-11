@@ -148,7 +148,7 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
 
       <div style={{ paddingRight: "80px", overflow: "visible" }}>
         <ResponsiveContainer width="100%" height={500}>
-          <ScatterChart margin={{ top: 48, right: 70, bottom: 64, left: 44 }}>
+          <ScatterChart margin={{ top: 48, right: 120, bottom: 64, left: 44 }}>
             <defs>
               <filter
                 id="kpiShadow"
@@ -377,7 +377,33 @@ export function KPIPerformance({ data }: KPIPerformanceProps) {
                             fontWeight: 500,
                           }}
                         >
-                          {payload.kpi}
+                          {(() => {
+                            const maxChars = 18;
+                            const text = payload.kpi;
+                            if (text.length <= maxChars) {
+                              return <tspan>{text}</tspan>;
+                            }
+                            // Split into words and create lines
+                            const words = text.split(/\s+/);
+                            const lines: string[] = [];
+                            let currentLine = "";
+                            
+                            for (const word of words) {
+                              if ((currentLine + " " + word).trim().length <= maxChars) {
+                                currentLine = currentLine ? `${currentLine} ${word}` : word;
+                              } else {
+                                if (currentLine) lines.push(currentLine);
+                                currentLine = word;
+                              }
+                            }
+                            if (currentLine) lines.push(currentLine);
+                            
+                            return lines.map((line, i) => (
+                              <tspan key={i} x={toRight ? calloutX + 6 : calloutX - 6} dy={i === 0 ? 0 : 12}>
+                                {line}
+                              </tspan>
+                            ));
+                          })()}
                         </text>
                       </>
                     )}

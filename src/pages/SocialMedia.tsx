@@ -74,7 +74,6 @@ interface SocialPost {
   rank: number;
   reach: number;
   ave: number;
-  url?: string;
   logo_url?: string;
   link?: string;
 }
@@ -122,7 +121,6 @@ export default function SocialMedia() {
     createdTime: "",
     sentiment: "",
     reach: 0,
-    ave: 0,
   });
 
   useEffect(() => {
@@ -243,7 +241,6 @@ export default function SocialMedia() {
       country: newPost.country.trim(),
       createdTime: new Date(newPost.createdTime),
       reach: Number(newPost.reach),
-      ave: Number(newPost.ave) || 0,
       sentiment: mapLabelToSentiment(newPost.sentiment),
       organizationId: orgId,
     };
@@ -261,14 +258,12 @@ export default function SocialMedia() {
       );
 
       if (response.status === 201) {
-        // Backend returns the post directly in response.data
-        const backendPost = response.data as SocialPost;
+        const saved = response.data.post as SocialPost;
         const patchedPost: SocialPost = {
-          ...backendPost,
-          sentiment: newPost.sentiment,
+          ...saved,
+          sentiment: newPost.sentiment, 
         };
         setPosts((prev) => [patchedPost, ...prev]);
-        toast.success("Post added successfully");
       }
 
       setIsDialogOpen(false);
@@ -304,7 +299,6 @@ export default function SocialMedia() {
       country: newPost.country?.trim(),
       createdTime: format(new Date(newPost.createdTime), "yyyy-MM-dd"),
       reach: Number(newPost.reach),
-      ave: Number(newPost.ave),
       sentiment: mapLabelToSentiment(newPost.sentiment),
     };
 
@@ -322,7 +316,6 @@ export default function SocialMedia() {
       country: payload.country ?? editingPost.country,
       createdTime: payload.createdTime ?? editingPost.createdTime,
       reach: payload.reach ?? editingPost.reach,
-      ave: payload.ave ?? editingPost.ave,
       sentiment: mapSentimentToLabel(payload.sentiment),
     };
 
@@ -436,7 +429,6 @@ export default function SocialMedia() {
         : "",
       sentiment: sentimentLabel.toLowerCase(),
       reach: Number(post.reach ?? 0),
-      ave: Number(post.ave ?? 0),
     });
 
     setIsDialogOpen(true);
@@ -455,7 +447,6 @@ export default function SocialMedia() {
       createdTime: "",
       sentiment: "neutral",
       reach: 0,
-      ave: 0,
     });
   };
 
@@ -646,21 +637,6 @@ export default function SocialMedia() {
                         setNewPost({
                           ...newPost,
                           reach: Number(e.target.value),
-                        })
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="ave">AVE</Label>
-                    <Input
-                      id="ave"
-                      type="number"
-                      value={newPost.ave}
-                      onChange={(e) =>
-                        setNewPost({
-                          ...newPost,
-                          ave: Number(e.target.value),
                         })
                       }
                       placeholder="0"

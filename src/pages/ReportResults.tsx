@@ -190,14 +190,15 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
       ? (formDataUnknown as Record<string, unknown>) 
       : undefined;
 
-    const dataSource = {
+    type DataSource = Record<string, unknown>;
+    const dataSource: DataSource = {
       ...(reportData || {}),
       ...(formData ?? {}),
     };
 
     // Executive summary check
     if (moduleName === "executiveSummary") {
-      const execData = (dataSource as any).executiveSummary;
+      const execData = dataSource.executiveSummary;
       return !!execData && (
         (typeof execData === "object" && Object.keys(execData).length > 0) ||
         (typeof execData === "string" && execData.trim().length > 0)
@@ -206,13 +207,13 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
 
     // Sentiment trend check
     if (moduleName === "sentimentTrend") {
-      const mediaBucket = (dataSource as any)[mediaType];
-      const sentimentData = mediaBucket?.sentimentTrend || (dataSource as any).sentimentTrend || [];
+      const mediaBucket = dataSource[mediaType] as Record<string, unknown> | undefined;
+      const sentimentData = mediaBucket?.sentimentTrend || dataSource.sentimentTrend || [];
       return Array.isArray(sentimentData) && sentimentData.length > 0;
     }
 
     // Other modules
-    const mediaBucket = (dataSource as any)[mediaType];
+    const mediaBucket = dataSource[mediaType] as Record<string, unknown> | undefined;
     const moduleData = mediaBucket?.[moduleName];
     
     if (!moduleData) return false;
@@ -222,7 +223,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     }
     
     if (typeof moduleData === "object") {
-      return Object.keys(moduleData).length > 0;
+      return Object.keys(moduleData as Record<string, unknown>).length > 0;
     }
     
     return !!moduleData;

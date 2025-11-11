@@ -367,21 +367,8 @@ export function IssueImpact({ data }: IssueImpactProps) {
             ? "hsl(var(--sentiment-positive))"
             : "hsl(var(--sentiment-negative))";
 
-          const marker = isPositive ? null : (
-            // Negative issue marker on the RIGHT side of the zero line
-            <circle
-              cx={zeroX + 10} // 10px to the right of the 0 line
-              cy={cy}
-              r={5}
-              fill="hsl(var(--background))"
-              stroke="hsl(var(--sentiment-negative))"
-              strokeWidth={2}
-            />
-          );
-
           return (
             <g key={i}>
-              {marker}
               {/* Issue title */}
               <text
                 x={textX}

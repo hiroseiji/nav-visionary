@@ -147,10 +147,6 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
       });
     }
   });
-      // Always ensure executiveSummary and sentimentTrend for articles
-      if (!result.articles) result.articles = {};
-      result.articles.executiveSummary = true;
-      result.articles.sentimentTrend = true;
       
       console.log("[ReportResults] Using formData.mediaSelections:", result);
       return result;
@@ -160,15 +156,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     const mods = normalizeModules(reportData?.modules);
     console.log("[ReportResults] Using normalized modules:", mods);
     
-    // Ensure executiveSummary and sentimentTrend are always included for articles
-    return {
-      ...mods,
-      articles: {
-        ...(mods.articles || {}),
-        executiveSummary: true,
-        sentimentTrend: true,
-      },
-    };
+    return mods;
   }, [reportData]);
 
   const mediaTypes: string[] = useMemo(

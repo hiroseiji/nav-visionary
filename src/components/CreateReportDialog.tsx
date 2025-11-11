@@ -370,6 +370,9 @@ export function CreateReportDialog({
         Record<string, boolean | { granularity: string }>
       > = {};
 
+      // Build mediaSelections array for frontend consumption
+      const mediaSelections: Array<{ mediaType: string; selectedModules: string[] }> = [];
+
       if (reportType === "full") {
         // Include all modules for all media types
         allMediaTypes.forEach((mediaType) => {
@@ -387,7 +390,12 @@ export function CreateReportDialog({
           });
 
           if (allModules.length > 0) {
-            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
+            const mappedMediaType = mediaTypeMap[mediaType];
+            modulesPerMediaType[mappedMediaType] = moduleObject;
+            mediaSelections.push({
+              mediaType: mappedMediaType,
+              selectedModules: allModules
+            });
           }
         });
       } else {
@@ -402,7 +410,12 @@ export function CreateReportDialog({
               moduleObject[mod] =
                 mod === "sentimentTrend" ? { granularity: "month" } : true;
             });
-            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
+            const mappedMediaType = mediaTypeMap[mediaType];
+            modulesPerMediaType[mappedMediaType] = moduleObject;
+            mediaSelections.push({
+              mediaType: mappedMediaType,
+              selectedModules: modules
+            });
           }
         });
       }
@@ -413,6 +426,7 @@ export function CreateReportDialog({
         startDate: format(startDate, "yyyy-MM-dd"),
         endDate: format(endDate, "yyyy-MM-dd"),
         modules: modulesPerMediaType,
+        mediaSelections, // Add this for proper frontend consumption
         localOrGlobal: selectedCountries,
         createdBy: `${user.firstName} ${user.lastName}`,
       };

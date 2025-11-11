@@ -16,6 +16,7 @@ import { ReportCoverPage } from "@/components/report/ReportCoverPage";
 import { ReportContentsPage } from "@/components/report/ReportContentsPage";
 import { ReportModulePage } from "@/components/report/ReportModulePage";
 import { exportReportAsPDF, exportReportAsPPT } from "@/utils/reportExport";
+import { moduleLabels } from "@/utils/reportConstants";
 
 /* ---------- Local types ---------- */
 type MediaKey = "articles" | "printmedia" | "broadcast" | "posts";
@@ -257,13 +258,15 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     );
   }, [allModules, showEmptyModules, reportData]);
 
-  // Count empty modules
-  const emptyModulesCount = useMemo(() => {
-    if (!reportData) return 0;
-    return allModules.filter((module) => 
-      !hasModuleData(module.mediaType, module.module)
-    ).length;
+  // Get empty modules with their names
+  const emptyModules = useMemo(() => {
+    if (!reportData) return [];
+    return allModules
+      .filter((module) => !hasModuleData(module.mediaType, module.module))
+      .map((module) => moduleLabels[module.module] || module.module);
   }, [allModules, reportData]);
+
+  const emptyModulesCount = emptyModules.length;
 
   const pages: Page[] = useMemo<Page[]>(
     () => ["cover", "contents", ...orderedModules],
@@ -410,8 +413,8 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 <FileText className="h-4 w-4" />
                 <span>
                   {showEmptyModules 
-                    ? `Showing all modules (${emptyModulesCount} with no data)`
-                    : `${emptyModulesCount} module${emptyModulesCount > 1 ? 's' : ''} excluded (no data)`
+                    ? `Showing all modules (${emptyModules.join(', ')} with no data)`
+                    : `${emptyModules.join(', ')} excluded (no data)`
                   }
                 </span>
               </div>

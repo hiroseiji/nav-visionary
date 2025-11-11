@@ -22,7 +22,7 @@ export async function exportReportAsPDF(
     setCurrentPage(i);
 
     // 2. Allow React/charts/fonts to render
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // 3. Select the export wrapper for this page
     const pageElement = document.querySelector(
@@ -33,17 +33,20 @@ export async function exportReportAsPDF(
 
     onProgress?.(i, totalPages);
 
+    // Get actual rendered dimensions
+    const elementWidth = pageElement.offsetWidth;
+    const elementHeight = pageElement.offsetHeight;
+
     // 4. Render to canvas at high DPI
     const canvas = await html2canvas(pageElement, {
-      scale: 2, // bump to 2–3 if needed
+      scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
-      // Ensure it captures the full element, not the viewport
-      width: pageElement.scrollWidth,
-      height: pageElement.scrollHeight,
-      windowWidth: pageElement.scrollWidth,
-      windowHeight: pageElement.scrollHeight,
+      width: elementWidth,
+      height: elementHeight,
+      windowWidth: elementWidth,
+      windowHeight: elementHeight,
     });
 
     const imgData = canvas.toDataURL("image/jpeg", 0.95);
@@ -96,7 +99,7 @@ export async function exportReportAsPPT(
 
   for (let i = 1; i <= totalPages; i++) {
     setCurrentPage(i);
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const pageElement = document.querySelector(
       "[data-export-page]"
@@ -105,15 +108,19 @@ export async function exportReportAsPPT(
 
     onProgress?.(i, totalPages);
 
+    // Get actual rendered dimensions
+    const elementWidth = pageElement.offsetWidth;
+    const elementHeight = pageElement.offsetHeight;
+
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
-      width: pageElement.scrollWidth,
-      height: pageElement.scrollHeight,
-      windowWidth: pageElement.scrollWidth,
-      windowHeight: pageElement.scrollHeight,
+      width: elementWidth,
+      height: elementHeight,
+      windowWidth: elementWidth,
+      windowHeight: elementHeight,
     });
 
     const imgData = canvas.toDataURL("image/png");

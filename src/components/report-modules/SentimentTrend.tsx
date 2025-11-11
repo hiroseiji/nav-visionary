@@ -216,8 +216,8 @@ export function SentimentTrend({
   annotations = [],
   industryName,
 }: SentimentTrendProps) {
-  const sentimentChartRef = useRef<ChartJS | null>(null);
-  const volumeChartRef = useRef<ChartJS | null>(null);
+  const sentimentChartRef = useRef<ChartJS<"line", number[], string> | null>(null);
+  const volumeChartRef = useRef<ChartJS<"bar", number[], string> | null>(null);
   const sentimentCanvasRef = useRef<HTMLCanvasElement>(null);
   const volumeCanvasRef = useRef<HTMLCanvasElement>(null);
 

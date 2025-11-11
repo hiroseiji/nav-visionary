@@ -460,7 +460,7 @@ export function CreateReportDialog({
   const handleViewExistingReport = () => {
     setShowDuplicateDialog(false);
     onOpenChange(false);
-    navigate(`/report/${organizationId}/${duplicateReport._id}`);
+    navigate(`/report-results/${organizationId}/${duplicateReport._id}`);
   };
 
   const handleCreateNewReport = async () => {

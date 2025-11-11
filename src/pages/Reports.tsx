@@ -314,7 +314,7 @@ export default function Reports() {
                                     return;
                                   }
 
-                                  navigate(`/report/${orgId}/${report._id}`);
+                                  navigate(`/report-results/${orgId}/${report._id}`);
                                 }}
                               >
                                 <FileText className="h-4 w-4 mr-2" />

@@ -22,24 +22,24 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
   const negativeIssues = data.negatives || data.negativeIssues || [];
 
   return (
-    <div className="space-y-6 bg-[#2a2a2a] p-8 rounded-lg text-white">
+    <div className="space-y-6 bg-background p-8 rounded-lg">
       {/* Summary Text */}
-      <p className="text-base leading-relaxed">
+      <p className="text-base leading-relaxed text-foreground">
         {data.summary}
       </p>
 
       {/* Positive Issues */}
       {positiveIssues.length > 0 && (
-        <div className="border-2 border-green-500 rounded-lg p-6 bg-[#2a2a2a]">
+        <div className="border-2 border-green-500 rounded-lg p-6 bg-background">
           <div className="flex items-start justify-between mb-4">
-            <h3 className="text-xl font-semibold">Positive Issues</h3>
-            <span className="text-sm text-gray-400">Sentiment impact*</span>
+            <h3 className="text-xl font-semibold text-foreground">Positive Issues</h3>
+            <span className="text-sm text-muted-foreground">Sentiment impact*</span>
           </div>
           <div className="space-y-4">
             {positiveIssues.map((issue, idx) => (
               <div key={idx} className="flex items-start gap-3">
                 <div className="flex-1">
-                  <p className="mb-1">
+                  <p className="mb-1 text-foreground">
                     <span className="font-bold">{idx + 1} {issue.issue || issue.title}</span>
                     <span className="font-normal"> : {issue.description}</span>
                   </p>
@@ -55,21 +55,21 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
 
       {/* Negative Issues */}
       {negativeIssues.length > 0 && (
-        <div className="border-2 border-red-500 rounded-lg p-6 bg-[#2a2a2a]">
+        <div className="border-2 border-red-500 rounded-lg p-6 bg-background">
           <div className="flex items-start justify-between mb-4">
-            <h3 className="text-xl font-semibold">Negative Issues</h3>
-            <span className="text-sm text-gray-400">Sentiment impact*</span>
+            <h3 className="text-xl font-semibold text-foreground">Negative Issues</h3>
+            <span className="text-sm text-muted-foreground">Sentiment impact*</span>
           </div>
           <div className="space-y-4">
             {negativeIssues.map((issue, idx) => (
               <div key={idx} className="flex items-start gap-3">
                 <div className="flex-1">
-                  <p className="mb-1">
+                  <p className="mb-1 text-foreground">
                     <span className="font-bold">{idx + 1} {issue.issue || issue.title}</span>
                     <span className="font-normal"> : {issue.description}</span>
                   </p>
                 </div>
-                <span className={`font-bold whitespace-nowrap ${(issue.impact || 0) < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                <span className={`font-bold whitespace-nowrap ${(issue.impact || 0) < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
                   {issue.impact || 0}
                 </span>
               </div>
@@ -79,7 +79,7 @@ export function ExecutiveSummary({ data }: ExecutiveSummaryProps) {
       )}
 
       {/* Footer Note */}
-      <p className="text-xs text-gray-400 italic text-center">
+      <p className="text-xs text-muted-foreground italic text-center">
         *Sentiment is measured on a scale of -100 to 100, with 0 representing neutral. **Impact refers to the total effect that a particular issue has on sentiment.
       </p>
     </div>

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useReportGeneration } from '@/contexts/ReportGenerationContext';
 import axios from 'axios';
 
 interface DashboardHeaderProps {
@@ -30,6 +31,7 @@ export function DashboardHeader({
   onSearch
 }: DashboardHeaderProps) {
   const [orgAlias, setOrgAlias] = useState<string>('');
+  const { isGenerating, progress } = useReportGeneration();
 
   useEffect(() => {
     const selectedOrgId = localStorage.getItem('selectedOrg') || localStorage.getItem('selectedOrgId');
@@ -76,6 +78,16 @@ export function DashboardHeader({
             <FileText className="mr-2 h-4 w-4" />
             Import Data
           </Button>
+
+          {/* Report Generation Loader */}
+          {isGenerating && (
+            <div className="flex items-center gap-2">
+              <div className="spinner w-8 h-8" />
+              <span className="text-sm text-muted-foreground hidden lg:inline">
+                {progress}%
+              </span>
+            </div>
+          )}
 
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">

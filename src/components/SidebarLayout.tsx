@@ -91,6 +91,16 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
                 <div className="flex-1" />
 
+                {/* Report Generation Loader */}
+                {isGenerating && (
+                  <div className="flex items-center gap-2">
+                    <div className="spinner w-8 h-8" />
+                    <span className="text-sm text-muted-foreground">
+                      {progress}%
+                    </span>
+                  </div>
+                )}
+
                 {/* Organization Switcher */}
                 {user?.role === "super_admin" && (
                   <>
@@ -154,16 +164,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                       </DialogContent>
                     </Dialog>
                   </>
-                )}
-
-                {/* Report Generation Loader */}
-                {isGenerating && (
-                  <div className="flex items-center gap-2">
-                    <div className="spinner w-8 h-8" />
-                    <span className="text-sm text-muted-foreground">
-                      {progress}%
-                    </span>
-                  </div>
                 )}
 
                 {/* User Profile */}

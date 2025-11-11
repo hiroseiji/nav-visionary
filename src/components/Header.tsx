@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, User } from 'lucide-react';
 import { AiOutlineUserSwitch } from 'react-icons/ai';
+import { Player } from '@lottiefiles/react-lottie-player';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useReportGeneration } from '@/contexts/ReportGenerationContext';
 import axios from 'axios';
 import { toast } from 'sonner';
+import loadingAnimation from '@/assets/loadingAnimation.json';
 
 interface HeaderProps {
   userName: string;
@@ -25,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
   const [showOrgSelect, setShowOrgSelect] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState('');
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const { isGenerating, progress } = useReportGeneration();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -92,6 +96,20 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
                 Search
               </Button>
             </form>
+
+            {isGenerating && (
+              <div className="flex items-center gap-2">
+                <Player
+                  autoplay
+                  loop
+                  src={loadingAnimation}
+                  style={{ height: '40px', width: '40px' }}
+                />
+                <span className="text-sm text-muted-foreground">
+                  Generating report... {progress}%
+                </span>
+              </div>
+            )}
 
             {userRole === 'super_admin' && (
               <Button 

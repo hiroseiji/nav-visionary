@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useReportGeneration } from "@/contexts/ReportGenerationContext";
 import {
   Dialog,
   DialogContent,
@@ -88,6 +89,7 @@ export function CreateReportDialog({
   user,
 }: CreateReportDialogProps) {
   const navigate = useNavigate();
+  const { setIsGenerating, setCurrentReportId, setProgress: setContextProgress } = useReportGeneration();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
@@ -164,6 +166,7 @@ export function CreateReportDialog({
         const status = data?.status;
 
         setProgress(progress);
+        setContextProgress(progress);
 
         if (
           status === "ready" ||
@@ -210,6 +213,9 @@ export function CreateReportDialog({
       clearTimeout(timeoutId);
       setPolling(false);
       setLoading(false);
+      setIsGenerating(false);
+      setCurrentReportId(null);
+      setContextProgress(0);
     }
 
     return () => {
@@ -443,7 +449,9 @@ export function CreateReportDialog({
       if (response.status === 202) {
         const newReportId = response.data.reportId;
         setReportId(newReportId);
+        setCurrentReportId(newReportId);
         setPolling(true);
+        setIsGenerating(true);
         onOpenChange(false);
         toast.success("Report generation started!", {
           description: "You can continue using the platform. We'll notify you when it's ready.",

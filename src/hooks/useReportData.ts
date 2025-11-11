@@ -166,25 +166,36 @@ export const useReportData = (
         const data: ViewReportResponse = res.data;
         let report: Report;
 
-        const isFullDoc = (v: unknown) =>
-          v &&
+        // --- Type guards (no `any`) ---
+
+        const isNewShape = (
+          v: ViewReportResponse
+        ): v is ViewReportResponseNew =>
+          typeof v === "object" && v !== null && "_id" in v; // your new docs all have _id
+
+        const isLegacyShape = (
+          v: ViewReportResponse
+        ): v is ViewReportResponseLegacy =>
           typeof v === "object" &&
-          ("modules" in v || "scope" in v || "status" in v || "progress" in v);
+          v !== null &&
+          !("_id" in v) &&
+          "reportData" in v;
 
-        // --- Case 1: endpoint returns the report document directly ---
-        if (isFullDoc(data)) {
-          const doc = data as ViewReportResponseNew;
+        // --- Case 1: endpoint returns the report document directly (new shape) ---
 
-          const formData = (doc.formData ?? {}) as Record<string, unknown>;
-          const startDate =
-            (doc.startDate as string | undefined) ??
-            (formData.startDate as string | undefined);
-          const endDate =
-            (doc.endDate as string | undefined) ??
-            (formData.endDate as string | undefined);
+        if (isNewShape(data)) {
+          const doc = data;
 
-          // If doc.reportData exists and contains the per-media buckets, flatten them
-          const flattenedBuckets =
+          const formData = (doc.formData ?? {}) as {
+            startDate?: string;
+            endDate?: string;
+            [key: string]: unknown;
+          };
+
+          const startDate = doc.startDate ?? formData.startDate;
+          const endDate = doc.endDate ?? formData.endDate;
+
+          const flattenedBuckets: Partial<Report> =
             doc.reportData && typeof doc.reportData === "object"
               ? (doc.reportData as Partial<Report>)
               : {};
@@ -192,91 +203,91 @@ export const useReportData = (
           report = {
             ...flattenedBuckets,
             reportData:
-              (doc.reportData && typeof doc.reportData === "object"
+              doc.reportData && typeof doc.reportData === "object"
                 ? doc.reportData
-                : undefined) ?? undefined,
-            modules: (doc.modules as Record<string, unknown>) || undefined,
-            scope: doc.scope as string[] | undefined,
-            title: doc.title as string | undefined,
-            createdBy: doc.createdBy as string | undefined,
-            createdAt: (doc.createdAt ?? doc.created_at) as string | undefined,
-            organizationId: doc.organizationId as string | undefined,
-            _id: (doc._id as string) || reportId!,
+                : undefined,
+            modules: doc.modules as Report["modules"],
+            scope: (doc.scope as string[]) || [],
+            title: doc.title || "",
+            createdBy: doc.createdBy || "",
+            createdAt: doc.createdAt || doc.created_at || "",
+            organizationId: doc.organizationId,
+            _id: doc._id || reportId!,
             formData,
             startDate,
             endDate,
           };
         }
 
-        // --- Case 2: wrapper { reportData: fullDoc, formData, organizationId } ---
-        else if ('reportData' in data && data.reportData && isFullDoc(data.reportData)) {
-          const wrapper = data as ViewReportResponseLegacy;
-          const doc = wrapper.reportData as unknown as ViewReportResponseNew;
-          const formData = (wrapper.formData ?? doc.formData ?? {}) as Record<
-            string,
-            unknown
-          >;
+        // --- Case 2: legacy wrapper { reportData, formData, organizationId } ---
+        else if (isLegacyShape(data)) {
+          const wrapper = data;
 
-          const startDate =
-            (doc.startDate as string | undefined) ??
-            (formData.startDate as string | undefined);
-          const endDate =
-            (doc.endDate as string | undefined) ??
-            (formData.endDate as string | undefined);
-
-          const flattenedBuckets =
-            doc.reportData && typeof doc.reportData === "object"
-              ? (doc.reportData as Partial<Report>)
-              : {};
-
-          report = {
-            ...flattenedBuckets,
-            reportData:
-              (doc.reportData && typeof doc.reportData === "object"
-                ? doc.reportData
-                : undefined) ?? undefined,
-            modules:
-              (doc.modules as Record<string, unknown>) ||
-              (wrapper.modules as Record<string, unknown>) ||
-              undefined,
-            scope: doc.scope as string[] | undefined,
-            title: doc.title as string | undefined,
-            createdBy: doc.createdBy as string | undefined,
-            createdAt: (doc.createdAt ?? doc.created_at) as string | undefined,
-            organizationId: (wrapper.organizationId ?? doc.organizationId) as string | undefined,
-            _id: (doc._id as string) || reportId!,
-            formData,
-            startDate,
-            endDate,
+          const formData = (wrapper.formData ?? {}) as {
+            startDate?: string;
+            endDate?: string;
+            [key: string]: unknown;
           };
-        }
 
-        // --- Case 3: legacy: { reportData: bucketsOnly, formData, organizationId } ---
-        else if ('reportData' in data && data.reportData) {
-          const saved = data as ViewReportResponseLegacy;
-          const formData = (saved.formData ?? {}) as Record<string, unknown>;
+          const inner = wrapper.reportData;
 
-          const startDate = formData.startDate as string | undefined;
-          const endDate = formData.endDate as string | undefined;
+          // 2a: wrapper.reportData is itself a full doc (has _id, modules, etc)
+          if (inner && typeof inner === "object" && "_id" in inner) {
+            const doc = inner as ViewReportResponseNew;
 
-          report = {
-            ...(saved.reportData || {}),
-            reportData: saved.reportData || undefined,
-            modules: saved.modules,
-            organizationId: saved.organizationId,
-            formData,
-            _id: reportId!,
-            createdBy: saved.createdBy,
-            createdAt: saved.createdAt,
-            startDate,
-            endDate,
-          };
+            const startDate = doc.startDate ?? formData.startDate;
+            const endDate = doc.endDate ?? formData.endDate;
+
+            const flattenedBuckets: Partial<Report> =
+              doc.reportData && typeof doc.reportData === "object"
+                ? (doc.reportData as Partial<Report>)
+                : {};
+
+            report = {
+              ...flattenedBuckets,
+              reportData:
+                doc.reportData && typeof doc.reportData === "object"
+                  ? doc.reportData
+                  : undefined,
+              modules:
+                (doc.modules as Report["modules"]) ||
+                (wrapper.modules as Report["modules"]),
+              scope: (doc.scope as string[]) || [],
+              title: doc.title || "",
+              createdBy: doc.createdBy || "",
+              createdAt: doc.createdAt || doc.created_at || "",
+              organizationId: wrapper.organizationId ?? doc.organizationId,
+              _id: doc._id || reportId!,
+              formData,
+              startDate,
+              endDate,
+            };
+          }
+          // 2b: wrapper.reportData is just buckets; dates only in formData
+          else {
+            const startDate = formData.startDate;
+            const endDate = formData.endDate;
+
+            report = {
+              ...(wrapper.reportData || {}),
+              reportData: wrapper.reportData || undefined,
+              modules: wrapper.modules as Report["modules"],
+              organizationId: wrapper.organizationId,
+              formData,
+              _id: reportId!,
+              createdBy: wrapper.createdBy || "",
+              createdAt: wrapper.createdAt || "",
+              startDate,
+              endDate,
+            };
+          }
         }
 
         // --- Unknown shape ---
         else {
           throw new Error("Unexpected report response shape");
         }
+
 
         // Debug once if needed:
         // console.log("Normalized report:", report);

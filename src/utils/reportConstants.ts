@@ -6,7 +6,6 @@ export const moduleLabels: Record<string, string> = {
   reputationalOpportunities: "Reputational Opportunities",
   issueImpact: "Issue Impact",
   topSources: "Top Sources",
-  volumeAndSentiment: "Volume and Sentiment",
   wordCloud: "Word Cloud",
   kpiPerformance: "KPI Performance",
   topJournalists: "Top Journalists",

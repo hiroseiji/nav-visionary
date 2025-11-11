@@ -99,6 +99,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                       size="sm"
                       onClick={() => setShowOrgSelect(true)}
                       title="Switch organizations"
+                      disabled={isGenerating}
+                      className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ArrowDownUp className="h-7 w-7" /> Switch Organisations
                     </Button>

@@ -471,9 +471,9 @@ export function IssueImpact({ data }: IssueImpactProps) {
               {/* Bars with corrected negative widths */}
               <Bar
                 dataKey="value"
-                shape={(props) => (
+                shape={(props: CustomBarProps) => (
                   <CustomBar
-                    {...(props as any)}
+                    {...props}
                     fill={
                       props.payload.sign === -1
                         ? "hsl(var(--sentiment-negative))"

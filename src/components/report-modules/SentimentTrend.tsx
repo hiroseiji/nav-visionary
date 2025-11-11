@@ -250,62 +250,75 @@ export function SentimentTrend({
 
       if (sentimentChartRef.current) {
         const chart = sentimentChartRef.current;
-        const options = chart.options as any;
+        const options = chart.options as Record<string, unknown>;
         
         // Update scales
-        if (options.scales?.x?.ticks) {
-          options.scales.x.ticks.color = textColor;
-        }
-        if (options.scales?.y1?.ticks) {
-          options.scales.y1.ticks.color = textColor;
-        }
-        if (options.scales?.y1?.title) {
-          options.scales.y1.title.color = textColor;
-        }
-        if (options.scales?.y1?.grid) {
-          options.scales.y1.grid.color = gridColor;
+        if (options.scales && typeof options.scales === 'object') {
+          const scales = options.scales as Record<string, Record<string, unknown>>;
+          if (scales.x?.ticks && typeof scales.x.ticks === 'object') {
+            (scales.x.ticks as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y1?.ticks && typeof scales.y1.ticks === 'object') {
+            (scales.y1.ticks as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y1?.title && typeof scales.y1.title === 'object') {
+            (scales.y1.title as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y1?.grid && typeof scales.y1.grid === 'object') {
+            (scales.y1.grid as Record<string, unknown>).color = gridColor;
+          }
         }
         // Update legend
-        if (options.plugins?.legend?.labels) {
-          options.plugins.legend.labels.color = textColor;
-        }
-        // Update tooltip
-        if (options.plugins?.tooltip) {
-          options.plugins.tooltip.backgroundColor = tooltipBg;
-          options.plugins.tooltip.titleColor = tooltipText;
-          options.plugins.tooltip.bodyColor = tooltipText;
-        }
-        // Update subtitle
-        if (options.plugins?.subtitle) {
-          options.plugins.subtitle.color = subtitleColor;
+        if (options.plugins && typeof options.plugins === 'object') {
+          const plugins = options.plugins as Record<string, Record<string, unknown>>;
+          if (plugins.legend?.labels && typeof plugins.legend.labels === 'object') {
+            (plugins.legend.labels as Record<string, unknown>).color = textColor;
+          }
+          // Update tooltip
+          if (plugins.tooltip && typeof plugins.tooltip === 'object') {
+            const tooltip = plugins.tooltip as Record<string, unknown>;
+            tooltip.backgroundColor = tooltipBg;
+            tooltip.titleColor = tooltipText;
+            tooltip.bodyColor = tooltipText;
+          }
+          // Update subtitle
+          if (plugins.subtitle && typeof plugins.subtitle === 'object') {
+            (plugins.subtitle as Record<string, unknown>).color = subtitleColor;
+          }
         }
         // Update industry trend color
         if (hasIndustryTrend && chart.data.datasets[0]) {
-          (chart.data.datasets[0] as any).borderColor = industryColor;
+          (chart.data.datasets[0] as unknown as Record<string, unknown>).borderColor = industryColor;
         }
         chart.update('none'); // 'none' mode = no animation for instant update
       }
 
       if (volumeChartRef.current) {
         const chart = volumeChartRef.current;
-        const options = chart.options as any;
+        const options = chart.options as Record<string, unknown>;
         
         // Update scales
-        if (options.scales?.x?.ticks) {
-          options.scales.x.ticks.color = textColor;
-        }
-        if (options.scales?.y?.ticks) {
-          options.scales.y.ticks.color = textColor;
-        }
-        if (options.scales?.y?.title) {
-          options.scales.y.title.color = textColor;
-        }
-        if (options.scales?.y?.grid) {
-          options.scales.y.grid.color = gridColor;
+        if (options.scales && typeof options.scales === 'object') {
+          const scales = options.scales as Record<string, Record<string, unknown>>;
+          if (scales.x?.ticks && typeof scales.x.ticks === 'object') {
+            (scales.x.ticks as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y?.ticks && typeof scales.y.ticks === 'object') {
+            (scales.y.ticks as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y?.title && typeof scales.y.title === 'object') {
+            (scales.y.title as Record<string, unknown>).color = textColor;
+          }
+          if (scales.y?.grid && typeof scales.y.grid === 'object') {
+            (scales.y.grid as Record<string, unknown>).color = gridColor;
+          }
         }
         // Update legend
-        if (options.plugins?.legend?.labels) {
-          options.plugins.legend.labels.color = textColor;
+        if (options.plugins && typeof options.plugins === 'object') {
+          const plugins = options.plugins as Record<string, Record<string, unknown>>;
+          if (plugins.legend?.labels && typeof plugins.legend.labels === 'object') {
+            (plugins.legend.labels as Record<string, unknown>).color = textColor;
+          }
         }
         chart.update('none');
       }

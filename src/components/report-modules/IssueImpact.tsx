@@ -108,9 +108,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
     }
   }
 
-  const issues = dataArray.filter(
-    (item) => item && (item.title || item.issue)
-  );
+  const issues = dataArray.filter((item) => item && (item.title || item.issue));
 
   if (issues.length === 0) {
     return (
@@ -131,7 +129,9 @@ export function IssueImpact({ data }: IssueImpactProps) {
 
       // Read sentiment from various possible fields
       const rawSent =
-        Number(issue.avgSentiment ?? issue.sentiment ?? issue.averageSentiment) || 0;
+        Number(
+          issue.avgSentiment ?? issue.sentiment ?? issue.averageSentiment
+        ) || 0;
 
       let sentimentScore = Number.isNaN(rawSent) ? 0 : rawSent;
 
@@ -240,23 +240,46 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  // --- Labels pinned at the zero-line, tight to bars -------------------------
-  const ZeroAxisLabel = (props: ZeroAxisLabelProps) => {
-    const { x, y, height, value, payload } = props;
+
+  // For positive bars: label on the LEFT of the zero line
+  const PositiveZeroAxisLabel = (props: ZeroAxisLabelProps) => {
+    const { x, y, height, payload } = props;
     if (!payload?.name) return null;
 
+    // only render for positive bars
+    if (payload.value <= 0) return null;
+
     const gap = 10;
-    const isNegative = payload.sign === -1 || value < 0;
-    
-    // Negative issues: labels on right; Positive issues: labels on left
-    const tx = isNegative ? x + gap : x - gap;
-    const anchor = isNegative ? "start" : "end";
 
     return (
       <text
-        x={tx}
+        x={x - gap} // left of 0
         y={y + height / 2}
-        textAnchor={anchor}
+        textAnchor="end"
+        dominantBaseline="middle"
+        fontSize="13"
+        fill="hsl(var(--foreground))"
+        fontWeight="700"
+      >
+        {payload.name}
+      </text>
+    );
+  };
+
+  const NegativeZeroAxisLabel = (props: ZeroAxisLabelProps) => {
+    const { x, y, height, payload } = props;
+    if (!payload?.name) return null;
+
+    // only render for negative bars
+    if (payload.value >= 0.1) return null;
+
+    const gap = 10;
+
+    return (
+      <text
+        x={x + gap} // right of 0
+        y={y + height / 2}
+        textAnchor="start"
         dominantBaseline="middle"
         fontSize="13"
         fill="hsl(var(--foreground))"
@@ -404,9 +427,10 @@ export function IssueImpact({ data }: IssueImpactProps) {
     <div className="space-y-4 w-full">
       <div className="w-full overflow-x-auto">
         <div
+          className="mx-auto"
           style={{
             minWidth: "1100px",
-            width: "100%",
+            // width: "100%",
             height: 500,
           }}
         >
@@ -439,6 +463,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
                   const yAxis = rp.yAxisMap[Object.keys(rp.yAxisMap)[0]];
                   const xScale = xAxis.scale;
                   const yScale = yAxis.scale;
+                  const zeroX = xScale(0);
 
                   return (
                     <g>
@@ -447,17 +472,25 @@ export function IssueImpact({ data }: IssueImpactProps) {
                         const bandwidth = yScale.bandwidth
                           ? yScale.bandwidth()
                           : 0;
-
                         return (
-                          <ZeroAxisLabel
-                            key={i}
-                            x={xScale(0)}
-                            y={yPos}
-                            width={0}
-                            height={bandwidth}
-                            value={d.rawValue}
-                            payload={d}
-                          />
+                          <g key={i}>
+                            <PositiveZeroAxisLabel
+                              x={zeroX}
+                              y={yPos}
+                              width={0}
+                              height={bandwidth}
+                              value={d.value}
+                              payload={d}
+                            />
+                            <NegativeZeroAxisLabel
+                              x={zeroX}
+                              y={yPos}
+                              width={0}
+                              height={bandwidth}
+                              value={d.value}
+                              payload={d}
+                            />
+                          </g>
                         );
                       })}
                     </g>

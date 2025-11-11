@@ -237,12 +237,12 @@ export function IssueImpact({ data }: IssueImpactProps) {
           {absValue.toFixed(0)}
         </text>
 
-        {highlightIdx.has(index) && isPos && (
-          <LeaderDotRight x={barX} y={y} width={barWidth} height={height} />
-        )}
-        {highlightIdx.has(index) && !isPos && (
-          <LeaderDotLeft x={barX} y={y} width={barWidth} height={height} />
-        )}
+        {highlightIdx.has(index) &&
+          (isPos ? (
+            <LeaderDotRight x={barX} y={y} width={barWidth} height={height} />
+          ) : (
+            <LeaderDotLeft x={barX} y={y} width={barWidth} height={height} />
+          ))}
       </g>
     );
   };
@@ -347,7 +347,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
 
     // Separate gaps for better positioning on each side
     const GAP_POSITIVE = -220; // gap for positive bars (right side)
-    const GAP_NEGATIVE = 45; // gap for negative bars (left side)
+    const GAP_NEGATIVE = 300; // gap for negative bars (left side)
 
     return (
       <g transform={`translate(${offset.left}, ${offset.top})`}>

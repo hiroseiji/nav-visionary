@@ -346,8 +346,8 @@ export function IssueImpact({ data }: IssueImpactProps) {
     const band = yScale.bandwidth ? yScale.bandwidth() : 0;
 
     // Separate gaps for better positioning on each side
-    const GAP_POSITIVE = 45; // gap for positive bars (right side)
-    const GAP_NEGATIVE = 45; // gap for negative bars (left side)
+    const GAP_POSITIVE = -220; // gap for positive bars (right side)
+    const GAP_NEGATIVE = 300; // gap for negative bars (left side)
 
     return (
       <g transform={`translate(${offset.left}, ${offset.top})`}>
@@ -385,7 +385,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
               {/* Issue title */}
               <text
                 x={textX}
-                y={cy - 8}
+                y={cy - 15}
                 textAnchor={isPositive ? "start" : "end"}
                 fontWeight={700}
                 fontSize={13}

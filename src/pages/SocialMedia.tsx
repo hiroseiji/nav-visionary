@@ -292,7 +292,8 @@ export default function SocialMedia() {
 
     const payload = {
       pageName: newPost.pageName.trim(),
-      postId: newPost.postId?.trim() ?? editingPost.postId,
+      postId: editingPost.postId,
+      link: newPost.postId?.trim(),
       message: newPost.message.trim(),
       source: finalSource?.trim(),
       group: newPost.group?.trim(),
@@ -310,6 +311,7 @@ export default function SocialMedia() {
       ...editingPost,
       pageName: payload.pageName ?? editingPost.pageName,
       postId: payload.postId ?? editingPost.postId,
+      link: payload.link ?? editingPost.link,
       message: payload.message ?? editingPost.message,
       source: payload.source ?? editingPost.source,
       group: payload.group ?? editingPost.group,
@@ -395,11 +397,11 @@ export default function SocialMedia() {
   const openEditDialog = (post: SocialPost) => {
     // Normalize the source
     const allowedPlatforms = [
-      "facebook",
-      "twitter",
-      "instagram",
-      "linkedin",
-      "tiktok",
+      "Facebook",
+      "Twitter",
+      "Instagram",
+      "Linkedin",
+      "Tiktok",
     ];
     const rawSource = (post.source ?? "").toString().trim();
     const sourceLower = rawSource.toLowerCase();
@@ -418,7 +420,13 @@ export default function SocialMedia() {
 
     setNewPost({
       pageName: post.pageName ?? "",
-      postId: post.postId ?? "",
+      postId: post.link
+        ? post.link // use stored link
+        : post.postId.startsWith("http") // if postId itself is a URL
+        ? post.postId
+        : post.source?.toLowerCase() === "facebook"
+        ? `https://facebook.com/${post.postId}` // fallback for FB
+        : post.postId,
       message: post.message ?? "",
       source, // "facebook" | "twitter" | ... | "other"
       sourceCustom, // custom text for "other"
@@ -560,11 +568,11 @@ export default function SocialMedia() {
                           <SelectValue placeholder="Select platform" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="facebook">Facebook</SelectItem>
-                          <SelectItem value="twitter">Twitter</SelectItem>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="linkedin">LinkedIn</SelectItem>
-                          <SelectItem value="tiktok">TikTok</SelectItem>
+                          <SelectItem value="Facebook">Facebook</SelectItem>
+                          <SelectItem value="Twitter">X</SelectItem>
+                          <SelectItem value="Instagram">Instagram</SelectItem>
+                          <SelectItem value="Linkedin">LinkedIn</SelectItem>
+                          <SelectItem value="Tiktok">TikTok</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -829,34 +837,58 @@ export default function SocialMedia() {
                             {post.logo_url && (
                               <img
                                 src={post.logo_url}
-                                alt={post.pageName}
+                                alt={post.pageName || "Source logo"}
                                 className="w-10 h-10 rounded-full border-2 border-border object-cover flex-shrink-0"
                               />
                             )}
+
                             <div className="flex-1 min-w-0">
-                              {post.link ? (
-                                <a
-                                  href={post.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="line-clamp-2 hover:underline text-primary cursor-pointer"
-                                >
-                                  {post.message}
-                                </a>
-                              ) : (
-                                <div className="line-clamp-2">
-                                  {post.message}
-                                </div>
-                              )}
-                              {post.link && (
-                                <a
-                                  href={post.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                                >
-                                </a>
-                              )}
+                              {(() => {
+                                // 1) Prefer backend link
+                                let href = post.link || "";
+
+                                // 2) If no link but postId looks like a URL, use that
+                                if (
+                                  !href &&
+                                  typeof post.postId === "string" &&
+                                  post.postId.startsWith("http")
+                                ) {
+                                  href = post.postId;
+                                }
+
+                                // 3) Legacy fallback: Facebook by ID/slug
+                                if (
+                                  !href &&
+                                  typeof post.postId === "string" &&
+                                  post.source &&
+                                  post.source.toLowerCase() === "facebook"
+                                ) {
+                                  href = `https://facebook.com/${post.postId}`;
+                                }
+
+                                const text =
+                                  post.message && post.message.length > 0
+                                    ? post.message
+                                    : post.postId || "N/A";
+
+                                if (href) {
+                                  return (
+                                    <>
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="line-clamp-2 hover:underline text-primary cursor-pointer"
+                                      >
+                                        {text}
+                                      </a>
+                                    </>
+                                  );
+                                }
+                                return (
+                                  <div className="line-clamp-2">{text}</div>
+                                );
+                              })()}
                             </div>
                           </div>
                         </TableCell>

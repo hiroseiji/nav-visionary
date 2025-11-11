@@ -237,12 +237,12 @@ export function IssueImpact({ data }: IssueImpactProps) {
           {absValue.toFixed(0)}
         </text>
 
-        {highlightIdx.has(index) &&
-          (isPos ? (
-            <LeaderDotRight x={barX} y={y} width={barWidth} height={height} />
-          ) : (
-            <LeaderDotLeft x={barX} y={y} width={barWidth} height={height} />
-          ))}
+        {highlightIdx.has(index) && isPos && (
+          <LeaderDotRight x={barX} y={y} width={barWidth} height={height} />
+        )}
+        {highlightIdx.has(index) && !isPos && (
+          <LeaderDotLeft x={barX} y={y} width={barWidth} height={height} />
+        )}
       </g>
     );
   };

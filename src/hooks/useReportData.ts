@@ -96,6 +96,8 @@ interface ViewReportResponseNew {
   createdAt?: string;
   created_at?: string;
   organizationId?: string;
+  startDate?: string;
+  endDate?: string;
   reportData?: Report["reportData"];
   formData?: Record<string, unknown>;
 }
@@ -161,17 +163,17 @@ export const useReportData = (
           validateStatus: (s) => s >= 200 && s < 300,
         });
 
-        const data: any = res.data;
+        const data: ViewReportResponse = res.data;
         let report: Report;
 
-        const isFullDoc = (v: any) =>
+        const isFullDoc = (v: unknown) =>
           v &&
           typeof v === "object" &&
           ("modules" in v || "scope" in v || "status" in v || "progress" in v);
 
         // --- Case 1: endpoint returns the report document directly ---
         if (isFullDoc(data)) {
-          const doc = data;
+          const doc = data as ViewReportResponseNew;
 
           const formData = (doc.formData ?? {}) as Record<string, unknown>;
           const startDate =
@@ -194,11 +196,11 @@ export const useReportData = (
                 ? doc.reportData
                 : undefined) ?? undefined,
             modules: (doc.modules as Record<string, unknown>) || undefined,
-            scope: doc.scope,
-            title: doc.title,
-            createdBy: doc.createdBy,
-            createdAt: doc.createdAt ?? doc.created_at,
-            organizationId: doc.organizationId,
+            scope: doc.scope as string[] | undefined,
+            title: doc.title as string | undefined,
+            createdBy: doc.createdBy as string | undefined,
+            createdAt: (doc.createdAt ?? doc.created_at) as string | undefined,
+            organizationId: doc.organizationId as string | undefined,
             _id: (doc._id as string) || reportId!,
             formData,
             startDate,
@@ -207,9 +209,10 @@ export const useReportData = (
         }
 
         // --- Case 2: wrapper { reportData: fullDoc, formData, organizationId } ---
-        else if (data.reportData && isFullDoc(data.reportData)) {
-          const doc = data.reportData;
-          const formData = (data.formData ?? doc.formData ?? {}) as Record<
+        else if ('reportData' in data && data.reportData && isFullDoc(data.reportData)) {
+          const wrapper = data as ViewReportResponseLegacy;
+          const doc = wrapper.reportData as unknown as ViewReportResponseNew;
+          const formData = (wrapper.formData ?? doc.formData ?? {}) as Record<
             string,
             unknown
           >;
@@ -234,13 +237,13 @@ export const useReportData = (
                 : undefined) ?? undefined,
             modules:
               (doc.modules as Record<string, unknown>) ||
-              (data.modules as Record<string, unknown>) ||
+              (wrapper.modules as Record<string, unknown>) ||
               undefined,
-            scope: doc.scope,
-            title: doc.title,
-            createdBy: doc.createdBy,
-            createdAt: doc.createdAt ?? doc.created_at,
-            organizationId: data.organizationId ?? doc.organizationId,
+            scope: doc.scope as string[] | undefined,
+            title: doc.title as string | undefined,
+            createdBy: doc.createdBy as string | undefined,
+            createdAt: (doc.createdAt ?? doc.created_at) as string | undefined,
+            organizationId: (wrapper.organizationId ?? doc.organizationId) as string | undefined,
             _id: (doc._id as string) || reportId!,
             formData,
             startDate,
@@ -249,7 +252,7 @@ export const useReportData = (
         }
 
         // --- Case 3: legacy: { reportData: bucketsOnly, formData, organizationId } ---
-        else if (data.reportData) {
+        else if ('reportData' in data && data.reportData) {
           const saved = data as ViewReportResponseLegacy;
           const formData = (saved.formData ?? {}) as Record<string, unknown>;
 

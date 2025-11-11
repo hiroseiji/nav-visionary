@@ -292,18 +292,24 @@ export function CreateReportDialog({
         });
       }
 
+      const requestPayload = {
+        organizationId,
+        orgName: organizationName,
+        startDate: format(startDate, "yyyy-MM-dd"),
+        endDate: format(endDate, "yyyy-MM-dd"),
+        modules: modulesPerMediaType,
+        localOrGlobal: selectedCountries,
+        createdBy: `${user.firstName} ${user.lastName}`,
+      };
+
+      console.log("📤 Sending report request:", JSON.stringify(requestPayload, null, 2));
+
       const response = await axios.post(
         "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/custom-report",
-        {
-          organizationId,
-          orgName: organizationName,
-          startDate: format(startDate, "yyyy-MM-dd"),
-          endDate: format(endDate, "yyyy-MM-dd"),
-          modules: modulesPerMediaType,
-          localOrGlobal: selectedCountries,
-          createdBy: `${user.firstName} ${user.lastName}`,
-        }
+        requestPayload
       );
+
+      console.log("📥 Report creation response:", response.data);
 
       if (response.status === 202) {
         const newReportId = response.data.reportId;

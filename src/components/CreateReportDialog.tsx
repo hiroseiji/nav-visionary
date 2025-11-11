@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { CalendarIcon, Tv, Newspaper, Share2, Radio, LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { moduleLabels } from "@/utils/reportConstants";
 
 interface Module {
   label: string;
@@ -68,8 +69,34 @@ export function CreateReportDialog({
     if (open) {
       axios
         .get("https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-modules")
-        .then((response) => setAvailableModules(response.data))
-        .catch((err) => console.error("Failed to load modules:", err));
+        .then((response) => {
+          const modules = response.data;
+          // If backend returns empty, use fallback with all media types
+          if (!modules || Object.keys(modules).length === 0) {
+            const fallbackModules: Record<string, Module> = {};
+            Object.keys(moduleLabels).forEach((key) => {
+              fallbackModules[key] = {
+                label: moduleLabels[key],
+                mediaTypes: allMediaTypes // All modules available for all media types
+              };
+            });
+            setAvailableModules(fallbackModules);
+          } else {
+            setAvailableModules(modules);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load modules:", err);
+          // Use fallback on error
+          const fallbackModules: Record<string, Module> = {};
+          Object.keys(moduleLabels).forEach((key) => {
+            fallbackModules[key] = {
+              label: moduleLabels[key],
+              mediaTypes: allMediaTypes
+            };
+          });
+          setAvailableModules(fallbackModules);
+        });
 
       axios
         .get("https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/available-countries")

@@ -38,6 +38,7 @@ interface Report {
   createdBy: string;
   createdAt: string;
   created_at?: string;
+  status?: string;
 }
 
 interface User {
@@ -294,30 +295,34 @@ export default function Reports() {
                               new Date(
                                 report.createdAt || report.created_at || ""
                               ),
-                              "MMM dd, yyyy"
+                              "MMM dd, yyyy HH:mm"
                             )}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const orgId =
-                                  user?.role === "super_admin"
-                                    ? selectedOrg
-                                    : user?.organizationId;
+                            {report.status === "completed" || !report.status ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const orgId =
+                                    user?.role === "super_admin"
+                                      ? selectedOrg
+                                      : user?.organizationId;
 
-                                if (!orgId) {
-                                  toast.error("Organization ID not found");
-                                  return;
-                                }
+                                  if (!orgId) {
+                                    toast.error("Organization ID not found");
+                                    return;
+                                  }
 
-                                navigate(`/report/${orgId}/${report._id}`);
-                              }}
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
+                                  navigate(`/report/${orgId}/${report._id}`);
+                                }}
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                            ) : (
+                              <Badge variant="secondary">Generating...</Badge>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

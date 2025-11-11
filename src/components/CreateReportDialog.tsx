@@ -145,14 +145,14 @@ export function CreateReportDialog({
             (status === "ready" || status === "ready_with_errors"))
         ) {
           stopPolling();
-          toast.success("Report is ready!", {
-            description: "Your report has been generated successfully.",
-            action: {
-              label: "View Report",
-              onClick: () => navigate(`/report-results/${organizationId}/${reportId}`),
-            },
-            duration: 10000,
-          });
+        toast.success("Report is ready!", {
+          description: "Your report has been generated successfully.",
+          action: {
+            label: "View Report",
+            onClick: () => navigate(`/report-results/${organizationId}/${reportId}`),
+          },
+          duration: Infinity,
+        });
           return;
         }
 

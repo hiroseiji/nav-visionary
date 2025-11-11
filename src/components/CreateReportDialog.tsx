@@ -28,11 +28,6 @@ import {
 import { toast } from "sonner";
 import {
   CalendarIcon,
-  Tv,
-  Newspaper,
-  Share2,
-  Radio,
-  LucideIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -125,49 +120,72 @@ export function CreateReportDialog({
 
   // Poll for report progress
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    let timeoutId: NodeJS.Timeout;
+    if (!polling || !reportId) return;
 
-    if (polling && reportId) {
-      intervalId = setInterval(async () => {
-        try {
-          const response = await axios.get(
-            `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-progress/${reportId}`
-          );
-          const data = response.data;
-          setProgress(data.progress || 0);
+    let stopped = false;
 
-          if (data.status === "ready") {
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-            setPolling(false);
-            setLoading(false);
-            onOpenChange(false);
-            navigate(`/report-results/${organizationId}/${reportId}`);
-          }
-        } catch (error) {
-          console.error("Polling failed:", error);
-          clearInterval(intervalId);
-          clearTimeout(timeoutId);
-          setPolling(false);
-          setLoading(false);
-          toast.error("Failed to fetch report progress.");
+    const intervalId = setInterval(async () => {
+      if (stopped) return;
+
+      try {
+        const response = await axios.get(
+          `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-progress/${reportId}`
+        );
+
+        const data = response.data;
+        const progress = data?.progress ?? 0;
+        const status = data?.status;
+
+        setProgress(progress);
+
+        if (
+          status === "ready" ||
+          status === "ready_with_errors" ||
+          (progress >= 100 &&
+            (status === "ready" || status === "ready_with_errors"))
+        ) {
+          stopPolling();
+          onOpenChange(false);
+          navigate(`/report-results/${organizationId}/${reportId}`);
+          return;
         }
-      }, 3000);
 
-      timeoutId = setTimeout(() => {
-        clearInterval(intervalId);
-        setPolling(false);
-        setLoading(false);
-        toast.error("Report generation timed out. Please try again later.");
-      }, 10 * 60 * 1000);
+        if (status === "failed") {
+          stopPolling();
+          onOpenChange(false);
+          toast.error("Report generation failed. Please try again.");
+          return;
+        }
+
+        // otherwise: keep polling
+      } catch (error) {
+        console.error("Polling failed:", error);
+        stopPolling();
+        onOpenChange(false);
+        toast.error("Failed to fetch report progress.");
+      }
+    }, 3000);
+
+    const timeoutId = setTimeout(() => {
+      if (stopped) return;
+      stopPolling();
+      onOpenChange(false);
+      toast.error("Report generation timed out. Please try again later.");
+    }, 10 * 60 * 1000);
+
+    function stopPolling() {
+      if (stopped) return;
+      stopped = true;
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+      setPolling(false);
+      setLoading(false);
     }
 
     return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
+      stopPolling();
     };
-  }, [polling, reportId, navigate, organizationId, onOpenChange]);
+  }, [polling, reportId, organizationId, navigate, onOpenChange]);
 
   const handleModuleToggle = (mediaType: string, moduleKey: string) => {
     setSelectedMediaModules((prev) => {

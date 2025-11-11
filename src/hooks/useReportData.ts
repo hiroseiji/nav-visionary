@@ -164,6 +164,7 @@ export const useReportData = (
         });
 
         const data: ViewReportResponse = res.data;
+        console.log("🔍 RAW API Response:", JSON.stringify(data, null, 2));
         let report: Report;
 
         // --- Type guards (no `any`) ---
@@ -267,6 +268,7 @@ export const useReportData = (
           else {
             const startDate = formData.startDate;
             const endDate = formData.endDate;
+            console.log("📅 Extracted from formData - startDate:", startDate, "endDate:", endDate);
 
             report = {
               ...(wrapper.reportData || {}),
@@ -289,8 +291,12 @@ export const useReportData = (
         }
 
 
-        // Debug once if needed:
-        // console.log("Normalized report:", report);
+        console.log("✅ Final normalized report:", {
+          _id: report._id,
+          startDate: report.startDate,
+          endDate: report.endDate,
+          formData: report.formData
+        });
 
         setReportData(report);
 

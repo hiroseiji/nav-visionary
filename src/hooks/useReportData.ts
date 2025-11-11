@@ -109,6 +109,10 @@ interface ViewReportResponseLegacy {
     articles?: MediaBucket;
     broadcast?: MediaBucket;
     printmedia?: MediaBucket;
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+    };
     [key: string]: unknown;
   };
   formData?: Record<string, unknown>;
@@ -202,10 +206,10 @@ export const useReportData = (
 
           const startDate =
             (formData as { startDate?: string }).startDate ??
-            (saved.reportData as any)?.filters?.startDate;
+            saved.reportData?.filters?.startDate;
           const endDate =
             (formData as { endDate?: string }).endDate ??
-            (saved.reportData as any)?.filters?.endDate;
+            saved.reportData?.filters?.endDate;
 
           report = {
             ...(saved.reportData || {}),

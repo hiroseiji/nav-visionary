@@ -161,55 +161,100 @@ export const useReportData = (
           validateStatus: (s) => s >= 200 && s < 300,
         });
 
-        const data = res.data;
+        const data: any = res.data;
         let report: Report;
 
-        // --- Case 1: "new" full-document shape (what you're seeing in Mongo now) ---
-        // e.g. { _id, organizationId, title, createdAt, createdBy, formData, modules, ... }
-        if ("_id" in data || "modules" in data) {
-          const doc = data as ViewReportResponseNew;
-          const formData = doc.formData || {};
+        const isFullDoc = (v: any) =>
+          v &&
+          typeof v === "object" &&
+          ("modules" in v || "scope" in v || "status" in v || "progress" in v);
 
-          // Normalize dates from plausible locations
+        // --- Case 1: endpoint returns the report document directly ---
+        if (isFullDoc(data)) {
+          const doc = data;
+
+          const formData = (doc.formData ?? {}) as Record<string, unknown>;
           const startDate =
-            (doc as { startDate?: string }).startDate ??
-            (formData as { startDate?: string }).startDate;
+            (doc.startDate as string | undefined) ??
+            (formData.startDate as string | undefined);
           const endDate =
-            (doc as { endDate?: string }).endDate ??
-            (formData as { endDate?: string }).endDate;
+            (doc.endDate as string | undefined) ??
+            (formData.endDate as string | undefined);
+
+          // If doc.reportData exists and contains the per-media buckets, flatten them
+          const flattenedBuckets =
+            doc.reportData && typeof doc.reportData === "object"
+              ? (doc.reportData as Partial<Report>)
+              : {};
 
           report = {
-            // If this doc also has a nested reportData with buckets, flatten them
-            ...(doc.reportData || {}),
-
-            // Preserve original nested block & meta
-            reportData: doc.reportData || undefined,
-            modules: doc.modules,
+            ...flattenedBuckets,
+            reportData:
+              (doc.reportData && typeof doc.reportData === "object"
+                ? doc.reportData
+                : undefined) ?? undefined,
+            modules: (doc.modules as Record<string, unknown>) || undefined,
             scope: doc.scope,
             title: doc.title,
             createdBy: doc.createdBy,
-            createdAt: doc.createdAt || doc.created_at,
+            createdAt: doc.createdAt ?? doc.created_at,
             organizationId: doc.organizationId,
-            _id: doc._id || reportId,
+            _id: (doc._id as string) || reportId!,
             formData,
-
-            // Hoisted, so the cover page can use reportData.startDate / endDate
             startDate,
             endDate,
           };
         }
 
-        // --- Case 2: legacy wrapper shape { reportData, formData, organizationId } ---
-        else if ("reportData" in data) {
-          const saved = data as ViewReportResponseLegacy;
-          const formData = saved.formData || {};
+        // --- Case 2: wrapper { reportData: fullDoc, formData, organizationId } ---
+        else if (data.reportData && isFullDoc(data.reportData)) {
+          const doc = data.reportData;
+          const formData = (data.formData ?? doc.formData ?? {}) as Record<
+            string,
+            unknown
+          >;
 
           const startDate =
-            (formData as { startDate?: string }).startDate ??
-            saved.reportData?.filters?.startDate;
+            (doc.startDate as string | undefined) ??
+            (formData.startDate as string | undefined);
           const endDate =
-            (formData as { endDate?: string }).endDate ??
-            saved.reportData?.filters?.endDate;
+            (doc.endDate as string | undefined) ??
+            (formData.endDate as string | undefined);
+
+          const flattenedBuckets =
+            doc.reportData && typeof doc.reportData === "object"
+              ? (doc.reportData as Partial<Report>)
+              : {};
+
+          report = {
+            ...flattenedBuckets,
+            reportData:
+              (doc.reportData && typeof doc.reportData === "object"
+                ? doc.reportData
+                : undefined) ?? undefined,
+            modules:
+              (doc.modules as Record<string, unknown>) ||
+              (data.modules as Record<string, unknown>) ||
+              undefined,
+            scope: doc.scope,
+            title: doc.title,
+            createdBy: doc.createdBy,
+            createdAt: doc.createdAt ?? doc.created_at,
+            organizationId: data.organizationId ?? doc.organizationId,
+            _id: (doc._id as string) || reportId!,
+            formData,
+            startDate,
+            endDate,
+          };
+        }
+
+        // --- Case 3: legacy: { reportData: bucketsOnly, formData, organizationId } ---
+        else if (data.reportData) {
+          const saved = data as ViewReportResponseLegacy;
+          const formData = (saved.formData ?? {}) as Record<string, unknown>;
+
+          const startDate = formData.startDate as string | undefined;
+          const endDate = formData.endDate as string | undefined;
 
           report = {
             ...(saved.reportData || {}),
@@ -217,7 +262,7 @@ export const useReportData = (
             modules: saved.modules,
             organizationId: saved.organizationId,
             formData,
-            _id: reportId,
+            _id: reportId!,
             createdBy: saved.createdBy,
             createdAt: saved.createdAt,
             startDate,
@@ -225,17 +270,17 @@ export const useReportData = (
           };
         }
 
-        // Unknown shape
+        // --- Unknown shape ---
         else {
           throw new Error("Unexpected report response shape");
         }
 
-        // Debug once if you're curious:
-        // console.log("Normalized report for viewer:", report);
+        // Debug once if needed:
+        // console.log("Normalized report:", report);
 
         setReportData(report);
 
-        // --- Fetch organization details ---
+        // --- Fetch organization ---
         const orgIdToFetch = report.organizationId || orgId;
         if (orgIdToFetch) {
           const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;
@@ -272,6 +317,7 @@ export const useReportData = (
         setLoading(false);
       }
     };
+
 
     fetchReport();
   }, [reportId, orgId, navigate]);

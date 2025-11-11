@@ -339,7 +339,9 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)}
+            onClick={() =>
+              navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)
+            }
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Reports
@@ -384,12 +386,18 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 {exportProgress.total > 0 && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
-                      Processing page {exportProgress.current} of {exportProgress.total}
+                      Processing page {exportProgress.current} of{" "}
+                      {exportProgress.total}
                     </p>
                     <div className="w-full bg-secondary rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-primary h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
+                        style={{
+                          width: `${
+                            (exportProgress.current / exportProgress.total) *
+                            100
+                          }%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -410,8 +418,14 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
                 gradientTop={gradientTop}
                 gradientBottom={gradientBottom}
                 organizationName={organizationName}
-                startDate={(reportData?.startDate || reportData?.formData?.startDate) as string}
-                endDate={(reportData?.endDate || reportData?.formData?.endDate) as string}
+                startDate={
+                  (reportData?.startDate ||
+                    reportData?.formData?.startDate) as string
+                }
+                endDate={
+                  (reportData?.endDate ||
+                    reportData?.formData?.endDate) as string
+                }
                 organizationLogoUrl={organizationData?.logoUrl}
               />
             )}
@@ -448,8 +462,10 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
               gradientTop={gradientTop}
               gradientBottom={gradientBottom}
               organizationName={organizationName}
-              startDate={(reportData?.startDate || reportData?.formData?.startDate) as string}
-              endDate={(reportData?.endDate || reportData?.formData?.endDate) as string}
+              // startDate={(reportData?.startDate || reportData?.formData?.startDate) as string}
+              // endDate={(reportData?.endDate || reportData?.formData?.endDate) as string}
+              startDate={reportData?.startDate}
+              endDate={reportData?.endDate}
               organizationLogoUrl={organizationData?.logoUrl}
             />
           )}

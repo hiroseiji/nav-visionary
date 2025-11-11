@@ -71,11 +71,9 @@ export const ReportCoverPage = ({
         </p>
       </div>
       <div className="relative z-10 p-8 flex items-end justify-between">
-        <div className="space-y-1 pb-10">
-          <p className="text-lg font-semibold opacity-95">
-            {formatDateRange()}
-          </p>
-        </div>
+        <span className="text-lg font-semibold opacity-95 pb-10">
+          {formatDateRange()}
+        </span>
         {organizationLogoUrl && (
           <div className="flex items-center justify-center">
             <img

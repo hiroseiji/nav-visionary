@@ -84,41 +84,45 @@ interface DataContainer {
 }
 
 export function IssueImpact({ data }: IssueImpactProps) {
-  // --- Normalise incoming data ------------------------------------------------
-  let dataArray: Array<Record<string, unknown>> = [];
-
-  if (Array.isArray(data)) {
-    dataArray = data;
-  } else if (data && typeof data === "object") {
-    const container = data as unknown as DataContainer;
-    const possibleArrays = [
-      container.items,
-      container.data,
-      container.issues,
-      container.list,
-    ];
-    const foundArray = possibleArrays.find((arr) => Array.isArray(arr));
-    dataArray = (foundArray || []) as Array<Record<string, unknown>>;
-  }
-
-  const issues = dataArray.map((item: Record<string, unknown>) => ({
-    title: String(item.title || item.issue || "Unknown Issue"),
-    description: String(item.description || item.summary || ""),
-    impactScore:
-      item.impactScore !== undefined
-        ? Number(item.impactScore)
-        : item.impact !== undefined
-        ? Number(item.impact)
-        : 0,
-    avgSentiment:
-      item.avgSentiment !== undefined
-        ? Number(item.avgSentiment)
-        : item.sentiment !== undefined
-        ? Number(item.sentiment)
-        : item.averageSentiment !== undefined
-        ? Number(item.averageSentiment) * 100
-        : 0,
-  }));
+  // TEMPORARY: Using dummy data to visualize negative and positive bars
+  const issues = [
+    {
+      title: "Data Privacy Concerns",
+      description: "Multiple reports of user data breaches affecting customer trust and brand reputation",
+      impactScore: 85,
+      avgSentiment: -0.7, // Negative sentiment
+    },
+    {
+      title: "Product Quality Issues",
+      description: "Manufacturing defects leading to recalls and negative press coverage",
+      impactScore: 72,
+      avgSentiment: -0.5, // Negative sentiment
+    },
+    {
+      title: "Environmental Impact",
+      description: "Concerns raised about carbon footprint and sustainability practices",
+      impactScore: 65,
+      avgSentiment: -0.4, // Negative sentiment
+    },
+    {
+      title: "Innovation Leadership",
+      description: "Recognition for breakthrough technology and industry-leading product features",
+      impactScore: 78,
+      avgSentiment: 0.8, // Positive sentiment
+    },
+    {
+      title: "Community Engagement",
+      description: "Praised for corporate social responsibility programs and local community support",
+      impactScore: 68,
+      avgSentiment: 0.6, // Positive sentiment
+    },
+    {
+      title: "Customer Service Excellence",
+      description: "High satisfaction ratings and award-winning support team performance",
+      impactScore: 55,
+      avgSentiment: 0.5, // Positive sentiment
+    },
+  ];
 
   if (issues.length === 0) {
     return (

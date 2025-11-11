@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ReportGenerationLoader } from "./ReportGenerationLoader";
+// ReportGenerationLoader removed - using toast notifications instead
 
 interface Module {
   label?: string; // backend may send this
@@ -145,14 +145,19 @@ export function CreateReportDialog({
             (status === "ready" || status === "ready_with_errors"))
         ) {
           stopPolling();
-          onOpenChange(false);
-          navigate(`/report-results/${organizationId}/${reportId}`);
+          toast.success("Report is ready!", {
+            description: "Your report has been generated successfully.",
+            action: {
+              label: "View Report",
+              onClick: () => navigate(`/report-results/${organizationId}/${reportId}`),
+            },
+            duration: 10000,
+          });
           return;
         }
 
         if (status === "failed") {
           stopPolling();
-          onOpenChange(false);
           toast.error("Report generation failed. Please try again.");
           return;
         }
@@ -161,7 +166,6 @@ export function CreateReportDialog({
       } catch (error) {
         console.error("Polling failed:", error);
         stopPolling();
-        onOpenChange(false);
         toast.error("Failed to fetch report progress.");
       }
     }, 3000);
@@ -169,7 +173,6 @@ export function CreateReportDialog({
     const timeoutId = setTimeout(() => {
       if (stopped) return;
       stopPolling();
-      onOpenChange(false);
       toast.error("Report generation timed out. Please try again later.");
     }, 10 * 60 * 1000);
 
@@ -306,8 +309,11 @@ export function CreateReportDialog({
         const newReportId = response.data.reportId;
         setReportId(newReportId);
         setPolling(true);
-        onOpenChange(false); // Close the dialog
-        toast.success("Report generation started!");
+        onOpenChange(false);
+        toast.success("Report generation started!", {
+          description: "You can continue using the platform. We'll notify you when it's ready.",
+          duration: 5000,
+        });
       }
     } catch (err) {
       console.error("Failed to trigger report generation:", err);
@@ -345,10 +351,7 @@ export function CreateReportDialog({
   };
 
   return (
-    <>
-      <ReportGenerationLoader progress={progress} show={polling} />
-      
-      <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto px-8">
           <DialogHeader>
             <DialogTitle>Create Report</DialogTitle>
@@ -576,6 +579,5 @@ export function CreateReportDialog({
         </form>
       </DialogContent>
     </Dialog>
-    </>
   );
 }

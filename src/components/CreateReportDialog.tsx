@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { CalendarIcon, Tv, Newspaper, Share2, Radio, LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { moduleLabels } from "@/utils/reportConstants";
 
 interface Module {
   label: string;
@@ -244,7 +245,7 @@ export function CreateReportDialog({
   const getModulesForMediaType = (mediaType: string) => {
     return Object.entries(availableModules)
       .filter(([_, module]) => module.mediaTypes.includes(mediaType))
-      .map(([key, module]) => ({ key, label: module.label }));
+      .map(([key, module]) => ({ key, label: module.label || moduleLabels[key] || key }));
   };
 
   return (

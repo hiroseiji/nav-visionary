@@ -135,15 +135,23 @@ export function CreateReportDialog({
             `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/reports/report-progress/${reportId}`
           );
           const data = response.data;
+          console.log("Report progress:", data); // Debug log
           setProgress(data.progress || 0);
 
-          if (data.status === "ready") {
+          // Check if report is ready - handle multiple possible status values
+          if (
+            data.status === "ready" || 
+            data.status === "completed" || 
+            data.status === "complete" ||
+            (data.progress >= 100 && data.status !== "failed")
+          ) {
+            console.log("Report ready, navigating..."); // Debug log
             clearInterval(intervalId);
             clearTimeout(timeoutId);
             setPolling(false);
             setLoading(false);
-            onOpenChange(false);
             navigate(`/report-results/${organizationId}/${reportId}`);
+            toast.success("Report generated successfully!");
           }
         } catch (error) {
           console.error("Polling failed:", error);

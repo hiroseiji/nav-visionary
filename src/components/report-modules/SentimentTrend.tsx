@@ -68,10 +68,7 @@ const clamp1 = (v: number, min: number, max: number) => Math.max(min, Math.min(m
 
 const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
-function dynamicPointRadius(
-  chart: ChartJS,
-  dataCount: number
-) {
+function dynamicPointRadius(dataCount: number) {
   // More aggressive scaling based on data density
   if (dataCount > 150) return 0.8; // Very small for high density
   if (dataCount > 100) return 1.0;
@@ -359,7 +356,7 @@ export function SentimentTrend({
     const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
     
     // Calculate dynamic point radius based on data density
-    const basePointRadius = dataCount > 150 ? 0.8 : dataCount > 100 ? 1.0 : dataCount > 60 ? 1.3 : dataCount > 30 ? 1.5 : 2.0;
+    const basePointRadius = dynamicPointRadius(dataCount);
 
     // Sentiment chart
     if (sentimentCanvasRef.current) {

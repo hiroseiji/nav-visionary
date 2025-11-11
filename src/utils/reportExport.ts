@@ -8,23 +8,27 @@ export async function exportReportAsPDF(
   setCurrentPage: (page: number) => void,
   onProgress?: (current: number, total: number) => void
 ) {
+  // Save current theme state
+  const wasDarkMode = document.documentElement.classList.contains('dark');
+  
+  // Force light mode for export
+  if (wasDarkMode) {
+    document.documentElement.classList.remove('dark');
+  }
+
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "mm",
     format: "a4",
   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth(); // ~210mm
-  const pageHeight = pdf.internal.pageSize.getHeight(); // ~297mm
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
 
   for (let i = 1; i <= totalPages; i++) {
-    // 1. Show the correct "virtual" page
     setCurrentPage(i);
-
-    // 2. Allow React/charts/fonts to render
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // 3. Select the export wrapper for this page
     const pageElement = document.querySelector(
       "[data-export-page]"
     ) as HTMLElement | null;
@@ -33,11 +37,9 @@ export async function exportReportAsPDF(
 
     onProgress?.(i, totalPages);
 
-    // Get actual rendered dimensions
     const elementWidth = pageElement.offsetWidth;
     const elementHeight = pageElement.offsetHeight;
 
-    // 4. Render to canvas at high DPI
     const canvas = await html2canvas(pageElement, {
       scale: 2,
       useCORS: true,
@@ -51,12 +53,9 @@ export async function exportReportAsPDF(
 
     const imgData = canvas.toDataURL("image/jpeg", 0.95);
 
-    // 5. Compute scaled dimensions to fit EXACTLY within A4
     const imgPixelWidth = canvas.width;
     const imgPixelHeight = canvas.height;
 
-    // Convert canvas px -> mm using ratio relative to pageWidth
-    // Then clamp by pageHeight while preserving aspect ratio.
     const ratio = Math.min(
       pageWidth / imgPixelWidth,
       pageHeight / imgPixelHeight
@@ -65,7 +64,6 @@ export async function exportReportAsPDF(
     const imgWidth = imgPixelWidth * ratio;
     const imgHeight = imgPixelHeight * ratio;
 
-    // Center the image on the page
     const x = (pageWidth - imgWidth) / 2;
     const y = (pageHeight - imgHeight) / 2;
 
@@ -82,6 +80,11 @@ export async function exportReportAsPDF(
   });
 
   pdf.save(`${reportName}-report.pdf`);
+
+  // Restore original theme
+  if (wasDarkMode) {
+    document.documentElement.classList.add('dark');
+  }
 }
 
 
@@ -91,6 +94,14 @@ export async function exportReportAsPPT(
   setCurrentPage: (page: number) => void,
   onProgress?: (current: number, total: number) => void
 ) {
+  // Save current theme state
+  const wasDarkMode = document.documentElement.classList.contains('dark');
+  
+  // Force light mode for export
+  if (wasDarkMode) {
+    document.documentElement.classList.remove('dark');
+  }
+
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_16x9";
   pptx.author = "Report System";
@@ -108,7 +119,6 @@ export async function exportReportAsPPT(
 
     onProgress?.(i, totalPages);
 
-    // Get actual rendered dimensions
     const elementWidth = pageElement.offsetWidth;
     const elementHeight = pageElement.offsetHeight;
 
@@ -127,8 +137,7 @@ export async function exportReportAsPPT(
 
     const slide = pptx.addSlide();
 
-    // Auto fit into 16x9 slide
-   slide.addImage({
+    slide.addImage({
      data: imgData,
      x: 0,
      y: 0,
@@ -138,4 +147,9 @@ export async function exportReportAsPPT(
   }
 
   await pptx.writeFile({ fileName: `${reportName}-report.pptx` });
+
+  // Restore original theme
+  if (wasDarkMode) {
+    document.documentElement.classList.add('dark');
+  }
 }

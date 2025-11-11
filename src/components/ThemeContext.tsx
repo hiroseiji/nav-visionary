@@ -17,16 +17,19 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme] = useState<string>('light');
+  const [theme, setTheme] = useState<string>('light');
 
   useEffect(() => {
-    // Always force light mode
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
   }, []);
 
   const toggleTheme = () => {
-    // No-op: theme is locked to light mode
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   return (

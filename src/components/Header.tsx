@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, User } from 'lucide-react';
 import { AiOutlineUserSwitch } from 'react-icons/ai';
-import { Player } from '@lottiefiles/react-lottie-player';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useReportGeneration } from '@/contexts/ReportGenerationContext';
 import axios from 'axios';
 import { toast } from 'sonner';
-import loadingAnimation from '@/assets/loadingAnimation.json';
 
 interface HeaderProps {
   userName: string;
@@ -99,12 +97,7 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
 
             {isGenerating && (
               <div className="flex items-center gap-2">
-                <Player
-                  autoplay
-                  loop
-                  src={loadingAnimation}
-                  style={{ height: '40px', width: '40px' }}
-                />
+                <div className="spinner w-8 h-8" />
                 <span className="text-sm text-muted-foreground">
                   Generating report... {progress}%
                 </span>

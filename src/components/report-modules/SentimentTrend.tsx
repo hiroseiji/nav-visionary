@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { SentimentPoint, SentimentAnnotation } from "../../types/sentiment";
 import { getSpikeColor } from "../../utils/sentimentTrendUtils";
@@ -236,6 +236,22 @@ export function SentimentTrend({
     () => data?.some((d) => (d.mixed ?? 0) > 0) ?? false,
     [data]
   );
+
+  const [themeKey, setThemeKey] = useState(0);
+
+  // Listen for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setThemeKey((prev) => prev + 1);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -567,7 +583,7 @@ export function SentimentTrend({
         volumeChartRef.current.destroy();
       }
     };
-  }, [data, annotations, hasIndustryTrend, hasMixed]);
+  }, [data, annotations, hasIndustryTrend, hasMixed, industryName, themeKey]);
 
   if (!data || data.length === 0) return null;
 

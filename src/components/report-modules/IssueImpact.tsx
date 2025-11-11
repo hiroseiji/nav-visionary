@@ -345,8 +345,9 @@ export function IssueImpact({ data }: IssueImpactProps) {
     const zeroX = xScale(0);
     const band = yScale.bandwidth ? yScale.bandwidth() : 0;
 
-    // how tight the label hugs the bar
-    const GAP = 45;
+    // Separate gaps for better positioning on each side
+    const GAP_POSITIVE = 45; // gap for positive bars (right side)
+    const GAP_NEGATIVE = 45; // gap for negative bars (left side)
 
     return (
       <g transform={`translate(${offset.left}, ${offset.top})`}>
@@ -358,8 +359,8 @@ export function IssueImpact({ data }: IssueImpactProps) {
           const isPositive = d.value > 0;
 
           const textX = isPositive
-            ? barEndX + GAP // to the right of positive bar
-            : barEndX - GAP; // to the left of negative bar
+            ? barEndX + GAP_POSITIVE // to the right of positive bar
+            : barEndX - GAP_NEGATIVE; // to the left of negative bar
 
           const lines = wrapText(d.description, 40);
           const titleColor = isPositive

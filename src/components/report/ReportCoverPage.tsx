@@ -18,6 +18,8 @@ export const ReportCoverPage = ({
   endDate,
   organizationLogoUrl
 }: ReportCoverPageProps) => {
+  console.log("ReportCoverPage - startDate:", startDate, "endDate:", endDate);
+  
   // Format the date range
   const formatDateRange = () => {
     const start = startDate ? new Date(startDate) : undefined;

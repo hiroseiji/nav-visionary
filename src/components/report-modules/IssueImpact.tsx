@@ -246,13 +246,17 @@ export function IssueImpact({ data }: IssueImpactProps) {
     if (!payload?.name) return null;
 
     const gap = 10;
-    const tx = x - gap;
+    const isNegative = payload.sign === -1 || value < 0;
+    
+    // Negative issues: labels on right; Positive issues: labels on left
+    const tx = isNegative ? x + gap : x - gap;
+    const anchor = isNegative ? "start" : "end";
 
     return (
       <text
         x={tx}
         y={y + height / 2}
-        textAnchor="end"
+        textAnchor={anchor}
         dominantBaseline="middle"
         fontSize="13"
         fill="hsl(var(--foreground))"

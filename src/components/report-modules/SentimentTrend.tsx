@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, useState } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { SentimentPoint, SentimentAnnotation } from "../../types/sentiment";
 import { getSpikeColor } from "../../utils/sentimentTrendUtils";
@@ -237,21 +237,88 @@ export function SentimentTrend({
     [data]
   );
 
-  const [themeKey, setThemeKey] = useState(0);
-
-  // Listen for theme changes
+  // Listen for theme changes and update chart colors
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setThemeKey((prev) => prev + 1);
-    });
+    const updateChartColors = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const textColor = isDarkMode ? '#e5e5e5' : '#404040';
+      const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+      const tooltipBg = isDarkMode ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)';
+      const tooltipText = isDarkMode ? '#ffffff' : '#000000';
+      const subtitleColor = isDarkMode ? '#aaaaaa' : '#666666';
+      const industryColor = isDarkMode ? "rgba(254, 254, 254, 0.9)" : "rgba(100, 100, 100, 0.8)";
 
+      if (sentimentChartRef.current) {
+        const chart = sentimentChartRef.current;
+        const options = chart.options as any;
+        
+        // Update scales
+        if (options.scales?.x?.ticks) {
+          options.scales.x.ticks.color = textColor;
+        }
+        if (options.scales?.y1?.ticks) {
+          options.scales.y1.ticks.color = textColor;
+        }
+        if (options.scales?.y1?.title) {
+          options.scales.y1.title.color = textColor;
+        }
+        if (options.scales?.y1?.grid) {
+          options.scales.y1.grid.color = gridColor;
+        }
+        // Update legend
+        if (options.plugins?.legend?.labels) {
+          options.plugins.legend.labels.color = textColor;
+        }
+        // Update tooltip
+        if (options.plugins?.tooltip) {
+          options.plugins.tooltip.backgroundColor = tooltipBg;
+          options.plugins.tooltip.titleColor = tooltipText;
+          options.plugins.tooltip.bodyColor = tooltipText;
+        }
+        // Update subtitle
+        if (options.plugins?.subtitle) {
+          options.plugins.subtitle.color = subtitleColor;
+        }
+        // Update industry trend color
+        if (hasIndustryTrend && chart.data.datasets[0]) {
+          (chart.data.datasets[0] as any).borderColor = industryColor;
+        }
+        chart.update('none'); // 'none' mode = no animation for instant update
+      }
+
+      if (volumeChartRef.current) {
+        const chart = volumeChartRef.current;
+        const options = chart.options as any;
+        
+        // Update scales
+        if (options.scales?.x?.ticks) {
+          options.scales.x.ticks.color = textColor;
+        }
+        if (options.scales?.y?.ticks) {
+          options.scales.y.ticks.color = textColor;
+        }
+        if (options.scales?.y?.title) {
+          options.scales.y.title.color = textColor;
+        }
+        if (options.scales?.y?.grid) {
+          options.scales.y.grid.color = gridColor;
+        }
+        // Update legend
+        if (options.plugins?.legend?.labels) {
+          options.plugins.legend.labels.color = textColor;
+        }
+        chart.update('none');
+      }
+    };
+
+    const observer = new MutationObserver(updateChartColors);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [hasIndustryTrend]);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -583,7 +650,7 @@ export function SentimentTrend({
         volumeChartRef.current.destroy();
       }
     };
-  }, [data, annotations, hasIndustryTrend, hasMixed, industryName, themeKey]);
+  }, [data, annotations, hasIndustryTrend, hasMixed, industryName]);
 
   if (!data || data.length === 0) return null;
 

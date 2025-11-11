@@ -1,23 +1,48 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { CalendarIcon, Tv, Newspaper, Share2, Radio, LucideIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  Tv,
+  Newspaper,
+  Share2,
+  Radio,
+  LucideIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface Module {
-  label: string;
-  mediaTypes: string[];
+  label?: string; // backend may send this
+  name?: string; // or this
+  title?: string; // or this
+  mediaTypes?: string[]; // camelCase
+  media_types?: string[]; // snake_case
 }
 
 interface MediaModules {
@@ -35,12 +60,12 @@ interface CreateReportDialogProps {
   };
 }
 
-export function CreateReportDialog({ 
-  open, 
-  onOpenChange, 
-  organizationId, 
+export function CreateReportDialog({
+  open,
+  onOpenChange,
+  organizationId,
   organizationName,
-  user 
+  user,
 }: CreateReportDialogProps) {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date>();
@@ -71,18 +96,11 @@ export function CreateReportDialog({
     printmedia: "printmedia",
   };
 
-  const mediaTypeConfig: Record<
-    string,
-    { label: string; icon: LucideIcon; color: string }
-  > = {
-    posts: { label: "Social Media", icon: Share2, color: "text-blue-600" },
-    articles: {
-      label: "Online Media",
-      icon: Newspaper,
-      color: "text-purple-600",
-    },
-    broadcast: { label: "Broadcast Media", icon: Tv, color: "text-orange-600" },
-    printmedia: { label: "Print Media", icon: Radio, color: "text-green-600" },
+  const mediaTypeConfig: Record<string, { label: string }> = {
+    posts: { label: "Social Media" },
+    articles: { label: "Online Media" },
+    broadcast: { label: "Broadcast Media" },
+    printmedia: { label: "Print Media" },
   };
 
   // Fetch available modules and countries
@@ -247,7 +265,7 @@ export function CreateReportDialog({
               moduleObject[mod] =
                 mod === "sentimentTrend" ? { granularity: "month" } : true;
             });
-           modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
+            modulesPerMediaType[mediaTypeMap[mediaType]] = moduleObject;
           }
         });
       }
@@ -280,8 +298,30 @@ export function CreateReportDialog({
 
   const getModulesForMediaType = (mediaType: string) => {
     return Object.entries(availableModules)
-      .filter(([_, module]) => module.mediaTypes.includes(mediaType))
-      .map(([key, module]) => ({ key, label: module.label }));
+      .filter(([_, module]) => {
+        const m = module as Module;
+
+        const types = m.mediaTypes || m.media_types || []; // fallback if missing
+
+        if (!Array.isArray(types)) return false;
+
+        // support wildcards like "all" or "*"
+        if (types.includes("*") || types.includes("all")) return true;
+
+        return types.includes(mediaType);
+      })
+      .map(([key, module]) => {
+        const m = module as Module;
+
+        const rawLabel =
+          m.label ||
+          m.name ||
+          m.title ||
+          // fallback: prettify the key, e.g. "executiveSummary" → "Executive Summary"
+          key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+
+        return { key, label: rawLabel };
+      });
   };
 
   return (
@@ -427,7 +467,6 @@ export function CreateReportDialog({
               <Accordion type="multiple" className="w-full">
                 {allMediaTypes.map((mediaType) => {
                   const config = mediaTypeConfig[mediaType];
-                  const Icon = config.icon;
                   const modules = getModulesForMediaType(mediaType);
                   const selectedCount =
                     selectedMediaModules[mediaType]?.length || 0;
@@ -441,7 +480,6 @@ export function CreateReportDialog({
                     >
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center gap-3 flex-1">
-                          <Icon className={cn("h-5 w-5", config.color)} />
                           <span className="font-medium">{config.label}</span>
                           {selectedCount > 0 && (
                             <span className="ml-auto mr-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">

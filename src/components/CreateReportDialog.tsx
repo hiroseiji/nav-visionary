@@ -55,6 +55,20 @@ interface MediaModules {
   [mediaType: string]: string[];
 }
 
+interface DuplicateReport {
+  _id: string;
+  formData?: {
+    startDate?: string;
+    endDate?: string;
+    localOrGlobal?: string[];
+    modules?: Record<string, Record<string, boolean | { granularity: string }>>;
+  };
+  startDate?: string;
+  endDate?: string;
+  localOrGlobal?: string[];
+  modules?: Record<string, Record<string, boolean | { granularity: string }>>;
+}
+
 interface CreateReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -89,7 +103,7 @@ export function CreateReportDialog({
   const [progress, setProgress] = useState(0);
   const [reportId, setReportId] = useState<string | null>(null);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [duplicateReport, setDuplicateReport] = useState<any>(null);
+  const [duplicateReport, setDuplicateReport] = useState<DuplicateReport | null>(null);
   const [pendingSubmit, setPendingSubmit] = useState(false);
 
   const allMediaTypes = ["posts", "articles", "broadcast", "printmedia"];

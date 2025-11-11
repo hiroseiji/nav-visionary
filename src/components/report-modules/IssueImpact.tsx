@@ -21,6 +21,7 @@ interface ChartDataPoint {
   sentiment: number;
   rawValue: number;
   sign: number;
+  absValue: number;
 }
 
 interface CustomBarProps {
@@ -110,25 +111,29 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   }
 
-  // Calculate signed impact based on sentiment (matching original logic)
+  // Calculate signed impact based on sentiment
   const chartData = issues.map(issue => {
-    const impactScore = Number(issue.impactScore) || 0;
+    const impactScore = Math.abs(Number(issue.impactScore) || 0);
     const sentiment = Number(issue.avgSentiment) || 0;
     
-    // Original logic: Force sign based on sentiment
-    // If sentiment >= 0 (positive), bar extends right (positive value)
-    // If sentiment < 0 (negative), bar extends left (negative value)
-    const signed = impactScore === 0 ? 0 : (sentiment >= 0 ? 1 : -1) * impactScore;
+    // Determine if negative sentiment (bar goes left) or positive (bar goes right)
+    const isNegative = sentiment < 0;
+    
+    // Always use positive values for bar width, but position based on sentiment
+    // Negative sentiment: value is negative of impact (goes left from zero)
+    // Positive sentiment: value is positive (goes right from zero)
+    const value = isNegative ? -impactScore : impactScore;
     
     return {
       name: issue.title,
-      value: signed,
+      value,
       description: issue.description,
       sentiment,
-      rawValue: signed,
-      sign: Math.sign(signed),
+      rawValue: value,
+      sign: isNegative ? -1 : 1,
+      absValue: impactScore,
     };
-  }).sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+  }).sort((a, b) => b.absValue - a.absValue);
 
   const maxAbs = Math.max(...chartData.map(d => Math.abs(d.value)), 1);
   const MAX_CALLOUTS = 5;
@@ -155,24 +160,25 @@ export function IssueImpact({ data }: IssueImpactProps) {
 
   const CustomBar = (props: CustomBarProps) => {
     const { fill, x, y, width, height, payload, value, highlightIdx, index } = props;
-    const signedVal = payload?.rawValue ?? value;
-    const tooNarrow = width < 36;
-    const isPos = signedVal > 0;
+    const absValue = Math.abs(payload?.absValue ?? Math.abs(value));
+    const actualWidth = Math.abs(width); // Always use positive width
+    const isPos = value > 0;
+    const tooNarrow = actualWidth < 36;
     
     // Impact value positioning
-    let tx = isPos ? x + width - 8 : x + 8;
+    let tx = isPos ? x + actualWidth - 8 : x + 8;
     let anchor = isPos ? "end" : "start";
     let textFill = "hsl(var(--primary-foreground))";
 
     if (tooNarrow) {
-      tx = isPos ? x + width + 6 : x - 6;
+      tx = isPos ? x + actualWidth + 6 : x - 6;
       anchor = isPos ? "start" : "end";
       textFill = isPos ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))";
     }
 
     return (
       <g>
-        <rect x={x} y={y} width={width} height={height} fill={fill} rx={3} />
+        <rect x={x} y={y} width={actualWidth} height={height} fill={fill} rx={3} />
         <text
           x={tx}
           y={y + height / 2}
@@ -182,15 +188,15 @@ export function IssueImpact({ data }: IssueImpactProps) {
           fontWeight="700"
           fill={textFill}
         >
-          {Math.abs(signedVal).toFixed(0)}
+          {absValue.toFixed(0)}
         </text>
         
         {/* Add leader lines for highlighted items */}
         {highlightIdx.has(index) && (
-          signedVal > 0 ? (
-            <LeaderDotRight x={x} y={y} width={width} height={height} />
+          value > 0 ? (
+            <LeaderDotRight x={x} y={y} width={actualWidth} height={height} />
           ) : (
-            <LeaderDotLeft x={x} y={y} width={width} height={height} />
+            <LeaderDotLeft x={x} y={y} width={actualWidth} height={height} />
           )
         )}
       </g>
@@ -289,10 +295,11 @@ export function IssueImpact({ data }: IssueImpactProps) {
           const cy = (yScale(d.name) ?? 0) + band / 2;
           const barEndX = xScale(d.value);
           const isPositive = d.value > 0;
-          // Position text further from the leader line end
+          // Position text close to the leader line end - much closer than before
           const textX = isPositive ? barEndX + 45 : barEndX - 45;
-
-          const lines = wrapText(d.description, 30);
+          
+          // Shorter description wrapping for better fit
+          const lines = wrapText(d.description, 40);
 
           return (
             <g key={i}>
@@ -304,7 +311,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
                 fontSize={13}
                 fill={isPositive ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))"}
               >
-                {d.name.length > 30 ? d.name.substring(0, 30) + '...' : d.name}
+                {d.name.length > 35 ? d.name.substring(0, 35) + '...' : d.name}
               </text>
               <text 
                 x={textX} 
@@ -313,7 +320,7 @@ export function IssueImpact({ data }: IssueImpactProps) {
                 fontSize={11} 
                 fill="hsl(var(--muted-foreground))"
               >
-                {lines.slice(0, 3).map((line, idx) => (
+                {lines.slice(0, 2).map((line, idx) => (
                   <tspan key={idx} x={textX} dy={idx === 0 ? 0 : 13}>
                     {line}
                   </tspan>
@@ -329,12 +336,12 @@ export function IssueImpact({ data }: IssueImpactProps) {
   return (
     <div className="space-y-4 w-full">
       <div className="w-full overflow-x-auto">
-        <div style={{ minWidth: "900px", width: "100%", height: 500 }}>
+        <div style={{ minWidth: "1100px", width: "100%", height: 500 }}>
           <ResponsiveContainer>
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 20, right: 320, bottom: 30, left: 320 }}
+              margin={{ top: 20, right: 280, bottom: 30, left: 280 }}
             >
             <CartesianGrid stroke="#9ca3af0f" />
             <XAxis

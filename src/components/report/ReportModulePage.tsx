@@ -8,7 +8,6 @@ import { ReputationalRisks } from "@/components/report-modules/ReputationalRisks
 import { ReputationalOpportunities } from "@/components/report-modules/ReputationalOpportunities";
 import { IssueImpact } from "@/components/report-modules/IssueImpact";
 import { TopSources } from "@/components/report-modules/TopSources";
-import { VolumeAndSentiment } from "@/components/report-modules/VolumeAndSentiment";
 import { WordCloud } from "@/components/report-modules/WordCloud";
 import { KPIPerformance } from "@/components/report-modules/KPIPerformance";
 import { TopJournalists } from "@/components/report-modules/TopJournalists";
@@ -37,7 +36,6 @@ type ExecutiveSummaryData = ComponentProps<typeof ExecutiveSummary>["data"];
 type MediaSummaryData = ComponentProps<typeof MediaSummary>["data"];
 type TopSourcesData = ComponentProps<typeof TopSources>["data"];
 type TopJournalistsData = ComponentProps<typeof TopJournalists>["data"];
-type VolumeAndSentimentData = ComponentProps<typeof VolumeAndSentiment>["data"];
 type WordCloudData = ComponentProps<typeof WordCloud>["data"];
 type KPIPerformanceData = ComponentProps<typeof KPIPerformance>["data"];
 type SectorRankingData = ComponentProps<typeof SectorRanking>["data"];
@@ -62,7 +60,6 @@ type ModuleName =
   | "sentimentTrend"
   | "topSources"
   | "topJournalists"
-  | "volumeAndSentiment"
   | "wordCloud"
   | "kpiPerformance"
   | "sectorRanking"
@@ -84,7 +81,6 @@ interface MediaBucket {
   mediaSummary?: MediaSummaryData;
   topSources?: TopSourcesData;
   topJournalists?: TopJournalistsData;
-  volumeAndSentiment?: VolumeAndSentimentData;
   wordCloud?: WordCloudData;
   kpiPerformance?: KPIPerformanceData;
   sectorRanking?: SectorRankingData;
@@ -235,11 +231,6 @@ export const ReportModulePage = ({
       case "topJournalists": {
         const data = mediaBucket?.topJournalists;
         return <TopJournalists data={data} />;
-      }
-
-      case "volumeAndSentiment": {
-        const data = mediaBucket?.volumeAndSentiment;
-        return <VolumeAndSentiment data={data} />;
       }
 
       case "wordCloud": {

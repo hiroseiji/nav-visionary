@@ -29,7 +29,6 @@ export interface MediaBucket {
   mediaSummary?: unknown;
   topSources?: unknown;
   topJournalists?: unknown;
-  volumeAndSentiment?: unknown;
   wordCloud?: unknown;
   kpiPerformance?: unknown;
   sectorRanking?: unknown;

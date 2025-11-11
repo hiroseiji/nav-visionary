@@ -26,7 +26,6 @@ type ModuleName =
   | "sentimentTrend"
   | "topSources"
   | "topJournalists"
-  | "volumeAndSentiment"
   | "wordCloud"
   | "kpiPerformance"
   | "sectorRanking"

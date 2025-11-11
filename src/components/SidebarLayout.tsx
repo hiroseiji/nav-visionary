@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { useReportGeneration } from "@/contexts/ReportGenerationContext";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -24,6 +25,7 @@ interface SidebarLayoutProps {
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { isGenerating, progress } = useReportGeneration();
   const [orgAlias, setOrgAlias] = useState("");
   const [selectedOrg, setSelectedOrg] = useState("");
   const [showOrgSelect, setShowOrgSelect] = useState(false);
@@ -150,6 +152,16 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                       </DialogContent>
                     </Dialog>
                   </>
+                )}
+
+                {/* Report Generation Loader */}
+                {isGenerating && (
+                  <div className="flex items-center gap-2">
+                    <div className="spinner w-8 h-8" />
+                    <span className="text-sm text-muted-foreground">
+                      {progress}%
+                    </span>
+                  </div>
                 )}
 
                 {/* User Profile */}

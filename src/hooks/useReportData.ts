@@ -53,8 +53,6 @@ export interface Organization {
 export interface Report {
   _id: string;
   title?: string;
-
-  // Full modules map from backend
   modules?: Record<string, unknown>;
 
   scope?: string[];
@@ -66,17 +64,14 @@ export interface Report {
   startDate?: string;
   endDate?: string;
 
-  // Flattened media buckets used directly by the viewer
   posts?: MediaBucket;
   articles?: MediaBucket;
   broadcast?: MediaBucket;
   printmedia?: MediaBucket;
 
-  // Legacy top-level sentiment fields
   sentimentTrend?: SentimentPoint[];
   sentimentTrendAnnotations?: SentimentAnnotation[];
 
-  // Keep original nested block (for safety / debugging)
   reportData?: {
     posts?: MediaBucket;
     articles?: MediaBucket;
@@ -165,11 +160,25 @@ export const useReportData = (
         const data = res.data;
         let report: Report;
 
+        // --- Case 1: "new" full-document shape (what you're seeing in Mongo now) ---
+        // e.g. { _id, organizationId, title, createdAt, createdBy, formData, modules, ... }
         if ("_id" in data || "modules" in data) {
           const doc = data as ViewReportResponseNew;
+          const formData = doc.formData || {};
+
+          // Normalize dates from plausible locations
+          const startDate =
+            (doc as { startDate?: string }).startDate ??
+            (formData as { startDate?: string }).startDate;
+          const endDate =
+            (doc as { endDate?: string }).endDate ??
+            (formData as { endDate?: string }).endDate;
 
           report = {
+            // If this doc also has a nested reportData with buckets, flatten them
             ...(doc.reportData || {}),
+
+            // Preserve original nested block & meta
             reportData: doc.reportData || undefined,
             modules: doc.modules,
             scope: doc.scope,
@@ -177,24 +186,38 @@ export const useReportData = (
             createdBy: doc.createdBy,
             createdAt: doc.createdAt || doc.created_at,
             organizationId: doc.organizationId,
-            _id: doc._id || reportId!,
-            formData: doc.formData || {},
+            _id: doc._id || reportId,
+            formData,
+
+            // Hoisted, so the cover page can use reportData.startDate / endDate
+            startDate,
+            endDate,
           };
         }
 
-        // Case 2: LEGACY wrapper shape:
+        // --- Case 2: legacy wrapper shape { reportData, formData, organizationId } ---
         else if ("reportData" in data) {
           const saved = data as ViewReportResponseLegacy;
+          const formData = saved.formData || {};
+
+          const startDate =
+            (formData as { startDate?: string }).startDate ??
+            (saved.reportData as any)?.filters?.startDate;
+          const endDate =
+            (formData as { endDate?: string }).endDate ??
+            (saved.reportData as any)?.filters?.endDate;
 
           report = {
             ...(saved.reportData || {}),
             reportData: saved.reportData || undefined,
             modules: saved.modules,
             organizationId: saved.organizationId,
-            formData: saved.formData || {},
-            _id: reportId!,
+            formData,
+            _id: reportId,
             createdBy: saved.createdBy,
             createdAt: saved.createdAt,
+            startDate,
+            endDate,
           };
         }
 
@@ -203,9 +226,12 @@ export const useReportData = (
           throw new Error("Unexpected report response shape");
         }
 
+        // Debug once if you're curious:
+        // console.log("Normalized report for viewer:", report);
+
         setReportData(report);
 
-        // Fetch organization
+        // --- Fetch organization details ---
         const orgIdToFetch = report.organizationId || orgId;
         if (orgIdToFetch) {
           const orgUrl = `${API_BASE}/organizations/${orgIdToFetch}?t=${Date.now()}`;

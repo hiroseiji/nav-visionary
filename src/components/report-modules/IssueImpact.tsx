@@ -84,45 +84,33 @@ interface DataContainer {
 }
 
 export function IssueImpact({ data }: IssueImpactProps) {
-  // TEMPORARY: Using dummy data to visualize negative and positive bars
-  const issues = [
-    {
-      title: "Data Privacy Concerns",
-      description: "Multiple reports of user data breaches affecting customer trust and brand reputation",
-      impactScore: 85,
-      avgSentiment: -0.7, // Negative sentiment
-    },
-    {
-      title: "Product Quality Issues",
-      description: "Manufacturing defects leading to recalls and negative press coverage",
-      impactScore: 72,
-      avgSentiment: -0.5, // Negative sentiment
-    },
-    {
-      title: "Environmental Impact",
-      description: "Concerns raised about carbon footprint and sustainability practices",
-      impactScore: 65,
-      avgSentiment: -0.4, // Negative sentiment
-    },
-    {
-      title: "Innovation Leadership",
-      description: "Recognition for breakthrough technology and industry-leading product features",
-      impactScore: 78,
-      avgSentiment: 0.8, // Positive sentiment
-    },
-    {
-      title: "Community Engagement",
-      description: "Praised for corporate social responsibility programs and local community support",
-      impactScore: 68,
-      avgSentiment: 0.6, // Positive sentiment
-    },
-    {
-      title: "Customer Service Excellence",
-      description: "High satisfaction ratings and award-winning support team performance",
-      impactScore: 55,
-      avgSentiment: 0.5, // Positive sentiment
-    },
-  ];
+  // Normalize input
+  let dataArray: Array<{
+    title?: string;
+    issue?: string;
+    description?: string;
+    summary?: string;
+    impactScore?: number;
+    impact?: number;
+    avgSentiment?: number;
+    sentiment?: number;
+    averageSentiment?: number;
+  }> = [];
+
+  if (Array.isArray(data)) {
+    dataArray = data;
+  } else if (data && typeof data === "object") {
+    const container = data as DataContainer;
+    const arr =
+      container.items || container.data || container.issues || container.list;
+    if (Array.isArray(arr)) {
+      dataArray = arr as typeof dataArray;
+    }
+  }
+
+  const issues = dataArray.filter(
+    (item) => item && (item.title || item.issue)
+  );
 
   if (issues.length === 0) {
     return (
@@ -135,24 +123,29 @@ export function IssueImpact({ data }: IssueImpactProps) {
   // --- Build signed impact values --------------------------------------------
   const chartData: ChartDataPoint[] = issues
     .map((issue) => {
-      const impactScore = Math.abs(Number(issue.impactScore) || 0);
+      const title = issue.title || issue.issue || "Unknown Issue";
+      const description = issue.description || issue.summary || "";
+      const impactScore = Math.abs(
+        Number(issue.impactScore ?? issue.impact) || 0
+      );
 
-      // 1) Read whatever sentiment we have
-      const rawSent = Number(issue.avgSentiment);
+      // Read sentiment from various possible fields
+      const rawSent =
+        Number(issue.avgSentiment ?? issue.sentiment ?? issue.averageSentiment) || 0;
 
       let sentimentScore = Number.isNaN(rawSent) ? 0 : rawSent;
 
       if (sentimentScore > 1) sentimentScore = 1;
       if (sentimentScore < -1) sentimentScore = -1;
 
-      const isNegative = sentimentScore < 0; // or use `bucket` < 0
+      const isNegative = sentimentScore < 0;
       const signedValue = isNegative ? -impactScore : impactScore;
 
       return {
-        name: issue.title,
+        name: title,
         value: signedValue,
-        description: issue.description,
-        sentiment: sentimentScore, // keep the real signed sentiment
+        description: description,
+        sentiment: sentimentScore,
         rawValue: signedValue,
         sign: isNegative ? -1 : 1,
         absValue: impactScore,

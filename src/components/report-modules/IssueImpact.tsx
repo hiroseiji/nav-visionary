@@ -161,24 +161,35 @@ export function IssueImpact({ data }: IssueImpactProps) {
   const CustomBar = (props: CustomBarProps) => {
     const { fill, x, y, width, height, payload, value, highlightIdx, index } = props;
     const absValue = Math.abs(payload?.absValue ?? Math.abs(value));
-    const actualWidth = Math.abs(width); // Always use positive width
     const isPos = value > 0;
-    const tooNarrow = actualWidth < 36;
+    
+    // Handle negative bars: Recharts gives negative width for negative values
+    // We need to adjust x position and use positive width
+    let barX = x;
+    let barWidth = width;
+    
+    if (width < 0) {
+      // For negative bars, x is at zero line, but we need the bar to extend left
+      barX = x + width; // Move x to the left edge
+      barWidth = Math.abs(width); // Use positive width
+    }
+    
+    const tooNarrow = barWidth < 36;
     
     // Impact value positioning
-    let tx = isPos ? x + actualWidth - 8 : x + 8;
+    let tx = isPos ? barX + barWidth - 8 : barX + 8;
     let anchor = isPos ? "end" : "start";
     let textFill = "hsl(var(--primary-foreground))";
 
     if (tooNarrow) {
-      tx = isPos ? x + actualWidth + 6 : x - 6;
+      tx = isPos ? barX + barWidth + 6 : barX - 6;
       anchor = isPos ? "start" : "end";
       textFill = isPos ? "hsl(var(--sentiment-positive))" : "hsl(var(--sentiment-negative))";
     }
 
     return (
       <g>
-        <rect x={x} y={y} width={actualWidth} height={height} fill={fill} rx={3} />
+        <rect x={barX} y={y} width={barWidth} height={height} fill={fill} rx={3} />
         <text
           x={tx}
           y={y + height / 2}
@@ -193,10 +204,10 @@ export function IssueImpact({ data }: IssueImpactProps) {
         
         {/* Add leader lines for highlighted items */}
         {highlightIdx.has(index) && (
-          value > 0 ? (
-            <LeaderDotRight x={x} y={y} width={actualWidth} height={height} />
+          isPos ? (
+            <LeaderDotRight x={barX} y={y} width={barWidth} height={height} />
           ) : (
-            <LeaderDotLeft x={x} y={y} width={actualWidth} height={height} />
+            <LeaderDotLeft x={barX} y={y} width={barWidth} height={height} />
           )
         )}
       </g>

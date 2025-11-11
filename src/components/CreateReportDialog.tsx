@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ReportGenerationLoader } from "./ReportGenerationLoader";
 
 interface Module {
   label?: string; // backend may send this
@@ -287,6 +288,7 @@ export function CreateReportDialog({
         const newReportId = response.data.reportId;
         setReportId(newReportId);
         setPolling(true);
+        onOpenChange(false); // Close the dialog
         toast.success("Report generation started!");
       }
     } catch (err) {
@@ -325,25 +327,19 @@ export function CreateReportDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto px-8">
-        <DialogHeader>
-          <DialogTitle>Create Report</DialogTitle>
-          <DialogDescription>
-            Generate a comprehensive media report for {organizationName}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <ReportGenerationLoader progress={progress} show={polling} />
+      
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto px-8">
+          <DialogHeader>
+            <DialogTitle>Create Report</DialogTitle>
+            <DialogDescription>
+              Generate a comprehensive media report for {organizationName}
+            </DialogDescription>
+          </DialogHeader>
 
-        {polling && (
-          <div className="space-y-2 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium">
-              Generating report... {progress}%
-            </p>
-            <Progress value={progress} />
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date Range */}
           <div className="space-y-3">
             <Label>Date Range</Label>
@@ -562,5 +558,6 @@ export function CreateReportDialog({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

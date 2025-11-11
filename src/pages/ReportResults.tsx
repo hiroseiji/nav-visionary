@@ -148,6 +148,13 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     }
   });
       
+      // Always ensure executiveSummary is included (but not sentimentTrend)
+      // Find the first media type with modules and add executive summary to it
+      const firstMediaType = Object.keys(result)[0];
+      if (firstMediaType) {
+        result[firstMediaType].executiveSummary = true;
+      }
+      
       console.log("[ReportResults] Using formData.mediaSelections:", result);
       return result;
     }
@@ -155,6 +162,18 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     // Fallback: try normalizeModules on reportData.modules
     const mods = normalizeModules(reportData?.modules);
     console.log("[ReportResults] Using normalized modules:", mods);
+    
+    // Ensure executiveSummary is always included in the first media type
+    const firstMediaType = Object.keys(mods)[0];
+    if (firstMediaType) {
+      return {
+        ...mods,
+        [firstMediaType]: {
+          ...(mods[firstMediaType] || {}),
+          executiveSummary: true,
+        },
+      };
+    }
     
     return mods;
   }, [reportData]);

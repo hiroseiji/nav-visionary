@@ -95,15 +95,6 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
               </Button>
             </form>
 
-            {isGenerating && (
-              <div className="flex items-center gap-2">
-                <div className="spinner w-8 h-8" />
-                <span className="text-sm text-muted-foreground">
-                  Generating report... {progress}%
-                </span>
-              </div>
-            )}
-
             {userRole === 'super_admin' && (
               <Button 
                 variant="ghost" 
@@ -113,6 +104,15 @@ const Header: React.FC<HeaderProps> = ({ userName, userRole, onSearch }) => {
               >
                 <AiOutlineUserSwitch className="h-7 w-7" />
               </Button>
+            )}
+
+            {isGenerating && (
+              <div className="flex items-center gap-2">
+                <div className="spinner w-8 h-8" />
+                <span className="text-sm text-muted-foreground">
+                  {progress}%
+                </span>
+              </div>
             )}
             
             <Button variant="ghost" size="sm">

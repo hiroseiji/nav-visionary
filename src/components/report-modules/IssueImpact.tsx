@@ -240,19 +240,19 @@ export function IssueImpact({ data }: IssueImpactProps) {
     );
   };
 
-  // --- Labels pinned at the zero-line, tight to bars -------------------------
+  // --- Labels positioned right of zero-line to avoid clashing ---------------
   const ZeroAxisLabel = (props: ZeroAxisLabelProps) => {
     const { x, y, height, value, payload } = props;
     if (!payload?.name) return null;
 
     const gap = 10;
-    const tx = x - gap;
+    const tx = x + gap; // Position to the right of zero line
 
     return (
       <text
         x={tx}
         y={y + height / 2}
-        textAnchor="end"
+        textAnchor="start"
         dominantBaseline="middle"
         fontSize="13"
         fill="hsl(var(--foreground))"

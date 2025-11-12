@@ -137,37 +137,43 @@ export default function BroadcastMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (page = 1, limit = 20) => {
     if (!orgId) return;
+
     setLoading(true);
     const seq = ++fetchSeq.current;
 
     try {
       const res = await axios.post(
-        "https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi",
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?page=${page}&limit=${limit}`,
         { organizationIds: [orgId] },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
-      if (seq !== fetchSeq.current) return;
+      if (seq !== fetchSeq.current) return; // stale response guard
 
-      // Support both forms: array OR { articles }
       const data = res.data;
-      const list = Array.isArray(data) ? data : data.articles || [];
+      const list = Array.isArray(data.items) ? data.items : [];
 
       setArticles(list);
       setFilteredArticles(list);
+
+      return {
+        page: data.page,
+        total: data.total,
+        pages: data.pages,
+      };
     } catch (e) {
       if (seq !== fetchSeq.current) return;
-      console.error("Error fetching articles:", e);
-      toast.error("Failed to load articles");
+      console.error("Error fetching online articles:", e);
+      toast.error("Failed to load online articles");
+      return null;
     } finally {
       if (seq === fetchSeq.current) setLoading(false);
     }
   };
-
 
   // Apply filters
   useEffect(() => {

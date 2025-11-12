@@ -154,20 +154,33 @@ export const fetchBroadcastArticles = async (
   orgId: string | string[],
   setBroadcastArticles: (articles: BroadcastArticle[]) => void,
   setFilteredBroadcastArticles: (articles: BroadcastArticle[]) => void,
-  setLoading: (loading: boolean) => void
+  setLoading: (loading: boolean) => void,
+  page = 1,
+  limit = 20
 ) => {
   setLoading(true);
   try {
     const { data } = await axios.post(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi`,
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?page=${page}&limit=${limit}`,
       { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
-    setBroadcastArticles(data);
-    setFilteredBroadcastArticles((data || []).slice(0, 8));
+
+    // data should now look like: { items, total, page, pages }
+    const broadcasts = data?.items || [];
+
+    setBroadcastArticles(broadcasts);
+    setFilteredBroadcastArticles(broadcasts.slice(0, 8));
+
+    return {
+      page: data.page,
+      total: data.total,
+      pages: data.pages,
+    };
   } catch (e) {
     console.error("Error fetching broadcast articles:", e);
     toast.error("Failed to load broadcast articles");
+    return null;
   } finally {
     setLoading(false);
   }
@@ -177,20 +190,32 @@ export const fetchPrintMediaArticles = async (
   orgId: string | string[],
   setPrintMediaArticles: (articles: PrintMediaArticle[]) => void,
   setFilteredPrintMediaArticles: (articles: PrintMediaArticle[]) => void,
-  setLoading: (loading: boolean) => void
+  setLoading: (loading: boolean) => void,
+  page = 1,
+  limit = 20
 ) => {
   setLoading(true);
   try {
     const { data } = await axios.post(
-      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi`,
+      `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi2?page=${page}&limit=${limit}`,
       { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
-    setPrintMediaArticles(data);
-    setFilteredPrintMediaArticles((data || []).slice(0, 8));
+
+    const printMedia = data?.items || [];
+
+    setPrintMediaArticles(printMedia);
+    setFilteredPrintMediaArticles(printMedia.slice(0, 8));
+
+    return {
+      page: data.page,
+      total: data.total,
+      pages: data.pages,
+    };
   } catch (e) {
     console.error("Error fetching print media articles:", e);
     toast.error("Failed to load print media articles");
+    return null;
   } finally {
     setLoading(false);
   }

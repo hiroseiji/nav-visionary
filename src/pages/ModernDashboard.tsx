@@ -1,28 +1,17 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
-  FaEllipsisV,
   FaSortAmountDown,
   FaSortAmountUp,
 } from "react-icons/fa";
-import { LuCalendarDays } from "react-icons/lu";
 import { Player } from "@lottiefiles/react-lottie-player";
-import { IoInformationCircle } from "react-icons/io5";
 import { TfiReload } from "react-icons/tfi";
-import { LuThumbsDown, LuThumbsUp } from "react-icons/lu";
-import { ImConfused } from "react-icons/im";
-import { MdOutlineSentimentNeutral } from "react-icons/md";
-import { FaAngleDown } from "react-icons/fa6";
-import { ArrowUpRight, TrendingUp, TrendingDown, Minus, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpRight, TrendingUp, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import Header from "../components/Header";
 import loadingAnimation from "../assets/loadingAnimation.json";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { ThemeContext } from "../components/ThemeContext";
 import CountryModal from "../components/CountryModal";
 import { SidebarLayout } from "../components/SidebarLayout";
 import { DashboardCharts } from "../components/dashboard/DashboardCharts";
@@ -36,16 +25,9 @@ import {
   handleDelete,
   handleSearchQuery,
   filterByDateRange,
-  confirmSentimentUpdate,
-  handleSentimentChange,
   confirmCountryUpdate,
   fetchCountries,
   handleScrape,
-  handleSentimentEdit,
-  handleMenuClick,
-  handleCountryEdit,
-  handleSentimentCancel,
-  generateLogoUrl,
   generateLineData,
   generatePieChartData,
   Article,
@@ -54,7 +36,6 @@ import {
   PrintMediaArticle,
   OrganizationData,
 } from "../utils/dashboardUtils";
-import { mapSentimentToLabel } from "@/utils/sentimentUtils";
 import { Button } from "@/components/ui/button";
 
 interface EditingSource {
@@ -79,68 +60,30 @@ function ModernDashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const selectedOrg = localStorage.getItem("selectedOrg");
-  const { orgId } = useParams<{ orgId: string }>();
-  const selectedOrgId = localStorage.getItem("selectedOrgId");
   const [facebookPosts, setFacebookPosts] = useState<FacebookPost[]>([]);
   const [scraping, setScraping] = useState(false);
-  const [totalPosts, setTotalPosts] = useState(0);
-  const [totalPostsAndArticles, setTotalPostsAndArticles] = useState(0);
   const [articles, setArticles] = useState<Article[]>([]);
   const [displayedArticles, setDisplayedArticles] = useState<Article[]>([]);
   const [monthlyMentions, setMonthlyMentions] = useState(0);
   const [totalArticles, setTotalArticles] = useState(0);
-  const [editingSource, setEditingSource] = useState<EditingSource | null>(null);
   const [totalKeywords, setTotalKeywords] = useState(0);
-  const [editingSentiment, setEditingSentiment] = useState<EditingSentiment | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<FacebookPost[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [keywordDistribution, setKeywordDistribution] = useState<Record<string, { count: number; sources: string[] }>>({});
   const [printMediaArticles, setPrintMediaArticles] = useState<PrintMediaArticle[]>([]);
   const [filteredPrintMediaArticles, setFilteredPrintMediaArticles] = useState<PrintMediaArticle[]>([]);
   const [broadcastArticles, setBroadcastArticles] = useState<BroadcastArticle[]>([]);
   const [filteredBroadcastArticles, setFilteredBroadcastArticles] = useState<BroadcastArticle[]>([]);
-  const { theme } = useContext(ThemeContext);
-  const [totalTopics, setTotalTopics] = useState(0);
-  const [infoTooltip, setInfoTooltip] = useState<string | null>(null);
   const token = localStorage.getItem("token");
-  const tooltipRef = useRef<HTMLDivElement>(null);
   const [countries, setCountries] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [editingCountry, setEditingCountry] = useState<EditingCountry | null>(null);
   const [sourceCountryMap, setSourceCountryMap] = useState<Record<string, string>>({});
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const currentArticleId = editingCountry?.articleId;
-
-  // Shared sort states
-  const [articleSortOrder, setArticleSortOrder] = useState<"ascending" | "descending">("descending");
-  const [postSortOrder, setPostSortOrder] = useState<"ascending" | "descending">("descending");
-  const [broadcastSortOrder, setBroadcastSortOrder] = useState<"ascending" | "descending">("descending");
-  const [printSortOrder, setPrintSortOrder] = useState<"ascending" | "descending">("descending");
-
-  // Shared sort ave states
-  const [articleAveSortOrder, setArticleAveSortOrder] = useState<"ascending" | "descending" | "">("");
-  const [postAveSortOrder, setPostAveSortOrder] = useState<"ascending" | "descending" | "">("");
-  const [broadcastAveSortOrder, setBroadcastAveSortOrder] = useState<"ascending" | "descending" | "">("");
-  const [printAveSortOrder, setPrintAveSortOrder] = useState<"ascending" | "descending" | "">("");
-
-  // Shared sort reach states
-  const [articleReachSortOrder, setArticleReachSortOrder] = useState<"ascending" | "descending" | "">("");
-  const [postReachSortOrder, setPostReachSortOrder] = useState<"ascending" | "descending" | "">("");
-
-  // Shared sort rank states
-  const [articleRankSortOrder, setArticleRankSortOrder] = useState<"ascending" | "descending" | "">("");
-  const [postRankSortOrder, setPostRankSortOrder] = useState<"ascending" | "descending" | "">("");
-
-  const [menuOnlineArticleId, setMenuOnlineArticleId] = useState<string | null>(null);
-  const [menuSocialPostId, setMenuSocialPostId] = useState<string | null>(null);
-  const [menuBroadcastId, setMenuBroadcastId] = useState<string | null>(null);
-  const [menuPrintArticleId, setMenuPrintArticleId] = useState<string | null>(null);
-
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
   const [pieData, setPieData] = useState<Array<{ name: string; value: number; fill: string }>>([]);
   const [lineData, setLineData] = useState<Array<{ month: string; online: number; social: number; broadcast: number; print: number }>>([]);

@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FileText, Download, Eye, EyeOff } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Download,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DropdownMenu,
@@ -129,31 +136,41 @@ export default function ReportResults() {
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
+  const [exportProgress, setExportProgress] = useState({
+    current: 0,
+    total: 0,
+  });
   const [showEmptyModules, setShowEmptyModules] = useState(false);
 
   // Build modules & pages with safe fallbacks so hooks run even while loading
   const modulesData = useMemo<ModulesByMedia>(() => {
     // First try to get modules from formData.mediaSelections (old API format)
-const formData = reportData?.formData as { mediaSelections?: Array<{ mediaType?: string; selectedModules?: string[] }> } | undefined;
-if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
-  const result: ModulesByMedia = {};
-  formData.mediaSelections.forEach((entry) => {
-    if (entry.mediaType && Array.isArray(entry.selectedModules)) {
-      result[entry.mediaType] = {};
-      entry.selectedModules.forEach((mod: string) => {
-        result[entry.mediaType][mod] = true;
+    const formData = reportData?.formData as
+      | {
+          mediaSelections?: Array<{
+            mediaType?: string;
+            selectedModules?: string[];
+          }>;
+        }
+      | undefined;
+    if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
+      const result: ModulesByMedia = {};
+      formData.mediaSelections.forEach((entry) => {
+        if (entry.mediaType && Array.isArray(entry.selectedModules)) {
+          result[entry.mediaType] = {};
+          entry.selectedModules.forEach((mod: string) => {
+            result[entry.mediaType][mod] = true;
+          });
+        }
       });
-    }
-  });
-      
+
       // Always ensure executiveSummary is included (but not sentimentTrend)
       // Find the first media type with modules and add executive summary to it
       const firstMediaType = Object.keys(result)[0];
       if (firstMediaType) {
         result[firstMediaType].executiveSummary = true;
       }
-      
+
       console.log("[ReportResults] Using formData.mediaSelections:", result);
       return result;
     }
@@ -161,7 +178,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     // Fallback: try normalizeModules on reportData.modules
     const mods = normalizeModules(reportData?.modules);
     console.log("[ReportResults] Using normalized modules:", mods);
-    
+
     // Ensure executiveSummary is always included in the first media type
     const firstMediaType = Object.keys(mods)[0];
     if (firstMediaType) {
@@ -173,7 +190,7 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
         },
       };
     }
-    
+
     return mods;
   }, [reportData]);
 
@@ -183,11 +200,15 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
   );
 
   // Helper function to check if a module has data
-  const hasModuleData = (mediaType: MediaKey, moduleName: ModuleName): boolean => {
+  const hasModuleData = (
+    mediaType: MediaKey,
+    moduleName: ModuleName
+  ): boolean => {
     const formDataUnknown = (reportData as { formData?: unknown }).formData;
-    const formData = formDataUnknown && typeof formDataUnknown === "object" 
-      ? (formDataUnknown as Record<string, unknown>) 
-      : undefined;
+    const formData =
+      formDataUnknown && typeof formDataUnknown === "object"
+        ? (formDataUnknown as Record<string, unknown>)
+        : undefined;
 
     type DataSource = Record<string, unknown>;
     const dataSource: DataSource = {
@@ -198,33 +219,39 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     // Executive summary check
     if (moduleName === "executiveSummary") {
       const execData = dataSource.executiveSummary;
-      return !!execData && (
-        (typeof execData === "object" && Object.keys(execData).length > 0) ||
-        (typeof execData === "string" && execData.trim().length > 0)
+      return (
+        !!execData &&
+        ((typeof execData === "object" && Object.keys(execData).length > 0) ||
+          (typeof execData === "string" && execData.trim().length > 0))
       );
     }
 
     // Sentiment trend check
     if (moduleName === "sentimentTrend") {
-      const mediaBucket = dataSource[mediaType] as Record<string, unknown> | undefined;
-      const sentimentData = mediaBucket?.sentimentTrend || dataSource.sentimentTrend || [];
+      const mediaBucket = dataSource[mediaType] as
+        | Record<string, unknown>
+        | undefined;
+      const sentimentData =
+        mediaBucket?.sentimentTrend || dataSource.sentimentTrend || [];
       return Array.isArray(sentimentData) && sentimentData.length > 0;
     }
 
     // Other modules
-    const mediaBucket = dataSource[mediaType] as Record<string, unknown> | undefined;
+    const mediaBucket = dataSource[mediaType] as
+      | Record<string, unknown>
+      | undefined;
     const moduleData = mediaBucket?.[moduleName];
-    
+
     if (!moduleData) return false;
-    
+
     if (Array.isArray(moduleData)) {
       return moduleData.length > 0;
     }
-    
+
     if (typeof moduleData === "object") {
       return Object.keys(moduleData as Record<string, unknown>).length > 0;
     }
-    
+
     return !!moduleData;
   };
 
@@ -235,7 +262,10 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
       const mods = modulesData[mediaType] || {};
       for (const [module, enabled] of Object.entries(mods)) {
         if (!enabled) continue;
-        all.push({ mediaType: mediaType as MediaKey, module: module as ModuleName });
+        all.push({
+          mediaType: mediaType as MediaKey,
+          module: module as ModuleName,
+        });
       }
     }
 
@@ -259,8 +289,8 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
     if (showEmptyModules || !reportData) {
       return allModules;
     }
-    
-    return allModules.filter((module) => 
+
+    return allModules.filter((module) =>
       hasModuleData(module.mediaType, module.module)
     );
   }, [allModules, showEmptyModules, reportData]);
@@ -395,7 +425,9 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
         <div className="container mx-auto p-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)}
+            onClick={() =>
+              navigate(`/reports/${orgId ?? ""}?highlight=${reportId ?? ""}`)
+            }
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Reports
@@ -419,10 +451,11 @@ if (formData?.mediaSelections && Array.isArray(formData.mediaSelections)) {
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>
-                  {showEmptyModules 
-                    ? `Showing all modules (${emptyModules.join(', ')} with no data)`
-                    : `${emptyModules.join(', ')} excluded (no data)`
-                  }
+                  {showEmptyModules
+                    ? `Showing all modules (${emptyModules.join(
+                        ", "
+                      )} with no data)`
+                    : `${emptyModules.join(", ")} excluded (no data)`}
                 </span>
               </div>
               <Button

@@ -127,25 +127,37 @@ export default function PrintMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (page = 1, limit = 20) => {
     setLoading(true);
     const seq = ++fetchSeq.current;
+
     try {
       const res = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi2?page=${page}&limit=${limit}`,
         { organizationIds: [orgId] },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+
       if (seq !== fetchSeq.current) return; // stale response, drop it
-      const list = res.data.articles || [];
+
+      // new backend returns { items, total, page, pages }
+      const list = res.data?.items || [];
+
       setArticles(list);
       setFilteredArticles(list);
+
+      return {
+        page: res.data.page,
+        total: res.data.total,
+        pages: res.data.pages,
+      };
     } catch (e) {
       if (seq !== fetchSeq.current) return;
       console.error("Error fetching articles:", e);
       toast.error("Failed to load articles");
+      return null;
     } finally {
       if (seq === fetchSeq.current) setLoading(false);
     }

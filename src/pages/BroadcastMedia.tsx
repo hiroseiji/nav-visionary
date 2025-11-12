@@ -139,7 +139,7 @@ export default function BroadcastMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async (page = 1, limit = 50, append = false) => {
+  const fetchArticles = async (page = 1, limit = 30, append = false) => {
     if (!orgId) return;
 
     if (!append) setLoading(true);
@@ -375,7 +375,6 @@ export default function BroadcastMedia() {
 
       toast.success("Broadcast updated successfully");
 
-      // trust backend copy if it returned one, otherwise keep optimistic
       const updated: BroadcastArticle = res.data?.article
         ? {
             ...optimistic,
@@ -916,10 +915,10 @@ export default function BroadcastMedia() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="uppercase">
-                            {article.stationType || "TV"}
+                            {article.stationType}
                           </Badge>
                         </TableCell>
-                        <TableCell>{article.country || "N/A"}</TableCell>
+                        <TableCell>{article.country}</TableCell>
                         <TableCell>
                           {article.mentionDT &&
                           !isNaN(new Date(article.mentionDT).getTime())

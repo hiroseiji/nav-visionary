@@ -127,7 +127,7 @@ export default function PrintMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async (page = 1, limit = 20) => {
+  const fetchArticles = async (page = 1, limit = 30) => {
     setLoading(true);
     const seq = ++fetchSeq.current;
 

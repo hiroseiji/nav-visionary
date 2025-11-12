@@ -115,7 +115,9 @@ export default function BroadcastMedia() {
   };
 
   // Pagination
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -137,10 +139,12 @@ export default function BroadcastMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async (page = 1, limit = 20) => {
+  const fetchArticles = async (page = 1, limit = 50, append = false) => {
     if (!orgId) return;
 
-    setLoading(true);
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+    
     const seq = ++fetchSeq.current;
 
     try {
@@ -157,8 +161,15 @@ export default function BroadcastMedia() {
       const data = res.data;
       const list = Array.isArray(data.items) ? data.items : [];
 
-      setArticles(list);
-      setFilteredArticles(list);
+      if (append) {
+        setArticles((prev) => [...prev, ...list]);
+      } else {
+        setArticles(list);
+        setFilteredArticles(list);
+      }
+
+      setCurrentPage(data.page || page);
+      setTotalPages(data.pages || 1);
 
       return {
         page: data.page,
@@ -167,12 +178,20 @@ export default function BroadcastMedia() {
       };
     } catch (e) {
       if (seq !== fetchSeq.current) return;
-      console.error("Error fetching online articles:", e);
-      toast.error("Failed to load online articles");
+      console.error("Error fetching broadcast articles:", e);
+      toast.error("Failed to load broadcast articles");
       return null;
     } finally {
-      if (seq === fetchSeq.current) setLoading(false);
+      if (seq === fetchSeq.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
+  };
+
+  const handleLoadMore = async () => {
+    const nextPage = currentPage + 1;
+    await fetchArticles(nextPage, 50, true);
   };
 
   // Apply filters
@@ -838,7 +857,7 @@ export default function BroadcastMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredArticles.slice(0, visibleCount).map((article) => (
+                    {filteredArticles.map((article) => (
                       <TableRow key={article._id}>
                         <TableCell className="max-w-md">
                           <div className="flex items-center gap-3">
@@ -868,9 +887,10 @@ export default function BroadcastMedia() {
                                       href={article.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="hover:underline text-primary block cursor-pointer line-clamp-1"
+                                      className="hover:underline text-primary flex items-center gap-1 cursor-pointer line-clamp-1"
                                     >
                                       {short}
+                                      <ExternalLink className="h-3 w-3 flex-shrink-0" />
                                     </a>
                                   </TooltipTrigger>
                                   <TooltipContent className="max-w-md">
@@ -896,10 +916,10 @@ export default function BroadcastMedia() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="uppercase">
-                            {article.stationType}
+                            {article.stationType || "TV"}
                           </Badge>
                         </TableCell>
-                        <TableCell>{article.country}</TableCell>
+                        <TableCell>{article.country || "N/A"}</TableCell>
                         <TableCell>
                           {article.mentionDT &&
                           !isNaN(new Date(article.mentionDT).getTime())
@@ -910,7 +930,7 @@ export default function BroadcastMedia() {
                           {getSentimentBadge(article.sentiment)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {article.ave?.toLocaleString()}
+                          {article.ave?.toLocaleString() || "0"}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -938,13 +958,14 @@ export default function BroadcastMedia() {
                     ))}
                   </TableBody>
                 </Table>
-                {filteredArticles.length > visibleCount && (
+                {currentPage < totalPages && (
                   <div className="mt-4 text-center">
                     <Button
                       variant="outline"
-                      onClick={() => setVisibleCount(visibleCount + 20)}
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
                     >
-                      Load More
+                      {loadingMore ? "Loading..." : "Load More"}
                     </Button>
                   </div>
                 )}

@@ -128,120 +128,66 @@ export default function PrintMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  // Filters are applied client-side across all fetched items
+  // Refetch when filters change
+  useEffect(() => {
+    if (orgId) {
+      setVisibleCount(20);
+      fetchArticles();
+    }
+  }, [searchQuery, startDate, endDate, sectionFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (page = 1, limit = 30) => {
     setLoading(true);
     const seq = ++fetchSeq.current;
 
     try {
-      const limit = 200;
-      const baseUrl = `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi2`;
-      const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
-      const body = { organizationIds: [orgId] } as any;
+      // Build query params
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('limit', String(limit));
+      
+      if (searchQuery) params.append('search', searchQuery);
+      if (startDate) params.append('startDate', format(startDate, 'yyyy-MM-dd'));
+      if (endDate) params.append('endDate', format(endDate, 'yyyy-MM-dd'));
+      if (sectionFilter !== 'all') params.append('section', sectionFilter);
+      if (sentimentFilter !== 'all') params.append('sentiment', sentimentFilter);
+      if (countryFilter !== 'all') params.append('country', countryFilter);
+      params.append('sortBy', sortBy);
+      params.append('sortOrder', sortOrder);
 
-      const res1 = await axios.post(`${baseUrl}?page=1&limit=${limit}`, body, {
-        headers,
-      });
-      if (seq !== fetchSeq.current) return;
-
-      const data1 = res1.data || {};
-      const items1: PrintArticle[] = data1.items || [];
-      const total: number = data1.total || items1.length;
-      const pages: number = data1.pages || 1;
-
-      let allItems = [...items1];
-      if (pages > 1) {
-        const requests = [] as Promise<any>[];
-        for (let p = 2; p <= pages; p++) {
-          requests.push(
-            axios.post(`${baseUrl}?page=${p}&limit=${limit}`, body, { headers })
-          );
+      const res = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/printMedia/multi2?${params.toString()}`,
+        { organizationIds: [orgId] },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
-        const responses = await Promise.all(requests);
-        for (const r of responses) {
-          const more: PrintArticle[] = r.data?.items || [];
-          allItems = allItems.concat(more);
-        }
-      }
+      );
 
-      setArticles(allItems);
-      setFilteredArticles(allItems);
-      setTotalCount(total || allItems.length);
+      if (seq !== fetchSeq.current) return; // stale response, drop it
+
+      // new backend returns { items, total, page, pages }
+      const list = res.data?.items || [];
+
+      setArticles(list);
+      setFilteredArticles(list);
+      setTotalCount(res.data.total || list.length);
+
+      return {
+        page: res.data.page,
+        total: res.data.total,
+        pages: res.data.pages,
+      };
     } catch (e) {
       if (seq !== fetchSeq.current) return;
       console.error("Error fetching articles:", e);
       toast.error("Failed to load articles");
+      return null;
     } finally {
       if (seq === fetchSeq.current) setLoading(false);
     }
   };
 
-  // Apply filters client-side across all fetched items
-  useEffect(() => {
-    let filtered = [...articles];
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (article) =>
-          article.headline?.toLowerCase().includes(q) ||
-          article.publication?.toLowerCase().includes(q) ||
-          article.byline?.toLowerCase().includes(q)
-      );
-    }
-
-    if (startDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.publicationDate) >= startDate
-      );
-    }
-    if (endDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.publicationDate) <= endDate
-      );
-    }
-
-    if (sectionFilter !== "all") {
-      filtered = filtered.filter((article) => article.section === sectionFilter);
-    }
-
-    if (sentimentFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => mapSentimentToLabel(article.sentiment) === sentimentFilter
-      );
-    }
-
-    if (countryFilter !== "all") {
-      filtered = filtered.filter((article) => article.country === countryFilter);
-    }
-
-    filtered.sort((a, b) => {
-      let aVal: any = (a as any)[sortBy];
-      let bVal: any = (b as any)[sortBy];
-
-      if (sortBy === "publicationDate") {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
-      }
-
-      if (sortOrder === "asc") return aVal > bVal ? 1 : -1;
-      return aVal < bVal ? 1 : -1;
-    });
-
-    setVisibleCount(20);
-    setFilteredArticles(filtered);
-  }, [
-    articles,
-    searchQuery,
-    startDate,
-    endDate,
-    sectionFilter,
-    sentimentFilter,
-    countryFilter,
-    sortBy,
-    sortOrder,
-  ]);
+  // Client-side filtering removed - now handled by backend
 
   const handleAddArticle = async () => {
     if (!newArticle.headline) return toast.error("Headline is required.");

@@ -118,6 +118,7 @@ export default function BroadcastMedia() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -170,6 +171,7 @@ export default function BroadcastMedia() {
 
       setCurrentPage(data.page || page);
       setTotalPages(data.pages || 1);
+      setTotalCount(data.total || list.length);
 
       return {
         page: data.page,
@@ -803,7 +805,7 @@ export default function BroadcastMedia() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                Broadcast Coverage ({filteredArticles.length})
+                Broadcast Coverage ({totalCount})
               </CardTitle>
             </div>
           </CardHeader>
@@ -957,8 +959,11 @@ export default function BroadcastMedia() {
                     ))}
                   </TableBody>
                 </Table>
-                {currentPage < totalPages && (
-                  <div className="mt-4 text-center">
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Viewing {filteredArticles.length} out of {totalCount} articles
+                  </p>
+                  {currentPage < totalPages && (
                     <Button
                       variant="outline"
                       onClick={handleLoadMore}
@@ -966,8 +971,8 @@ export default function BroadcastMedia() {
                     >
                       {loadingMore ? "Loading..." : "Load More"}
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             )}
           </CardContent>

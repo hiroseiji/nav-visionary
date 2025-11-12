@@ -105,6 +105,7 @@ export default function PrintMedia() {
 
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -147,6 +148,7 @@ export default function PrintMedia() {
 
       setArticles(list);
       setFilteredArticles(list);
+      setTotalCount(res.data.total || list.length);
 
       return {
         page: res.data.page,
@@ -779,7 +781,7 @@ export default function PrintMedia() {
         {/* Articles Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Articles ({filteredArticles.length})</CardTitle>
+            <CardTitle>Articles ({totalCount})</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -893,16 +895,19 @@ export default function PrintMedia() {
                     ))}
                   </TableBody>
                 </Table>
-                {filteredArticles.length > visibleCount && (
-                  <div className="mt-4 text-center">
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Viewing {Math.min(visibleCount, filteredArticles.length)} out of {totalCount} articles
+                  </p>
+                  {filteredArticles.length > visibleCount && (
                     <Button
                       variant="outline"
                       onClick={() => setVisibleCount(visibleCount + 20)}
                     >
                       Load More
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             )}
           </CardContent>

@@ -140,6 +140,14 @@ export default function BroadcastMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
+  // Refetch when filters change
+  useEffect(() => {
+    if (orgId) {
+      setCurrentPage(1);
+      fetchArticles(1, 30, false);
+    }
+  }, [searchQuery, startDate, endDate, stationTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
+
   const fetchArticles = async (page = 1, limit = 30, append = false) => {
     if (!orgId) return;
 
@@ -149,8 +157,22 @@ export default function BroadcastMedia() {
     const seq = ++fetchSeq.current;
 
     try {
+      // Build query params
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('limit', String(limit));
+      
+      if (searchQuery) params.append('search', searchQuery);
+      if (startDate) params.append('startDate', format(startDate, 'yyyy-MM-dd'));
+      if (endDate) params.append('endDate', format(endDate, 'yyyy-MM-dd'));
+      if (stationTypeFilter !== 'all') params.append('stationType', stationTypeFilter);
+      if (sentimentFilter !== 'all') params.append('sentiment', sentimentFilter);
+      if (countryFilter !== 'all') params.append('country', countryFilter);
+      params.append('sortBy', sortBy);
+      params.append('sortOrder', sortOrder);
+
       const res = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?page=${page}&limit=${limit}`,
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?${params.toString()}`,
         { organizationIds: [orgId] },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -164,6 +186,7 @@ export default function BroadcastMedia() {
 
       if (append) {
         setArticles((prev) => [...prev, ...list]);
+        setFilteredArticles((prev) => [...prev, ...list]);
       } else {
         setArticles(list);
         setFilteredArticles(list);
@@ -196,83 +219,7 @@ export default function BroadcastMedia() {
     await fetchArticles(nextPage, 50, true);
   };
 
-  // Apply filters
-  useEffect(() => {
-    let filtered = [...articles];
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (article) =>
-          article.mention?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.station?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (startDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.mentionDT) >= startDate
-      );
-    }
-    if (endDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.mentionDT) <= endDate
-      );
-    }
-
-    // inside your filtering useEffect:
-    if (stationTypeFilter !== "all") {
-      filtered = filtered.filter(
-        (article) =>
-          (article.stationType || "").toLowerCase() === stationTypeFilter
-      );
-    }
-
-    if (sentimentFilter !== "all") {
-      filtered = filtered.filter(
-        (article) =>
-          mapSentimentToLabel(article.sentiment).toLowerCase() ===
-          sentimentFilter
-      );
-    }
-
-    if (countryFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => article.country === countryFilter
-      );
-    }
-
-    filtered.sort((a, b) => {
-      let aVal: string | number = a[sortBy as keyof BroadcastArticle] as
-        | string
-        | number;
-      let bVal: string | number = b[sortBy as keyof BroadcastArticle] as
-        | string
-        | number;
-
-      if (sortBy === "mentionDT") {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
-      }
-
-      if (sortOrder === "asc") {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    setFilteredArticles(filtered);
-  }, [
-    articles,
-    searchQuery,
-    startDate,
-    endDate,
-    stationTypeFilter,
-    sentimentFilter,
-    countryFilter,
-    sortBy,
-    sortOrder,
-  ]);
+  // Client-side filtering removed - now handled by backend
 
   const handleAddArticle = async () => {
     if (!newArticle.station) return toast.error("Station is required.");

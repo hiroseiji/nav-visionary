@@ -115,9 +115,7 @@ export default function BroadcastMedia() {
   };
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(50);
   const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit dialog
@@ -140,86 +138,130 @@ export default function BroadcastMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  // Refetch when filters change
-  useEffect(() => {
-    if (orgId) {
-      setCurrentPage(1);
-      fetchArticles(1, 30, false);
-    }
-  }, [searchQuery, startDate, endDate, stationTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
+  // Filters are applied client-side across all fetched items
 
-  const fetchArticles = async (page = 1, limit = 30, append = false) => {
+  const fetchArticles = async () => {
     if (!orgId) return;
 
-    if (!append) setLoading(true);
-    else setLoadingMore(true);
-    
+    setLoading(true);
     const seq = ++fetchSeq.current;
 
     try {
-      // Build query params
-      const params = new URLSearchParams();
-      params.append('page', String(page));
-      params.append('limit', String(limit));
-      
-      if (searchQuery) params.append('search', searchQuery);
-      if (startDate) params.append('startDate', format(startDate, 'yyyy-MM-dd'));
-      if (endDate) params.append('endDate', format(endDate, 'yyyy-MM-dd'));
-      if (stationTypeFilter !== 'all') params.append('stationType', stationTypeFilter);
-      if (sentimentFilter !== 'all') params.append('sentiment', sentimentFilter);
-      if (countryFilter !== 'all') params.append('country', countryFilter);
-      params.append('sortBy', sortBy);
-      params.append('sortOrder', sortOrder);
+      const limit = 200;
+      const baseUrl = `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2`;
+      const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
+      const body = { organizationIds: [orgId] } as any;
 
-      const res = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?${params.toString()}`,
-        { organizationIds: [orgId] },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
+      const res1 = await axios.post(`${baseUrl}?page=1&limit=${limit}`, body, {
+        headers,
+      });
       if (seq !== fetchSeq.current) return; // stale response guard
 
-      const data = res.data;
-      const list = Array.isArray(data.items) ? data.items : [];
+      const data1 = res1.data || {};
+      const items1: BroadcastArticle[] = data1.items || [];
+      const total: number = data1.total || items1.length;
+      const pages: number = data1.pages || 1;
 
-      if (append) {
-        setArticles((prev) => [...prev, ...list]);
-        setFilteredArticles((prev) => [...prev, ...list]);
-      } else {
-        setArticles(list);
-        setFilteredArticles(list);
+      let allItems = [...items1];
+      if (pages > 1) {
+        const requests = [] as Promise<any>[];
+        for (let p = 2; p <= pages; p++) {
+          requests.push(
+            axios.post(`${baseUrl}?page=${p}&limit=${limit}`, body, { headers })
+          );
+        }
+        const responses = await Promise.all(requests);
+        for (const r of responses) {
+          const more: BroadcastArticle[] = r.data?.items || [];
+          allItems = allItems.concat(more);
+        }
       }
 
-      setCurrentPage(data.page || page);
-      setTotalPages(data.pages || 1);
-      setTotalCount(data.total || list.length);
-
-      return {
-        page: data.page,
-        total: data.total,
-        pages: data.pages,
-      };
+      setArticles(allItems);
+      setFilteredArticles(allItems);
+      setTotalCount(total || allItems.length);
     } catch (e) {
       if (seq !== fetchSeq.current) return;
       console.error("Error fetching broadcast articles:", e);
       toast.error("Failed to load broadcast articles");
-      return null;
     } finally {
       if (seq === fetchSeq.current) {
         setLoading(false);
-        setLoadingMore(false);
       }
     }
   };
 
-  const handleLoadMore = async () => {
-    const nextPage = currentPage + 1;
-    await fetchArticles(nextPage, 50, true);
+  const handleLoadMore = () => {
+    setVisibleCount((v) => v + 50);
   };
 
-  // Client-side filtering removed - now handled by backend
+  // Apply filters client-side across all fetched items
+  useEffect(() => {
+    let filtered = [...articles];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (article) =>
+          article.mention?.toLowerCase().includes(q) ||
+          article.station?.toLowerCase().includes(q)
+      );
+    }
+
+    if (startDate) {
+      filtered = filtered.filter(
+        (article) => new Date(article.mentionDT) >= startDate
+      );
+    }
+    if (endDate) {
+      filtered = filtered.filter(
+        (article) => new Date(article.mentionDT) <= endDate
+      );
+    }
+
+    if (stationTypeFilter !== "all") {
+      filtered = filtered.filter(
+        (article) => (article.stationType || "").toLowerCase() === stationTypeFilter
+      );
+    }
+
+    if (sentimentFilter !== "all") {
+      filtered = filtered.filter(
+        (article) =>
+          mapSentimentToLabel(article.sentiment).toLowerCase() === sentimentFilter
+      );
+    }
+
+    if (countryFilter !== "all") {
+      filtered = filtered.filter((article) => article.country === countryFilter);
+    }
+
+    filtered.sort((a, b) => {
+      let aVal: any = (a as any)[sortBy];
+      let bVal: any = (b as any)[sortBy];
+
+      if (sortBy === "mentionDT") {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      }
+
+      if (sortOrder === "asc") return aVal > bVal ? 1 : -1;
+      return aVal < bVal ? 1 : -1;
+    });
+
+    setVisibleCount(50);
+    setFilteredArticles(filtered);
+  }, [
+    articles,
+    searchQuery,
+    startDate,
+    endDate,
+    stationTypeFilter,
+    sentimentFilter,
+    countryFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const handleAddArticle = async () => {
     if (!newArticle.station) return toast.error("Station is required.");
@@ -805,7 +847,7 @@ export default function BroadcastMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredArticles.map((article) => (
+                    {filteredArticles.slice(0, visibleCount).map((article) => (
                       <TableRow key={article._id}>
                         <TableCell className="max-w-md">
                           <div className="flex items-center gap-3">
@@ -908,15 +950,11 @@ export default function BroadcastMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {filteredArticles.length} out of {totalCount} articles
+                    Viewing {Math.min(visibleCount, filteredArticles.length)} out of {totalCount} articles
                   </p>
-                  {currentPage < totalPages && (
-                    <Button
-                      variant="outline"
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                    >
-                      {loadingMore ? "Loading..." : "Load More"}
+                  {filteredArticles.length > visibleCount && (
+                    <Button variant="outline" onClick={handleLoadMore}>
+                      Load More
                     </Button>
                   )}
                 </div>

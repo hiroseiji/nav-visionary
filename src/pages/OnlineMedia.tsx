@@ -116,6 +116,7 @@ export default function OnlineMedia() {
 
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit article dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -139,25 +140,53 @@ export default function OnlineMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (page = 1, limit = 30) => {
     setLoading(true);
     const seq = ++fetchSeq.current;
+
     try {
+      const params = new URLSearchParams();
+      params.append("page", String(page));
+      params.append("limit", String(limit));
+
+      if (searchQuery) params.append("search", searchQuery);
+      if (startDate)
+        params.append("startDate", format(startDate, "yyyy-MM-dd"));
+      if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd"));
+      if (coverageTypeFilter && coverageTypeFilter !== "all")
+        params.append("coverageType", coverageTypeFilter);
+      if (countryFilter && countryFilter !== "all")
+        params.append("country", countryFilter);
+      if (sentimentFilter && sentimentFilter !== "all")
+        params.append("sentiment", sentimentFilter);
+      if (sortBy) params.append("sortBy", sortBy);
+      if (sortOrder) params.append("sortOrder", sortOrder);
+
       const res = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/articles/multi`,
-        { organizationIds: [orgId] },
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/articles/multi2?${params.toString()}`,
+        { organizations: Array.isArray(orgId) ? orgId : [orgId] },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      if (seq !== fetchSeq.current) return; // stale response, drop it
-      const list = res.data.articles || [];
+
+      if (seq !== fetchSeq.current) return null; // stale response guard
+
+      const list = res.data?.items || [];
       setArticles(list);
       setFilteredArticles(list);
+      setTotalCount(res.data?.total ?? list.length);
+
+      return {
+        page: res.data?.page ?? page,
+        total: res.data?.total ?? list.length,
+        pages: res.data?.pages ?? 1,
+      };
     } catch (e) {
-      if (seq !== fetchSeq.current) return;
-      console.error("Error fetching articles:", e);
-      toast.error("Failed to load articles");
+      if (seq !== fetchSeq.current) return null;
+      console.error("Error fetching online articles:", e);
+      toast.error("Failed to load online articles");
+      return null;
     } finally {
       if (seq === fetchSeq.current) setLoading(false);
     }
@@ -319,7 +348,8 @@ export default function OnlineMedia() {
       source: payload.source ?? editingArticle.source,
       snippet: payload.snippet ?? editingArticle.snippet,
       country: payload.country ?? editingArticle.country,
-      publication_date: payload.publication_date ?? editingArticle.publication_date,
+      publication_date:
+        payload.publication_date ?? editingArticle.publication_date,
       reach: (payload.reach as number) ?? editingArticle.reach,
       sentiment: mapSentimentToLabel(payload.sentiment),
       url: payload.url ?? editingArticle.url,
@@ -755,7 +785,7 @@ export default function OnlineMedia() {
         {/* Articles Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Articles ({filteredArticles.length})</CardTitle>
+            <CardTitle>Articles ({totalCount})</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -903,16 +933,20 @@ export default function OnlineMedia() {
                     ))}
                   </TableBody>
                 </Table>
-                {filteredArticles.length > visibleCount && (
-                  <div className="mt-4 text-center">
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Viewing {Math.min(visibleCount, filteredArticles.length)}{" "}
+                    out of {totalCount} articles
+                  </p>
+                  {filteredArticles.length > visibleCount && (
                     <Button
                       variant="outline"
                       onClick={() => setVisibleCount(visibleCount + 20)}
                     >
                       Load More
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             )}
           </CardContent>

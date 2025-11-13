@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -53,6 +53,8 @@ import {
   Minus,
   ArrowUpDown,
   ExternalLink,
+  Calendar,
+  CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -60,6 +62,7 @@ import {
   mapSentimentToLabel,
   mapLabelToSentiment,
 } from "@/utils/sentimentUtils";
+import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
 
 interface SocialPost {
   _id: string;
@@ -80,16 +83,21 @@ interface SocialPost {
 
 export default function SocialMedia() {
   const { orgId } = useParams();
+  const fetchSeq = useRef(0);
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+
   // Filters
   const [sourceFilter, setSourceFilter] = useState<string>("all"); // Platform filter
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [groupFilter, setGroupFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
 
   // Sorting
   const [sortBy, setSortBy] = useState<string>("createdTime");
@@ -106,6 +114,7 @@ export default function SocialMedia() {
 
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -127,29 +136,77 @@ export default function SocialMedia() {
     if (orgId) fetchPosts();
   }, [orgId]);
 
-  const fetchPosts = async () => {
+  useEffect(() => {
+    if (orgId) {
+      setVisibleCount(20);
+      fetchPosts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    orgId,
+    searchQuery,
+    startDate,
+    endDate,
+    sourceFilter,
+    groupFilter,
+    countryFilter,
+    sentimentFilter,
+    sortBy,
+    sortOrder,
+  ]);
+
+  const fetchPosts = async (page = 1, limit = 30) => {
     setLoading(true);
+    const seq = ++fetchSeq.current;
+
     try {
-      const response = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi`,
+      const params = new URLSearchParams();
+      params.append("page", String(page));
+      params.append("limit", String(limit));
+
+      if (searchQuery) params.append("search", searchQuery);
+      if (startDate)
+        params.append("startDate", format(startDate, "yyyy-MM-dd")); // filters createdTime >=
+      if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd")); // filters createdTime <=
+      if (sourceFilter && sourceFilter !== "all")
+        params.append("source", sourceFilter);
+      if (groupFilter && groupFilter !== "all")
+        params.append("group", groupFilter);
+      if (countryFilter && countryFilter !== "all")
+        params.append("country", countryFilter);
+      if (sentimentFilter && sentimentFilter !== "all")
+        params.append("sentiment", sentimentFilter);
+      if (sortBy) params.append("sortBy", sortBy);
+      if (sortOrder) params.append("sortOrder", sortOrder); // "asc" | "desc"
+
+      const res = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi2?${params.toString()}`,
+        { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
         {
-          organizationIds: [orgId], // wrap it in an array
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
-      const posts = response.data || [];
-      setPosts(posts);
-      setFilteredPosts(posts);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      toast.error("Failed to load social media posts");
+      if (seq !== fetchSeq.current) return null; // stale response guard
+
+      // backend returns { items, total, page, pages }
+      const list = res.data?.items || [];
+      setPosts(list);
+      setFilteredPosts(list);
+      setTotalCount(res.data?.total ?? list.length);
+
+      return {
+        page: res.data?.page ?? page,
+        total: res.data?.total ?? list.length,
+        pages: res.data?.pages ?? 1,
+      };
+    } catch (e) {
+      if (seq !== fetchSeq.current) return null;
+      console.error("Error fetching social posts:", e);
+      toast.error("Failed to load social posts");
+      return null;
     } finally {
-      setLoading(false);
+      if (seq === fetchSeq.current) setLoading(false);
     }
   };
 
@@ -261,7 +318,7 @@ export default function SocialMedia() {
         const saved = response.data.post as SocialPost;
         const patchedPost: SocialPost = {
           ...saved,
-          sentiment: newPost.sentiment, 
+          sentiment: newPost.sentiment,
         };
         setPosts((prev) => [patchedPost, ...prev]);
       }
@@ -480,6 +537,9 @@ export default function SocialMedia() {
   ); // Platform options
   const uniqueGroups = Array.from(
     new Set(posts.map((p) => p.group).filter(Boolean))
+  );
+  const uniqueCountries = Array.from(
+    new Set(posts.map((a) => a.country).filter(Boolean))
   );
 
   return (
@@ -745,6 +805,70 @@ export default function SocialMedia() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {uniqueCountries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "End date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setStartDate(undefined);
+                    setEndDate(undefined);
+                  }}
+                >
+                  Clear dates
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -753,7 +877,7 @@ export default function SocialMedia() {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Posts ({filteredPosts.length})</CardTitle>
+              <CardTitle>Posts ({totalCount})</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -786,6 +910,7 @@ export default function SocialMedia() {
                           />
                         </div>
                       </TableHead>
+                      <TableHead>Country</TableHead>
                       <TableHead>Sentiment</TableHead>
                       <TableHead
                         className="text-right cursor-pointer hover:bg-muted/50"
@@ -904,6 +1029,7 @@ export default function SocialMedia() {
                             ? format(new Date(post.createdTime), "PP")
                             : "N/A"}
                         </TableCell>
+                        <TableCell>{post.country}</TableCell>
                         <TableCell>
                           {getSentimentBadge(post.sentiment)}
                         </TableCell>
@@ -942,16 +1068,20 @@ export default function SocialMedia() {
                     ))}
                   </TableBody>
                 </Table>
-                {filteredPosts.length > visibleCount && (
-                  <div className="mt-4 text-center">
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Viewing {Math.min(visibleCount, filteredPosts.length)} out
+                    of {totalCount} articles
+                  </p>
+                  {filteredPosts.length > visibleCount && (
                     <Button
                       variant="outline"
                       onClick={() => setVisibleCount(visibleCount + 20)}
                     >
                       Load More
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             )}
           </CardContent>

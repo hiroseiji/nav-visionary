@@ -134,6 +134,7 @@ export default function PrintMedia() {
       setVisibleCount(20);
       fetchArticles();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, startDate, endDate, sectionFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
 
   const fetchArticles = async (page = 1, limit = 30) => {

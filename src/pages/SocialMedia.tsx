@@ -84,8 +84,7 @@ interface SocialPost {
 export default function SocialMedia() {
   const { orgId } = useParams();
   const fetchSeq = useRef(0);
-  const [posts, setPosts] = useState<SocialPost[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<SocialPost[]>([]);
+  const [posts, setPosts] = useState<SocialPost[]>([]); // Backend-filtered results
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -198,10 +197,8 @@ export default function SocialMedia() {
 
       if (append) {
         setPosts((prev) => [...prev, ...list]);
-        setFilteredPosts((prev) => [...prev, ...list]);
       } else {
-        setPosts(list);
-        setFilteredPosts(list);
+        setPosts(list); // Replace with fresh filtered results from backend
       }
 
       setCurrentPage(data.page || page);
@@ -852,7 +849,7 @@ export default function SocialMedia() {
               <div className="text-center py-8 text-muted-foreground">
                 Loading posts...
               </div>
-            ) : filteredPosts.length === 0 ? (
+            ) : posts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No posts found
               </div>
@@ -922,7 +919,7 @@ export default function SocialMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPosts.map((post) => (
+                    {posts.map((post) => (
                       <TableRow key={post._id}>
                         <TableCell className="max-w-md">
                           <div className="flex items-start gap-3">
@@ -1037,7 +1034,7 @@ export default function SocialMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {filteredPosts.length} out of {totalCount} posts
+                    Viewing {posts.length} out of {totalCount} posts
                   </p>
                   {currentPage < totalPages && (
                     <Button

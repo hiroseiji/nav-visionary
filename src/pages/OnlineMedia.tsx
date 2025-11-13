@@ -115,8 +115,10 @@ export default function OnlineMedia() {
   };
 
   // Pagination
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Add/Edit article dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -140,8 +142,12 @@ export default function OnlineMedia() {
     if (orgId) fetchArticles();
   }, [orgId]);
 
-  const fetchArticles = async (page = 1, limit = 30) => {
-    setLoading(true);
+  const fetchArticles = async (page = 1, limit = 30, append = false) => {
+    if (!orgId) return;
+
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+    
     const seq = ++fetchSeq.current;
 
     try {
@@ -170,96 +176,56 @@ export default function OnlineMedia() {
         }
       );
 
-      if (seq !== fetchSeq.current) return null; // stale response guard
+      if (seq !== fetchSeq.current) return;
 
-      const list = res.data?.items || [];
-      setArticles(list);
-      setFilteredArticles(list);
-      setTotalCount(res.data?.total ?? list.length);
+      const data = res.data;
+      const list = Array.isArray(data.items) ? data.items : [];
+
+      if (append) {
+        setArticles((prev) => [...prev, ...list]);
+        setFilteredArticles((prev) => [...prev, ...list]);
+      } else {
+        setArticles(list);
+        setFilteredArticles(list);
+      }
+
+      setCurrentPage(data.page || page);
+      setTotalPages(data.pages || 1);
+      setTotalCount(data.total || list.length);
 
       return {
-        page: res.data?.page ?? page,
-        total: res.data?.total ?? list.length,
-        pages: res.data?.pages ?? 1,
+        page: data.page,
+        total: data.total,
+        pages: data.pages,
       };
     } catch (e) {
-      if (seq !== fetchSeq.current) return null;
+      if (seq !== fetchSeq.current) return;
       console.error("Error fetching online articles:", e);
       toast.error("Failed to load online articles");
       return null;
     } finally {
-      if (seq === fetchSeq.current) setLoading(false);
+      if (seq === fetchSeq.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   };
 
-  // Apply filters
+  // Refetch when filters change
   useEffect(() => {
-    let filtered = [...articles];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (article) =>
-          article.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.source?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (orgId) {
+      setCurrentPage(1);
+      fetchArticles(1, 30, false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, startDate, endDate, coverageTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
 
-    // Date filter
-    if (startDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.publication_date) >= startDate
-      );
-    }
-    if (endDate) {
-      filtered = filtered.filter(
-        (article) => new Date(article.publication_date) <= endDate
-      );
-    }
+  const handleLoadMore = async () => {
+    const nextPage = currentPage + 1;
+    await fetchArticles(nextPage, 50, true);
+  };
 
-    // Sentiment filter
-    if (sentimentFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => article.sentiment === sentimentFilter
-      );
-    }
-
-    // Coverage type filter
-    if (coverageTypeFilter !== "all") {
-      filtered = filtered.filter(
-        (article) => article.coverage_type === coverageTypeFilter
-      );
-    }
-
-    // Sorting
-    filtered.sort((a, b) => {
-      let aVal: string | number = a[sortBy as keyof Article] as string | number;
-      let bVal: string | number = b[sortBy as keyof Article] as string | number;
-
-      if (sortBy === "publication_date") {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
-      }
-
-      if (sortOrder === "asc") {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    setFilteredArticles(filtered);
-  }, [
-    articles,
-    searchQuery,
-    startDate,
-    endDate,
-    sentimentFilter,
-    coverageTypeFilter,
-    countryFilter,
-    sortBy,
-    sortOrder,
-  ]);
+  // Client-side filtering removed - now handled by backend
 
   const handleAddArticle = async () => {
     if (!newArticle.source) return toast.error("Source name is required.");
@@ -865,7 +831,7 @@ export default function OnlineMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredArticles.slice(0, visibleCount).map((article) => (
+                    {filteredArticles.map((article) => (
                       <TableRow key={article._id}>
                         <TableCell className="py-4">
                           <div className="flex items-center space-x-2">
@@ -935,15 +901,15 @@ export default function OnlineMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {Math.min(visibleCount, filteredArticles.length)}{" "}
-                    out of {totalCount} articles
+                    Viewing {filteredArticles.length} out of {totalCount} articles
                   </p>
-                  {filteredArticles.length > visibleCount && (
+                  {currentPage < totalPages && (
                     <Button
                       variant="outline"
-                      onClick={() => setVisibleCount(visibleCount + 20)}
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
                     >
-                      Load More
+                      {loadingMore ? "Loading..." : "Load More"}
                     </Button>
                   )}
                 </div>

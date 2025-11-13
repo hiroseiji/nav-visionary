@@ -100,8 +100,10 @@ export default function PrintMedia() {
   };
 
   // Pagination
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -127,18 +129,21 @@ export default function PrintMedia() {
   // Refetch when filters change
   useEffect(() => {
     if (orgId) {
-      setVisibleCount(20);
-      fetchArticles();
+      setCurrentPage(1);
+      fetchArticles(1, 30, false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, startDate, endDate, sectionFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
 
-  const fetchArticles = async (page = 1, limit = 30) => {
-    setLoading(true);
+  const fetchArticles = async (page = 1, limit = 30, append = false) => {
+    if (!orgId) return;
+
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+    
     const seq = ++fetchSeq.current;
 
     try {
-      // Build query params
       const params = new URLSearchParams();
       params.append('page', String(page));
       params.append('limit', String(limit));
@@ -160,19 +165,27 @@ export default function PrintMedia() {
         }
       );
 
-      if (seq !== fetchSeq.current) return; // stale response, drop it
+      if (seq !== fetchSeq.current) return;
 
-      // new backend returns { items, total, page, pages }
-      const list = res.data?.items || [];
+      const data = res.data;
+      const list = Array.isArray(data.items) ? data.items : [];
 
-      setArticles(list);
-      setFilteredArticles(list);
-      setTotalCount(res.data.total || list.length);
+      if (append) {
+        setArticles((prev) => [...prev, ...list]);
+        setFilteredArticles((prev) => [...prev, ...list]);
+      } else {
+        setArticles(list);
+        setFilteredArticles(list);
+      }
+
+      setCurrentPage(data.page || page);
+      setTotalPages(data.pages || 1);
+      setTotalCount(data.total || list.length);
 
       return {
-        page: res.data.page,
-        total: res.data.total,
-        pages: res.data.pages,
+        page: data.page,
+        total: data.total,
+        pages: data.pages,
       };
     } catch (e) {
       if (seq !== fetchSeq.current) return;
@@ -180,8 +193,16 @@ export default function PrintMedia() {
       toast.error("Failed to load articles");
       return null;
     } finally {
-      if (seq === fetchSeq.current) setLoading(false);
+      if (seq === fetchSeq.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
+  };
+
+  const handleLoadMore = async () => {
+    const nextPage = currentPage + 1;
+    await fetchArticles(nextPage, 50, true);
   };
 
   // Client-side filtering removed - now handled by backend
@@ -777,7 +798,7 @@ export default function PrintMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredArticles.slice(0, visibleCount).map((article) => (
+                    {filteredArticles.map((article) => (
                       <TableRow key={article._id}>
                         <TableCell className="font-medium max-w-md">
                           {article.url ? (
@@ -841,14 +862,15 @@ export default function PrintMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {Math.min(visibleCount, filteredArticles.length)} out of {totalCount} articles
+                    Viewing {filteredArticles.length} out of {totalCount} articles
                   </p>
-                  {filteredArticles.length > visibleCount && (
+                  {currentPage < totalPages && (
                     <Button
                       variant="outline"
-                      onClick={() => setVisibleCount(visibleCount + 20)}
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
                     >
-                      Load More
+                      {loadingMore ? "Loading..." : "Load More"}
                     </Button>
                   )}
                 </div>

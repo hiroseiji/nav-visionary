@@ -113,10 +113,9 @@ export default function SocialMedia() {
   };
 
   // Pagination
-  const [visibleCount, setVisibleCount] = useState(20);
-  const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
 
   // Add/Edit dialog
@@ -139,27 +138,21 @@ export default function SocialMedia() {
     if (orgId) fetchPosts();
   }, [orgId]);
 
+  // Refetch when filters change
   useEffect(() => {
     if (orgId) {
-      setVisibleCount(20);
-      fetchPosts();
+      setCurrentPage(1);
+      fetchPosts(1, 30, false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    orgId,
-    searchQuery,
-    startDate,
-    endDate,
-    sourceFilter,
-    groupFilter,
-    countryFilter,
-    sentimentFilter,
-    sortBy,
-    sortOrder,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, startDate, endDate, sourceFilter, groupFilter, countryFilter, sentimentFilter, sortBy, sortOrder]);
 
-  const fetchPosts = async (page = 1, limit = 30) => {
-    setLoading(true);
+  const fetchPosts = async (page = 1, limit = 30, append = false) => {
+    if (!orgId) return;
+
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+    
     const seq = ++fetchSeq.current;
 
     try {
@@ -169,8 +162,8 @@ export default function SocialMedia() {
 
       if (searchQuery) params.append("search", searchQuery);
       if (startDate)
-        params.append("startDate", format(startDate, "yyyy-MM-dd")); // filters createdTime >=
-      if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd")); // filters createdTime <=
+        params.append("startDate", format(startDate, "yyyy-MM-dd"));
+      if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd"));
       if (sourceFilter && sourceFilter !== "all")
         params.append("source", sourceFilter);
       if (groupFilter && groupFilter !== "all")
@@ -180,7 +173,7 @@ export default function SocialMedia() {
       if (sentimentFilter && sentimentFilter !== "all")
         params.append("sentiment", sentimentFilter);
       if (sortBy) params.append("sortBy", sortBy);
-      if (sortOrder) params.append("sortOrder", sortOrder); // "asc" | "desc"
+      if (sortOrder) params.append("sortOrder", sortOrder);
 
       const res = await axios.post(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi2?${params.toString()}`,
@@ -190,91 +183,47 @@ export default function SocialMedia() {
         }
       );
 
-      if (seq !== fetchSeq.current) return null; // stale response guard
+      if (seq !== fetchSeq.current) return;
 
-      // backend returns { items, total, page, pages }
-      const list = res.data?.items || [];
-      setPosts(list);
-      setFilteredPosts(list);
-      setTotalCount(res.data?.total ?? list.length);
+      const data = res.data;
+      const list = Array.isArray(data.items) ? data.items : [];
+
+      if (append) {
+        setPosts((prev) => [...prev, ...list]);
+        setFilteredPosts((prev) => [...prev, ...list]);
+      } else {
+        setPosts(list);
+        setFilteredPosts(list);
+      }
+
+      setCurrentPage(data.page || page);
+      setTotalPages(data.pages || 1);
+      setTotalCount(data.total || list.length);
 
       return {
-        page: res.data?.page ?? page,
-        total: res.data?.total ?? list.length,
-        pages: res.data?.pages ?? 1,
+        page: data.page,
+        total: data.total,
+        pages: data.pages,
       };
     } catch (e) {
-      if (seq !== fetchSeq.current) return null;
+      if (seq !== fetchSeq.current) return;
       console.error("Error fetching social posts:", e);
       toast.error("Failed to load social posts");
       return null;
     } finally {
-      if (seq === fetchSeq.current) setLoading(false);
+      if (seq === fetchSeq.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   };
-
-  // Apply filters
-  useEffect(() => {
-    let filtered = [...posts];
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (post) =>
-          post.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.pageName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.source?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (sourceFilter !== "all") {
-      filtered = filtered.filter((post) => post.source === sourceFilter);
-    }
-
-    if (sentimentFilter !== "all") {
-      filtered = filtered.filter(
-        (post) => mapSentimentToLabel(post.sentiment) === sentimentFilter
-      );
-    }
-
-    if (groupFilter !== "all") {
-      filtered = filtered.filter((post) => post.group === groupFilter);
-    }
-
-    filtered.sort((a, b) => {
-      let aVal: string | number = a[sortBy as keyof SocialPost] as
-        | string
-        | number;
-      let bVal: string | number = b[sortBy as keyof SocialPost] as
-        | string
-        | number;
-
-      if (sortBy === "createdTime") {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
-      }
-
-      if (sortOrder === "asc") {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    setFilteredPosts(filtered);
-  }, [
-    posts,
-    searchQuery,
-    sourceFilter,
-    sentimentFilter,
-    groupFilter,
-    sortBy,
-    sortOrder,
-  ]);
 
   const handleLoadMore = async () => {
     const nextPage = currentPage + 1;
     await fetchPosts(nextPage, 50, true);
   };
+
+  // Client-side filtering removed - now handled by backend
 
   const handleAddPost = async () => {
     // 1. Required field validation
@@ -963,7 +912,7 @@ export default function SocialMedia() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPosts.slice(0, visibleCount).map((post) => (
+                    {filteredPosts.map((post) => (
                       <TableRow key={post._id}>
                         <TableCell className="max-w-md">
                           <div className="flex items-start gap-3">
@@ -1078,15 +1027,15 @@ export default function SocialMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {Math.min(visibleCount, filteredPosts.length)} out
-                    of {totalCount} articles
+                    Viewing {filteredPosts.length} out of {totalCount} posts
                   </p>
-                  {filteredPosts.length > visibleCount && (
+                  {currentPage < totalPages && (
                     <Button
                       variant="outline"
-                      onClick={() => setVisibleCount(visibleCount + 20)}
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
                     >
-                      Load More
+                      {loadingMore ? "Loading..." : "Load More"}
                     </Button>
                   )}
                 </div>

@@ -146,6 +146,7 @@ export default function BroadcastMedia() {
       setCurrentPage(1);
       fetchArticles(1, 30, false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, startDate, endDate, stationTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
 
   const fetchArticles = async (page = 1, limit = 30, append = false) => {

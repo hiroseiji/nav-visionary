@@ -47,12 +47,8 @@ import {
   Search,
   Plus,
   MoreVertical,
-  ThumbsUp,
-  ThumbsDown,
-  Minus,
   ArrowUpDown,
   CalendarIcon,
-  Newspaper,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";

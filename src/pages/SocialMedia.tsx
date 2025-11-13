@@ -44,16 +44,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Search,
   Plus,
   MoreVertical,
-  ThumbsUp,
-  ThumbsDown,
-  Minus,
   ArrowUpDown,
-  ExternalLink,
-  Calendar as CalendarIcon,
+  CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -61,8 +58,11 @@ import {
   mapSentimentToLabel,
   mapLabelToSentiment,
 } from "@/utils/sentimentUtils";
-import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
-import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface SocialPost {
   _id: string;
@@ -115,6 +115,9 @@ export default function SocialMedia() {
   // Pagination
   const [visibleCount, setVisibleCount] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -267,6 +270,11 @@ export default function SocialMedia() {
     sortBy,
     sortOrder,
   ]);
+
+  const handleLoadMore = async () => {
+    const nextPage = currentPage + 1;
+    await fetchPosts(nextPage, 50, true);
+  };
 
   const handleAddPost = async () => {
     // 1. Required field validation

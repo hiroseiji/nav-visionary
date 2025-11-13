@@ -86,11 +86,7 @@ export default function SocialMedia() {
   const fetchSeq = useRef(0);
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<SocialPost[]>([]);
-  const [allUniqueValues, setAllUniqueValues] = useState<{
-    sources: string[];
-    groups: string[];
-    countries: string[];
-  }>({ sources: [], groups: [], countries: [] });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,8 +116,8 @@ export default function SocialMedia() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add/Edit dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -140,32 +136,8 @@ export default function SocialMedia() {
   });
 
   useEffect(() => {
-    if (orgId) {
-      fetchPosts();
-      fetchAllUniqueValues();
-    }
+    if (orgId) fetchPosts();
   }, [orgId]);
-
-  const fetchAllUniqueValues = async () => {
-    if (!orgId) return;
-    try {
-      const res = await axios.post(
-        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi2?limit=10000`,
-        { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      const allPosts = Array.isArray(res.data.items) ? res.data.items : [];
-      setAllUniqueValues({
-        sources: Array.from(new Set(allPosts.map((p: SocialPost) => p.source).filter(Boolean))),
-        groups: Array.from(new Set(allPosts.map((p: SocialPost) => p.group).filter(Boolean))),
-        countries: Array.from(new Set(allPosts.map((p: SocialPost) => p.country).filter(Boolean))),
-      });
-    } catch (e) {
-      console.error("Error fetching unique values:", e);
-    }
-  };
 
   // Refetch when filters change
   useEffect(() => {
@@ -173,15 +145,25 @@ export default function SocialMedia() {
       setCurrentPage(1);
       fetchPosts(1, 30, false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, startDate, endDate, sourceFilter, groupFilter, countryFilter, sentimentFilter, sortBy, sortOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchQuery,
+    startDate,
+    endDate,
+    sourceFilter,
+    groupFilter,
+    countryFilter,
+    sentimentFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const fetchPosts = async (page = 1, limit = 30, append = false) => {
     if (!orgId) return;
 
     if (!append) setLoading(true);
     else setLoadingMore(true);
-    
+
     const seq = ++fetchSeq.current;
 
     try {
@@ -193,13 +175,10 @@ export default function SocialMedia() {
       if (startDate)
         params.append("startDate", format(startDate, "yyyy-MM-dd"));
       if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd"));
-      if (sourceFilter && sourceFilter !== "all")
-        params.append("source", sourceFilter);
-      if (groupFilter && groupFilter !== "all")
-        params.append("group", groupFilter);
-      if (countryFilter && countryFilter !== "all")
-        params.append("country", countryFilter);
-      if (sentimentFilter && sentimentFilter !== "all")
+      if (sourceFilter !== "all") params.append("source", sourceFilter);
+      if (groupFilter !== "all") params.append("group", groupFilter);
+      if (countryFilter !== "all") params.append("country", countryFilter);
+      if (sentimentFilter !== "all")
         params.append("sentiment", sentimentFilter);
       if (sortBy) params.append("sortBy", sortBy);
       if (sortOrder) params.append("sortOrder", sortOrder);
@@ -310,9 +289,9 @@ export default function SocialMedia() {
         toast.success("Post added successfully");
       }
 
-      fetchAllUniqueValues();
       setIsDialogOpen(false);
       resetForm();
+      fetchPosts();
     } catch (error) {
       console.error("Error adding post:", error);
       toast.error(
@@ -381,7 +360,6 @@ export default function SocialMedia() {
       );
 
       toast.success("Post updated successfully");
-      fetchAllUniqueValues();
 
       // trust backend copy if it returned one (same pattern as print)
       const updated: SocialPost = res.data?.post
@@ -430,7 +408,6 @@ export default function SocialMedia() {
       );
       toast.success("Post deleted successfully");
       fetchPosts();
-      fetchAllUniqueValues();
     } catch (error) {
       console.error("Error deleting post:", error);
       const errorMsg =
@@ -522,9 +499,15 @@ export default function SocialMedia() {
     );
   };
 
-  const uniqueSources = allUniqueValues.sources;
-  const uniqueGroups = allUniqueValues.groups;
-  const uniqueCountries = allUniqueValues.countries;
+  const uniqueSources = Array.from(
+    new Set(posts.map((a) => a.source).filter(Boolean))
+  );
+  const uniqueGroups = Array.from(
+    new Set(posts.map((a) => a.group).filter(Boolean))
+  );
+  const uniqueCountries = Array.from(
+    new Set(posts.map((a) => a.country).filter(Boolean))
+  );
 
   return (
     <SidebarLayout>
@@ -738,7 +721,7 @@ export default function SocialMedia() {
             <CardTitle className="text-lg">Filters & Search</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input

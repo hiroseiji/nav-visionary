@@ -31,7 +31,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,12 +47,8 @@ import {
   Search,
   Plus,
   MoreVertical,
-  ThumbsUp,
-  ThumbsDown,
-  Minus,
   ArrowUpDown,
   CalendarIcon,
-  Radio,
   ExternalLink,
 } from "lucide-react";
 import {
@@ -220,7 +215,6 @@ export default function BroadcastMedia() {
     await fetchArticles(nextPage, 50, true);
   };
 
-  // Client-side filtering removed - now handled by backend
 
   const handleAddArticle = async () => {
     if (!newArticle.station) return toast.error("Station is required.");
@@ -341,10 +335,8 @@ export default function BroadcastMedia() {
       setIsDialogOpen(false);
       resetForm();
 
-      // optional: soft revalidate later
       setTimeout(() => fetchArticles(), 300);
     } catch (e) {
-      // rollback on real failure
       setArticles(prevArticles);
       const msg =
         axios.isAxiosError(e) && e.response?.data?.error

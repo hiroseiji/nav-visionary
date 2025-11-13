@@ -86,6 +86,11 @@ export default function SocialMedia() {
   const fetchSeq = useRef(0);
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<SocialPost[]>([]);
+  const [allUniqueValues, setAllUniqueValues] = useState<{
+    sources: string[];
+    groups: string[];
+    countries: string[];
+  }>({ sources: [], groups: [], countries: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -135,8 +140,32 @@ export default function SocialMedia() {
   });
 
   useEffect(() => {
-    if (orgId) fetchPosts();
+    if (orgId) {
+      fetchPosts();
+      fetchAllUniqueValues();
+    }
   }, [orgId]);
+
+  const fetchAllUniqueValues = async () => {
+    if (!orgId) return;
+    try {
+      const res = await axios.post(
+        `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/posts/multi2?limit=10000`,
+        { organizationIds: Array.isArray(orgId) ? orgId : [orgId] },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      const allPosts = Array.isArray(res.data.items) ? res.data.items : [];
+      setAllUniqueValues({
+        sources: Array.from(new Set(allPosts.map((p: SocialPost) => p.source).filter(Boolean))),
+        groups: Array.from(new Set(allPosts.map((p: SocialPost) => p.group).filter(Boolean))),
+        countries: Array.from(new Set(allPosts.map((p: SocialPost) => p.country).filter(Boolean))),
+      });
+    } catch (e) {
+      console.error("Error fetching unique values:", e);
+    }
+  };
 
   // Refetch when filters change
   useEffect(() => {
@@ -278,8 +307,10 @@ export default function SocialMedia() {
           sentiment: newPost.sentiment,
         };
         setPosts((prev) => [patchedPost, ...prev]);
+        toast.success("Post added successfully");
       }
 
+      fetchAllUniqueValues();
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
@@ -350,6 +381,7 @@ export default function SocialMedia() {
       );
 
       toast.success("Post updated successfully");
+      fetchAllUniqueValues();
 
       // trust backend copy if it returned one (same pattern as print)
       const updated: SocialPost = res.data?.post
@@ -398,6 +430,7 @@ export default function SocialMedia() {
       );
       toast.success("Post deleted successfully");
       fetchPosts();
+      fetchAllUniqueValues();
     } catch (error) {
       console.error("Error deleting post:", error);
       const errorMsg =
@@ -489,15 +522,9 @@ export default function SocialMedia() {
     );
   };
 
-  const uniqueSources = Array.from(
-    new Set(posts.map((p) => p.source).filter(Boolean))
-  ); // Platform options
-  const uniqueGroups = Array.from(
-    new Set(posts.map((p) => p.group).filter(Boolean))
-  );
-  const uniqueCountries = Array.from(
-    new Set(posts.map((a) => a.country).filter(Boolean))
-  );
+  const uniqueSources = allUniqueValues.sources;
+  const uniqueGroups = allUniqueValues.groups;
+  const uniqueCountries = allUniqueValues.countries;
 
   return (
     <SidebarLayout>

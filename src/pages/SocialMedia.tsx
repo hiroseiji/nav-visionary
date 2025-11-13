@@ -53,8 +53,7 @@ import {
   Minus,
   ArrowUpDown,
   ExternalLink,
-  Calendar,
-  CalendarIcon,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -63,6 +62,7 @@ import {
   mapLabelToSentiment,
 } from "@/utils/sentimentUtils";
 import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import { Calendar } from "@/components/ui/calendar";
 
 interface SocialPost {
   _id: string;
@@ -834,7 +834,7 @@ export default function SocialMedia() {
                   <Calendar
                     mode="single"
                     selected={startDate}
-                    onSelect={setStartDate}
+                    onSelect={(date) => setStartDate(date)}
                     initialFocus
                   />
                 </PopoverContent>
@@ -853,7 +853,7 @@ export default function SocialMedia() {
                   <Calendar
                     mode="single"
                     selected={endDate}
-                    onSelect={setEndDate}
+                    onSelect={(date) => setEndDate(date)}
                     initialFocus
                   />
                 </PopoverContent>

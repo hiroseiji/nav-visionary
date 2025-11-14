@@ -850,7 +850,16 @@ export default function OnlineMedia() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>{article.title}</TableCell>
+                        <TableCell className="max-w-[300px]">
+                          <a
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline line-clamp-2 text-sm"
+                          >
+                            {article.title}
+                          </a>
+                        </TableCell>
                         {/* <TableCell>{article.snippet}</TableCell> */}
                         <TableCell>{article.country}</TableCell>
                         <TableCell>

@@ -2,14 +2,22 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { X } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ALL_COUNTRIES } from '@/utils/countries';
 
 interface Article {
   _id: string;
@@ -18,8 +26,10 @@ interface Article {
   url: string;
   snippet: string;
   publication_date: string;
+  country: string;
   sentiment: string;
-  ave: number;
+  reach: number;
+  ave?: number;
 }
 
 interface EditArticleDialogProps {
@@ -41,8 +51,9 @@ export const EditArticleDialog: React.FC<EditArticleDialogProps> = ({
     url: '',
     snippet: '',
     publication_date: '',
+    country: '',
     sentiment: 'neutral',
-    ave: 0
+    reach: 0
   });
 
   useEffect(() => {
@@ -54,8 +65,9 @@ export const EditArticleDialog: React.FC<EditArticleDialogProps> = ({
         snippet: article.snippet || '',
         publication_date: article.publication_date ? 
           new Date(article.publication_date).toISOString().split('T')[0] : '',
+        country: article.country || '',
         sentiment: article.sentiment || 'neutral',
-        ave: article.ave || 0
+        reach: article.reach || 0
       });
     }
   }, [article]);
@@ -79,103 +91,121 @@ export const EditArticleDialog: React.FC<EditArticleDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>Edit Article</DialogTitle>
-            <button
-              onClick={onClose}
-              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <DialogTitle>Edit Article</DialogTitle>
+          <DialogDescription>
+            Update the article details below
+          </DialogDescription>
         </DialogHeader>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="source">Source</Label>
+              <Input
+                id="source"
+                value={formData.source}
+                onChange={(e) => handleChange('source', e.target.value)}
+                placeholder="Media source"
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="source">Source Name</Label>
-            <Input
-              id="source"
-              value={formData.source}
-              onChange={(e) => handleChange('source', e.target.value)}
-              placeholder="Enter source name"
-            />
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Article title"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="url">URL</Label>
+              <Input
+                id="url"
+                value={formData.url}
+                onChange={(e) => handleChange('url', e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="snippet">Snippet</Label>
+              <Input
+                id="snippet"
+                value={formData.snippet}
+                onChange={(e) => handleChange('snippet', e.target.value)}
+                placeholder="Article snippet"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="publication_date">Date</Label>
+              <Input
+                id="publication_date"
+                type="date"
+                value={formData.publication_date}
+                onChange={(e) => handleChange('publication_date', e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="sentiment">Sentiment</Label>
+              <Select
+                value={formData.sentiment}
+                onValueChange={(value) => handleChange('sentiment', value)}
+              >
+                <SelectTrigger id="sentiment">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="negative">Negative</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="country">Country</Label>
+              <Select
+                value={formData.country}
+                onValueChange={(value) => handleChange('country', value)}
+              >
+                <SelectTrigger id="country">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_COUNTRIES.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="reach">Reach</Label>
+              <Input
+                id="reach"
+                type="number"
+                value={formData.reach}
+                onChange={(e) => handleChange('reach', Number(e.target.value))}
+                placeholder="0"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title">Article Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter article title"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="url">Article URL</Label>
-            <Input
-              id="url"
-              value={formData.url}
-              onChange={(e) => handleChange('url', e.target.value)}
-              placeholder="Enter article URL"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="snippet">Article Snippet</Label>
-            <Textarea
-              id="snippet"
-              value={formData.snippet}
-              onChange={(e) => handleChange('snippet', e.target.value)}
-              placeholder="Enter article snippet"
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="publication_date">Publication Date</Label>
-            <Input
-              id="publication_date"
-              type="date"
-              value={formData.publication_date}
-              onChange={(e) => handleChange('publication_date', e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="sentiment">Article Sentiment</Label>
-            <select
-              id="sentiment"
-              value={formData.sentiment}
-              onChange={(e) => handleChange('sentiment', e.target.value)}
-              className="w-full p-2 border rounded-md bg-background"
-            >
-              <option value="positive">Positive</option>
-              <option value="neutral">Neutral</option>
-              <option value="negative">Negative</option>
-              <option value="mixed">Mixed</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ave">CPM</Label>
-            <Input
-              id="ave"
-              type="number"
-              value={formData.ave}
-              onChange={(e) => handleChange('ave', parseFloat(e.target.value) || 0)}
-              placeholder="Enter CPM value"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">
-              Save Changes
+              Update Article
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

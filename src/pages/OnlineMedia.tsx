@@ -271,14 +271,13 @@ export default function OnlineMedia() {
         }
       );
 
-      if (response.status === 201 && response.data.article) {
-        setArticles((prev) => [response.data.article, ...prev]);
+      if (response.status === 201) {
         toast.success("Article added successfully");
+        setIsDialogOpen(false);
+        resetForm();
+        setCurrentPage(1);
+        await fetchArticles(1, 30, false);
       }
-
-      setIsDialogOpen(false);
-      resetForm();
-      fetchArticles();
     } catch (error) {
       console.error("Error adding article:", error);
       const errorMsg =

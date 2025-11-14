@@ -68,6 +68,7 @@ import {
   mapSentimentToLabel,
   mapLabelToSentiment,
 } from "@/utils/sentimentUtils";
+import { ALL_COUNTRIES } from "@/utils/countries";
 import { AxiosError } from "axios";
 
 interface Article {
@@ -588,7 +589,7 @@ export default function OnlineMedia() {
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {uniqueCountries.map((country) => (
+                      {ALL_COUNTRIES.map((country) => (
                         <SelectItem key={country} value={country}>
                           {country}
                         </SelectItem>

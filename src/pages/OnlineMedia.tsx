@@ -306,14 +306,12 @@ export default function OnlineMedia() {
       reach: Number(newArticle.reach),
       sentiment: mapLabelToSentiment(newArticle.sentiment),
       url: newArticle.url.trim(),
-      cpm: Number(newArticle.cpm) || 0,
-      coverage_type: newArticle.coverage_type || "Not Set",
     };
 
     // snapshot for rollback
     const prevArticles = articles;
 
-    // optimistic UI: ensure sentiment stays a string label for Article type
+    // optimistic UI: keep sentiment as label for the UI type
     const optimistic: Article = {
       ...editingArticle,
       title: payload.title ?? editingArticle.title,
@@ -321,11 +319,11 @@ export default function OnlineMedia() {
       snippet: payload.snippet ?? editingArticle.snippet,
       country: payload.country ?? editingArticle.country,
       publication_date:
-        payload.publication_date ?? editingArticle.publication_date,
+        (payload.publication_date as unknown as string) ??
+        editingArticle.publication_date,
       reach: (payload.reach as number) ?? editingArticle.reach,
       sentiment: mapSentimentToLabel(payload.sentiment),
       url: payload.url ?? editingArticle.url,
-      coverage_type: payload.coverage_type ?? editingArticle.coverage_type,
     };
 
     setArticles((prev) =>
@@ -343,7 +341,6 @@ export default function OnlineMedia() {
 
       toast.success("Article updated successfully");
 
-      // trust backend copy if it returned one, otherwise keep optimistic
       const updated: Article = res.data?.article
         ? {
             ...optimistic,
@@ -356,18 +353,18 @@ export default function OnlineMedia() {
         prev.map((a) => (a._id === editingArticle._id ? updated : a))
       );
 
-      // close after success
       setIsDialogOpen(false);
       resetForm();
 
-      // optional: soft revalidate later
+      // soft revalidate
       setTimeout(() => fetchArticles(), 300);
     } catch (e) {
-      // rollback on real failure
+      // rollback on failure
       setArticles(prevArticles);
       const msg =
-        axios.isAxiosError(e) && e.response?.data?.error
-          ? e.response.data.error
+        axios.isAxiosError(e) &&
+        (e.response?.data?.error || e.response?.data?.message)
+          ? e.response.data.error || e.response.data.message
           : "Failed to update article";
       toast.error(msg);
     } finally {

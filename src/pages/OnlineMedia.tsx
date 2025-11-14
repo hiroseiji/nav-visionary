@@ -147,7 +147,7 @@ export default function OnlineMedia() {
 
     if (!append) setLoading(true);
     else setLoadingMore(true);
-    
+
     const seq = ++fetchSeq.current;
 
     try {
@@ -217,15 +217,22 @@ export default function OnlineMedia() {
       setCurrentPage(1);
       fetchArticles(1, 30, false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, startDate, endDate, coverageTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchQuery,
+    startDate,
+    endDate,
+    coverageTypeFilter,
+    sentimentFilter,
+    countryFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const handleLoadMore = async () => {
     const nextPage = currentPage + 1;
     await fetchArticles(nextPage, 50, true);
   };
-
-  // Client-side filtering removed - now handled by backend
 
   const handleAddArticle = async () => {
     if (!newArticle.source) return toast.error("Source name is required.");
@@ -250,8 +257,8 @@ export default function OnlineMedia() {
         reach: Number(newArticle.reach),
         sentiment: mapLabelToSentiment(newArticle.sentiment),
         url: newArticle.url.trim(),
-        cpm: Number(newArticle.cpm) || 0,
-        coverage_type: newArticle.coverage_type || "Not Set",
+        // no cpm
+        // no coverage_type
       };
 
       const response = await axios.post(
@@ -901,7 +908,8 @@ export default function OnlineMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {filteredArticles.length} out of {totalCount} articles
+                    Viewing {filteredArticles.length} out of {totalCount}{" "}
+                    articles
                   </p>
                   {currentPage < totalPages && (
                     <Button

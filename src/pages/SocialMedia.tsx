@@ -134,29 +134,6 @@ export default function SocialMedia() {
     reach: 0,
   });
 
-  useEffect(() => {
-    if (orgId) fetchPosts();
-  }, [orgId]);
-
-  // Refetch when filters change
-  useEffect(() => {
-    if (orgId) {
-      setCurrentPage(1);
-      fetchPosts(1, 30, false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchQuery,
-    startDate,
-    endDate,
-    sourceFilter,
-    groupFilter,
-    countryFilter,
-    sentimentFilter,
-    sortBy,
-    sortOrder,
-  ]);
-
   const fetchPosts = async (page = 1, limit = 30, append = false) => {
     if (!orgId) return;
 
@@ -222,6 +199,29 @@ export default function SocialMedia() {
       }
     }
   };
+
+  useEffect(() => {
+    if (orgId) fetchPosts();
+  }, [orgId]);
+
+  // Refetch when filters change
+  useEffect(() => {
+    if (orgId) {
+      setCurrentPage(1);
+      fetchPosts(1, 30, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchQuery,
+    startDate,
+    endDate,
+    sourceFilter,
+    groupFilter,
+    countryFilter,
+    sentimentFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const handleLoadMore = async () => {
     const nextPage = currentPage + 1;

@@ -78,6 +78,34 @@ interface BroadcastArticle {
   url?: string;
 }
 
+interface CountryFacet {
+  value: string;
+  count: number;
+}
+
+interface StationTypeFacet {
+  value: string;
+  count: number;
+}
+
+interface SentimentFacet {
+  value: string;   // "positive" | "neutral" | "negative" | "mixed"
+  label: string;   // same as value
+  count: number;
+}
+
+interface BroadcastMultiResponse {
+  items: BroadcastArticle[];
+  page: number;
+  pages: number;
+  total: number;
+  facets?: {
+    countries?: CountryFacet[];
+    stationTypes?: StationTypeFacet[];
+    sentiments?: SentimentFacet[];
+  };
+}
+
 export default function BroadcastMedia() {
   const { orgId } = useParams();
   const fetchSeq = useRef(0);
@@ -95,6 +123,15 @@ export default function BroadcastMedia() {
   const [stationTypeFilter, setStationTypeFilter] = useState<string>("all");
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
+
+  // NEW: facet options state
+  const [countryOptions, setCountryOptions] = useState<CountryFacet[]>([]);
+  const [stationTypeOptions, setStationTypeOptions] = useState<StationTypeFacet[]>(
+    []
+  );
+  const [sentimentOptions, setSentimentOptions] = useState<SentimentFacet[]>(
+    []
+  );
 
   // Sorting
   const [sortBy, setSortBy] = useState<string>("mentionDT");
@@ -141,33 +178,45 @@ export default function BroadcastMedia() {
       setCurrentPage(1);
       fetchArticles(1, 30, false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, startDate, endDate, stationTypeFilter, sentimentFilter, countryFilter, sortBy, sortOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    searchQuery,
+    startDate,
+    endDate,
+    stationTypeFilter,
+    sentimentFilter,
+    countryFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   const fetchArticles = async (page = 1, limit = 30, append = false) => {
     if (!orgId) return;
 
     if (!append) setLoading(true);
     else setLoadingMore(true);
-    
+
     const seq = ++fetchSeq.current;
 
     try {
       // Build query params
       const params = new URLSearchParams();
-      params.append('page', String(page));
-      params.append('limit', String(limit));
-      
-      if (searchQuery) params.append('search', searchQuery);
-      if (startDate) params.append('startDate', format(startDate, 'yyyy-MM-dd'));
-      if (endDate) params.append('endDate', format(endDate, 'yyyy-MM-dd'));
-      if (stationTypeFilter !== 'all') params.append('stationType', stationTypeFilter);
-      if (sentimentFilter !== 'all') params.append('sentiment', sentimentFilter);
-      if (countryFilter !== 'all') params.append('country', countryFilter);
-      params.append('sortBy', sortBy);
-      params.append('sortOrder', sortOrder);
+      params.append("page", String(page));
+      params.append("limit", String(limit));
 
-      const res = await axios.post(
+      if (searchQuery) params.append("search", searchQuery);
+      if (startDate)
+        params.append("startDate", format(startDate, "yyyy-MM-dd"));
+      if (endDate) params.append("endDate", format(endDate, "yyyy-MM-dd"));
+      if (stationTypeFilter !== "all")
+        params.append("stationType", stationTypeFilter);
+      if (sentimentFilter !== "all")
+        params.append("sentiment", sentimentFilter);
+      if (countryFilter !== "all") params.append("country", countryFilter);
+      params.append("sortBy", sortBy);
+      params.append("sortOrder", sortOrder);
+
+      const res = await axios.post<BroadcastMultiResponse>(
         `https://sociallightbw-backend-34f7586fa57c.herokuapp.com/api/broadcastMedia/multi2?${params.toString()}`,
         { organizationIds: [orgId] },
         {
@@ -177,8 +226,37 @@ export default function BroadcastMedia() {
 
       if (seq !== fetchSeq.current) return; // stale response guard
 
-      const data = res.data;
+      const { data } = res;
       const list = Array.isArray(data.items) ? data.items : [];
+
+      // facets → countryOptions
+      const countriesFacet = data.facets?.countries ?? [];
+      const sentimentsFacet = data.facets?.sentiments ?? [];
+      const stationTypesFacet = data.facets?.stationTypes ?? [];
+
+      setCountryOptions(
+        countriesFacet.filter(
+          (c): c is CountryFacet =>
+            !!c && typeof c.value === "string" && c.value.trim() !== ""
+        )
+      );
+
+      setSentimentOptions(
+        sentimentsFacet.filter(
+          (s): s is SentimentFacet =>
+            !!s &&
+            typeof s.label === "string" &&
+            s.label.trim() !== "" &&
+            typeof s.value === "string" 
+        )
+      );
+
+      setStationTypeOptions(
+        stationTypesFacet.filter(
+          (t): t is StationTypeFacet =>
+            !!t && typeof t.value === "string" && t.value.trim() !== ""
+        )
+      );
 
       if (append) {
         setArticles((prev) => [...prev, ...list]);
@@ -197,7 +275,7 @@ export default function BroadcastMedia() {
         total: data.total,
         pages: data.pages,
       };
-    } catch (e) {
+    } catch (e: unknown) {
       if (seq !== fetchSeq.current) return;
       console.error("Error fetching broadcast articles:", e);
       toast.error("Failed to load broadcast articles");
@@ -214,7 +292,6 @@ export default function BroadcastMedia() {
     const nextPage = currentPage + 1;
     await fetchArticles(nextPage, 50, true);
   };
-
 
   const handleAddArticle = async () => {
     if (!newArticle.station) return toast.error("Station is required.");
@@ -419,10 +496,6 @@ export default function BroadcastMedia() {
       </Badge>
     );
   };
-
-  const uniqueCountries = Array.from(
-    new Set(articles.map((a) => a.country).filter(Boolean))
-  );
 
   const cleanMentionHeadline = (mention: string) => {
     const summaryMatch = mention.match(
@@ -653,8 +726,14 @@ export default function BroadcastMedia() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="tv">TV</SelectItem>
-                  <SelectItem value="radio">Radio</SelectItem>
+                  {stationTypeOptions.map((t) => (
+                    <SelectItem
+                      key={t.value}
+                      value={t.value.toLowerCase()} // "tv" / "radio"
+                    >
+                      {t.value.charAt(0).toUpperCase() + t.value.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select
@@ -666,21 +745,24 @@ export default function BroadcastMedia() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sentiments</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                  <SelectItem value="negative">Negative</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
+                  {sentimentOptions.map((s) => (
+                    <SelectItem key={s.label} value={s.label}>
+                      {s.label.charAt(0).toUpperCase() + s.label.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+
+              {/* Country Select */}
               <Select value={countryFilter} onValueChange={setCountryFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Country" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Countries</SelectItem>
-                  {uniqueCountries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
+                  {countryOptions.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.value}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -744,9 +826,7 @@ export default function BroadcastMedia() {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>
-                Broadcast Coverage ({totalCount})
-              </CardTitle>
+              <CardTitle>Broadcast Coverage ({totalCount})</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -901,7 +981,8 @@ export default function BroadcastMedia() {
                 </Table>
                 <div className="mt-4 flex flex-col items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Viewing {filteredArticles.length} out of {totalCount} articles
+                    Viewing {filteredArticles.length} out of {totalCount}{" "}
+                    articles
                   </p>
                   {currentPage < totalPages && (
                     <Button
